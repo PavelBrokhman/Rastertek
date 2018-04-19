@@ -65,6 +65,7 @@ namespace Tutorial2
 				ClientSize = new Size(Configuration.Width, Configuration.Height)
 			};
 
+
 			MainForm.Show();
 		}
 
