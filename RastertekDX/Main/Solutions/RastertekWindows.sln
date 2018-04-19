@@ -1,0 +1,371 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial2", "..\Tutorial2\Tutorial2.csproj", "{E54BB75F-7BE5-4A3A-9B48-3DA91643B636}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial3", "..\Tutorial3\Tutorial3.csproj", "{7A5E07FF-7EA3-4B01-92D2-38E2FADC8454}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial4", "..\Tutorial4\Tutorial4.csproj", "{6B3CBCB8-C2C6-4EA4-9FFD-1AF153EC494C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial5", "..\Tutorial5\Tutorial5.csproj", "{0B509DBD-E754-45DF-8B07-C3C1FF428AE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial6", "..\Tutorial6\Tutorial6.csproj", "{40EC3514-20FC-40F9-8B1F-1E53B6B773FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial7", "..\Tutorial7\Tutorial7.csproj", "{72330830-135D-4903-B889-12CCBB9F899B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial8", "..\Tutorial8\Tutorial8.csproj", "{3101FD6C-4872-4E7C-9DAD-20FB1AAFDE41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial9", "..\Tutorial9\Tutorial9.csproj", "{A2434BAD-777E-4C07-99F8-0F4FB43CE473}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial10", "..\Tutorial10\Tutorial10.csproj", "{52977CF1-11E1-4CDA-AC68-5118DEC0B937}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial11", "..\Tutorial11\Tutorial11.csproj", "{DD2CD54D-AED6-4465-A2A1-1178D299770D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial12", "..\Tutorial12\Tutorial12.csproj", "{7F729751-29CC-4FCC-B28B-C73ABC833A9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial13", "..\Tutorial13\Tutorial13.csproj", "{2FF969EF-863B-44CE-9410-3AB4EB77F9EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial14", "..\Tutorial14\Tutorial14.csproj", "{8D81D137-39DE-410A-AF44-E7B2BEFA416B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial15", "..\Tutorial15\Tutorial15.csproj", "{E977F415-52AD-40AB-AF07-497A3148D139}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial16", "..\Tutorial16\Tutorial16.csproj", "{945CC8AF-DC99-429A-8F93-0F7806F61224}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial17", "..\Tutorial17\Tutorial17.csproj", "{ECF24377-0552-422E-A420-9C7547807254}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial18", "..\Tutorial18\Tutorial18.csproj", "{18C0F5C3-B68B-4BC9-9028-F31299E5FF6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial19", "..\Tutorial19\Tutorial19.csproj", "{40EE8B37-0EF9-4700-9746-ED082402CA1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial20", "..\Tutorial20\Tutorial20.csproj", "{C3B1AC13-1B1C-4DAE-8635-16F7AFD11D0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial21", "..\Tutorial21\Tutorial21.csproj", "{841C8A2A-1501-4A38-B328-EE4EC4567C2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial22", "..\Tutorial22\Tutorial22.csproj", "{625983A1-DFF2-4C31-A834-C7DC61653804}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial23", "..\Tutorial23\Tutorial23.csproj", "{70C0FB1C-446D-42EC-825B-4084DD9CB452}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial24", "..\Tutorial24\Tutorial24.csproj", "{950B0371-1BE5-4D2A-B1B4-B65EF2A5FD3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial25", "..\Tutorial25\Tutorial25.csproj", "{20783447-C461-4F56-99FF-F7FCCE6EB5AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial26", "..\Tutorial26\Tutorial26.csproj", "{6E85DEEE-1E34-4E79-B329-E986B2625B33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainTutorial1", "..\TerrainTutorial1\TerrainTutorial1.csproj", "{57AF02C6-727D-43BD-91D6-10DFFC1BB496}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Externals", "Externals", "{5A35962A-AB82-41E4-BF10-3F664BD73869}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "data", "data", "{3BE78EA2-8DDF-4F1C-AFCF-6409DAD111B8}"
+	ProjectSection(SolutionItems) = preProject
+		..\Externals\data\alpha01.dds = ..\Externals\data\alpha01.dds
+		..\Externals\data\bump01.dds = ..\Externals\data\bump01.dds
+		..\Externals\data\bump02.dds = ..\Externals\data\bump02.dds
+		..\Externals\data\dirt01.dds = ..\Externals\data\dirt01.dds
+		..\Externals\data\font.dds = ..\Externals\data\font.dds
+		..\Externals\data\heightmap01.bmp = ..\Externals\data\heightmap01.bmp
+		..\Externals\data\light01.dds = ..\Externals\data\light01.dds
+		..\Externals\data\seafloor.dds = ..\Externals\data\seafloor.dds
+		..\Externals\data\sound01.wav = ..\Externals\data\sound01.wav
+		..\Externals\data\spec02.dds = ..\Externals\data\spec02.dds
+		..\Externals\data\stone01.dds = ..\Externals\data\stone01.dds
+		..\Externals\data\stone02.dds = ..\Externals\data\stone02.dds
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "models", "models", "{5C051499-8D21-40D8-B23E-E8CEEC229E9F}"
+	ProjectSection(SolutionItems) = preProject
+		..\Externals\models\Cube.rastertek = ..\Externals\models\Cube.rastertek
+		..\Externals\models\Cube.txt = ..\Externals\models\Cube.txt
+		..\Externals\models\Font.txt = ..\Externals\models\Font.txt
+		..\Externals\models\fontdata.txt = ..\Externals\models\fontdata.txt
+		..\Externals\models\sphere.txt = ..\Externals\models\sphere.txt
+		..\Externals\models\Square.txt = ..\Externals\models\Square.txt
+		..\Externals\models\Triangle.txt = ..\Externals\models\Triangle.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shaders", "shaders", "{D5367438-5492-4CAE-AFB2-9DAB18490EE7}"
+	ProjectSection(SolutionItems) = preProject
+		..\Externals\shaders\AlphaMap.ps = ..\Externals\shaders\AlphaMap.ps
+		..\Externals\shaders\AlphaMap.vs = ..\Externals\shaders\AlphaMap.vs
+		..\Externals\shaders\BumpMap.ps = ..\Externals\shaders\BumpMap.ps
+		..\Externals\shaders\BumpMap.vs = ..\Externals\shaders\BumpMap.vs
+		..\Externals\shaders\ClipPlane.ps = ..\Externals\shaders\ClipPlane.ps
+		..\Externals\shaders\ClipPlane.vs = ..\Externals\shaders\ClipPlane.vs
+		..\Externals\shaders\Color.ps = ..\Externals\shaders\Color.ps
+		..\Externals\shaders\Color.vs = ..\Externals\shaders\Color.vs
+		..\Externals\shaders\Fog.ps = ..\Externals\shaders\Fog.ps
+		..\Externals\shaders\Fog.vs = ..\Externals\shaders\Fog.vs
+		..\Externals\shaders\Font.ps = ..\Externals\shaders\Font.ps
+		..\Externals\shaders\Font.vs = ..\Externals\shaders\Font.vs
+		..\Externals\shaders\HeightMapTerrain.ps = ..\Externals\shaders\HeightMapTerrain.ps
+		..\Externals\shaders\HeightMapTerrain.vs = ..\Externals\shaders\HeightMapTerrain.vs
+		..\Externals\shaders\Light.ps = ..\Externals\shaders\Light.ps
+		..\Externals\shaders\Light.vs = ..\Externals\shaders\Light.vs
+		..\Externals\shaders\LightMap.ps = ..\Externals\shaders\LightMap.ps
+		..\Externals\shaders\LightMap.vs = ..\Externals\shaders\LightMap.vs
+		..\Externals\shaders\LightSimple.ps = ..\Externals\shaders\LightSimple.ps
+		..\Externals\shaders\LightSimple.vs = ..\Externals\shaders\LightSimple.vs
+		..\Externals\shaders\MultiTexture.ps = ..\Externals\shaders\MultiTexture.ps
+		..\Externals\shaders\MultiTexture.vs = ..\Externals\shaders\MultiTexture.vs
+		..\Externals\shaders\MultiTextureLight.ps = ..\Externals\shaders\MultiTextureLight.ps
+		..\Externals\shaders\MultiTextureLight.vs = ..\Externals\shaders\MultiTextureLight.vs
+		..\Externals\shaders\SpecMap.ps = ..\Externals\shaders\SpecMap.ps
+		..\Externals\shaders\SpecMap.vs = ..\Externals\shaders\SpecMap.vs
+		..\Externals\shaders\TexHeightMapTerrain.ps = ..\Externals\shaders\TexHeightMapTerrain.ps
+		..\Externals\shaders\TexHeightMapTerrain.vs = ..\Externals\shaders\TexHeightMapTerrain.vs
+		..\Externals\shaders\Texture.ps = ..\Externals\shaders\Texture.ps
+		..\Externals\shaders\Texture.vs = ..\Externals\shaders\Texture.vs
+		..\Externals\shaders\Translate.ps = ..\Externals\shaders\Translate.ps
+		..\Externals\shaders\Translate.vs = ..\Externals\shaders\Translate.vs
+		..\Externals\shaders\Transparent.ps = ..\Externals\shaders\Transparent.ps
+		..\Externals\shaders\Transparent.vs = ..\Externals\shaders\Transparent.vs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainTutorial2", "..\TerrainTutorial2\TerrainTutorial2.csproj", "{563FF58E-D800-4309-B63E-CA1CA953538C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainTutorial3", "..\TerrainTutorial3\TerrainTutorial3.csproj", "{21DCE84F-2B35-4F1A-B915-53DDFAB882FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainTutorial4", "..\TerrainTutorial4\TerrainTutorial4.csproj", "{74365C9A-2C95-4D2B-AEF0-3F7E27DA2DA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TerrainTutorial5", "..\TerrainTutorial5\TerrainTutorial5.csproj", "{A05680EC-40CC-4A83-897B-3796A3A91F7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tutorial27", "..\Tutorial27\Tutorial27.csproj", "{338BD683-34E3-43FD-91F1-6F3747C07EDC}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 32
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs27
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = ..\\Tutorial2\\Tutorial2.csproj
+		SccProjectName1 = ../Tutorial2
+		SccLocalPath1 = ..\\Tutorial2
+		SccProjectUniqueName2 = ..\\Tutorial3\\Tutorial3.csproj
+		SccProjectName2 = ../Tutorial3
+		SccLocalPath2 = ..\\Tutorial3
+		SccProjectUniqueName3 = ..\\Tutorial4\\Tutorial4.csproj
+		SccProjectName3 = ../Tutorial4
+		SccLocalPath3 = ..\\Tutorial4
+		SccProjectUniqueName4 = ..\\Tutorial5\\Tutorial5.csproj
+		SccProjectName4 = ../Tutorial5
+		SccLocalPath4 = ..\\Tutorial5
+		SccProjectUniqueName5 = ..\\Tutorial6\\Tutorial6.csproj
+		SccProjectName5 = ../Tutorial6
+		SccLocalPath5 = ..\\Tutorial6
+		SccProjectUniqueName6 = ..\\Tutorial7\\Tutorial7.csproj
+		SccProjectName6 = ../Tutorial7
+		SccLocalPath6 = ..\\Tutorial7
+		SccProjectUniqueName7 = ..\\Tutorial8\\Tutorial8.csproj
+		SccProjectName7 = ../Tutorial8
+		SccLocalPath7 = ..\\Tutorial8
+		SccProjectUniqueName8 = ..\\Tutorial9\\Tutorial9.csproj
+		SccProjectName8 = ../Tutorial9
+		SccLocalPath8 = ..\\Tutorial9
+		SccProjectUniqueName9 = ..\\Tutorial10\\Tutorial10.csproj
+		SccProjectName9 = ../Tutorial10
+		SccLocalPath9 = ..\\Tutorial10
+		SccProjectUniqueName10 = ..\\Tutorial11\\Tutorial11.csproj
+		SccProjectName10 = ../Tutorial11
+		SccLocalPath10 = ..\\Tutorial11
+		SccProjectUniqueName11 = ..\\Tutorial12\\Tutorial12.csproj
+		SccProjectName11 = ../Tutorial12
+		SccLocalPath11 = ..\\Tutorial12
+		SccProjectUniqueName12 = ..\\Tutorial13\\Tutorial13.csproj
+		SccProjectName12 = ../Tutorial13
+		SccLocalPath12 = ..\\Tutorial13
+		SccProjectUniqueName13 = ..\\Tutorial14\\Tutorial14.csproj
+		SccProjectName13 = ../Tutorial14
+		SccLocalPath13 = ..\\Tutorial14
+		SccProjectUniqueName14 = ..\\Tutorial15\\Tutorial15.csproj
+		SccProjectName14 = ../Tutorial15
+		SccLocalPath14 = ..\\Tutorial15
+		SccProjectUniqueName15 = ..\\Tutorial16\\Tutorial16.csproj
+		SccProjectName15 = ../Tutorial16
+		SccLocalPath15 = ..\\Tutorial16
+		SccProjectUniqueName16 = ..\\Tutorial17\\Tutorial17.csproj
+		SccProjectName16 = ../Tutorial17
+		SccLocalPath16 = ..\\Tutorial17
+		SccProjectUniqueName17 = ..\\Tutorial18\\Tutorial18.csproj
+		SccProjectName17 = ../Tutorial18
+		SccLocalPath17 = ..\\Tutorial18
+		SccProjectUniqueName18 = ..\\Tutorial19\\Tutorial19.csproj
+		SccProjectName18 = ../Tutorial19
+		SccLocalPath18 = ..\\Tutorial19
+		SccProjectUniqueName19 = ..\\Tutorial20\\Tutorial20.csproj
+		SccProjectName19 = ../Tutorial20
+		SccLocalPath19 = ..\\Tutorial20
+		SccProjectUniqueName20 = ..\\Tutorial21\\Tutorial21.csproj
+		SccProjectName20 = ../Tutorial21
+		SccLocalPath20 = ..\\Tutorial21
+		SccProjectUniqueName21 = ..\\Tutorial22\\Tutorial22.csproj
+		SccProjectName21 = ../Tutorial22
+		SccLocalPath21 = ..\\Tutorial22
+		SccProjectUniqueName22 = ..\\Tutorial23\\Tutorial23.csproj
+		SccProjectName22 = ../Tutorial23
+		SccLocalPath22 = ..\\Tutorial23
+		SccProjectUniqueName23 = ..\\Tutorial24\\Tutorial24.csproj
+		SccProjectName23 = ../Tutorial24
+		SccLocalPath23 = ..\\Tutorial24
+		SccProjectUniqueName24 = ..\\Tutorial25\\Tutorial25.csproj
+		SccProjectName24 = ../Tutorial25
+		SccLocalPath24 = ..\\Tutorial25
+		SccProjectUniqueName25 = ..\\Tutorial26\\Tutorial26.csproj
+		SccProjectName25 = ../Tutorial26
+		SccLocalPath25 = ..\\Tutorial26
+		SccProjectUniqueName26 = ..\\TerrainTutorial1\\TerrainTutorial1.csproj
+		SccProjectName26 = ../TerrainTutorial1
+		SccLocalPath26 = ..\\TerrainTutorial1
+		SccProjectUniqueName27 = ..\\TerrainTutorial2\\TerrainTutorial2.csproj
+		SccProjectName27 = ../TerrainTutorial2
+		SccLocalPath27 = ..\\TerrainTutorial2
+		SccProjectUniqueName28 = ..\\TerrainTutorial3\\TerrainTutorial3.csproj
+		SccProjectName28 = ../TerrainTutorial3
+		SccLocalPath28 = ..\\TerrainTutorial3
+		SccProjectUniqueName29 = ..\\TerrainTutorial4\\TerrainTutorial4.csproj
+		SccProjectName29 = ../TerrainTutorial4
+		SccLocalPath29 = ..\\TerrainTutorial4
+		SccProjectUniqueName30 = ..\\TerrainTutorial5\\TerrainTutorial5.csproj
+		SccProjectName30 = ../TerrainTutorial5
+		SccLocalPath30 = ..\\TerrainTutorial5
+		SccProjectUniqueName31 = ..\\Tutorial27\\Tutorial27.csproj
+		SccProjectName31 = ../Tutorial27
+		SccLocalPath31 = ..\\Tutorial27
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E54BB75F-7BE5-4A3A-9B48-3DA91643B636}.Debug|x86.ActiveCfg = Debug|x86
+		{E54BB75F-7BE5-4A3A-9B48-3DA91643B636}.Debug|x86.Build.0 = Debug|x86
+		{E54BB75F-7BE5-4A3A-9B48-3DA91643B636}.Release|x86.ActiveCfg = Release|x86
+		{E54BB75F-7BE5-4A3A-9B48-3DA91643B636}.Release|x86.Build.0 = Release|x86
+		{7A5E07FF-7EA3-4B01-92D2-38E2FADC8454}.Debug|x86.ActiveCfg = Debug|x86
+		{7A5E07FF-7EA3-4B01-92D2-38E2FADC8454}.Debug|x86.Build.0 = Debug|x86
+		{7A5E07FF-7EA3-4B01-92D2-38E2FADC8454}.Release|x86.ActiveCfg = Release|x86
+		{7A5E07FF-7EA3-4B01-92D2-38E2FADC8454}.Release|x86.Build.0 = Release|x86
+		{6B3CBCB8-C2C6-4EA4-9FFD-1AF153EC494C}.Debug|x86.ActiveCfg = Debug|x86
+		{6B3CBCB8-C2C6-4EA4-9FFD-1AF153EC494C}.Debug|x86.Build.0 = Debug|x86
+		{6B3CBCB8-C2C6-4EA4-9FFD-1AF153EC494C}.Release|x86.ActiveCfg = Release|x86
+		{6B3CBCB8-C2C6-4EA4-9FFD-1AF153EC494C}.Release|x86.Build.0 = Release|x86
+		{0B509DBD-E754-45DF-8B07-C3C1FF428AE9}.Debug|x86.ActiveCfg = Debug|x86
+		{0B509DBD-E754-45DF-8B07-C3C1FF428AE9}.Debug|x86.Build.0 = Debug|x86
+		{0B509DBD-E754-45DF-8B07-C3C1FF428AE9}.Release|x86.ActiveCfg = Release|x86
+		{0B509DBD-E754-45DF-8B07-C3C1FF428AE9}.Release|x86.Build.0 = Release|x86
+		{40EC3514-20FC-40F9-8B1F-1E53B6B773FC}.Debug|x86.ActiveCfg = Debug|x86
+		{40EC3514-20FC-40F9-8B1F-1E53B6B773FC}.Debug|x86.Build.0 = Debug|x86
+		{40EC3514-20FC-40F9-8B1F-1E53B6B773FC}.Release|x86.ActiveCfg = Release|x86
+		{40EC3514-20FC-40F9-8B1F-1E53B6B773FC}.Release|x86.Build.0 = Release|x86
+		{72330830-135D-4903-B889-12CCBB9F899B}.Debug|x86.ActiveCfg = Debug|x86
+		{72330830-135D-4903-B889-12CCBB9F899B}.Debug|x86.Build.0 = Debug|x86
+		{72330830-135D-4903-B889-12CCBB9F899B}.Release|x86.ActiveCfg = Release|x86
+		{72330830-135D-4903-B889-12CCBB9F899B}.Release|x86.Build.0 = Release|x86
+		{3101FD6C-4872-4E7C-9DAD-20FB1AAFDE41}.Debug|x86.ActiveCfg = Debug|x86
+		{3101FD6C-4872-4E7C-9DAD-20FB1AAFDE41}.Debug|x86.Build.0 = Debug|x86
+		{3101FD6C-4872-4E7C-9DAD-20FB1AAFDE41}.Release|x86.ActiveCfg = Release|x86
+		{3101FD6C-4872-4E7C-9DAD-20FB1AAFDE41}.Release|x86.Build.0 = Release|x86
+		{A2434BAD-777E-4C07-99F8-0F4FB43CE473}.Debug|x86.ActiveCfg = Debug|x86
+		{A2434BAD-777E-4C07-99F8-0F4FB43CE473}.Debug|x86.Build.0 = Debug|x86
+		{A2434BAD-777E-4C07-99F8-0F4FB43CE473}.Release|x86.ActiveCfg = Release|x86
+		{A2434BAD-777E-4C07-99F8-0F4FB43CE473}.Release|x86.Build.0 = Release|x86
+		{52977CF1-11E1-4CDA-AC68-5118DEC0B937}.Debug|x86.ActiveCfg = Debug|x86
+		{52977CF1-11E1-4CDA-AC68-5118DEC0B937}.Debug|x86.Build.0 = Debug|x86
+		{52977CF1-11E1-4CDA-AC68-5118DEC0B937}.Release|x86.ActiveCfg = Release|x86
+		{52977CF1-11E1-4CDA-AC68-5118DEC0B937}.Release|x86.Build.0 = Release|x86
+		{DD2CD54D-AED6-4465-A2A1-1178D299770D}.Debug|x86.ActiveCfg = Debug|x86
+		{DD2CD54D-AED6-4465-A2A1-1178D299770D}.Debug|x86.Build.0 = Debug|x86
+		{DD2CD54D-AED6-4465-A2A1-1178D299770D}.Release|x86.ActiveCfg = Release|x86
+		{DD2CD54D-AED6-4465-A2A1-1178D299770D}.Release|x86.Build.0 = Release|x86
+		{7F729751-29CC-4FCC-B28B-C73ABC833A9A}.Debug|x86.ActiveCfg = Debug|x86
+		{7F729751-29CC-4FCC-B28B-C73ABC833A9A}.Debug|x86.Build.0 = Debug|x86
+		{7F729751-29CC-4FCC-B28B-C73ABC833A9A}.Release|x86.ActiveCfg = Release|x86
+		{7F729751-29CC-4FCC-B28B-C73ABC833A9A}.Release|x86.Build.0 = Release|x86
+		{2FF969EF-863B-44CE-9410-3AB4EB77F9EF}.Debug|x86.ActiveCfg = Debug|x86
+		{2FF969EF-863B-44CE-9410-3AB4EB77F9EF}.Debug|x86.Build.0 = Debug|x86
+		{2FF969EF-863B-44CE-9410-3AB4EB77F9EF}.Release|x86.ActiveCfg = Release|x86
+		{2FF969EF-863B-44CE-9410-3AB4EB77F9EF}.Release|x86.Build.0 = Release|x86
+		{8D81D137-39DE-410A-AF44-E7B2BEFA416B}.Debug|x86.ActiveCfg = Debug|x86
+		{8D81D137-39DE-410A-AF44-E7B2BEFA416B}.Debug|x86.Build.0 = Debug|x86
+		{8D81D137-39DE-410A-AF44-E7B2BEFA416B}.Release|x86.ActiveCfg = Release|x86
+		{8D81D137-39DE-410A-AF44-E7B2BEFA416B}.Release|x86.Build.0 = Release|x86
+		{E977F415-52AD-40AB-AF07-497A3148D139}.Debug|x86.ActiveCfg = Debug|x86
+		{E977F415-52AD-40AB-AF07-497A3148D139}.Debug|x86.Build.0 = Debug|x86
+		{E977F415-52AD-40AB-AF07-497A3148D139}.Release|x86.ActiveCfg = Release|x86
+		{E977F415-52AD-40AB-AF07-497A3148D139}.Release|x86.Build.0 = Release|x86
+		{945CC8AF-DC99-429A-8F93-0F7806F61224}.Debug|x86.ActiveCfg = Debug|x86
+		{945CC8AF-DC99-429A-8F93-0F7806F61224}.Debug|x86.Build.0 = Debug|x86
+		{945CC8AF-DC99-429A-8F93-0F7806F61224}.Release|x86.ActiveCfg = Release|x86
+		{945CC8AF-DC99-429A-8F93-0F7806F61224}.Release|x86.Build.0 = Release|x86
+		{ECF24377-0552-422E-A420-9C7547807254}.Debug|x86.ActiveCfg = Debug|x86
+		{ECF24377-0552-422E-A420-9C7547807254}.Debug|x86.Build.0 = Debug|x86
+		{ECF24377-0552-422E-A420-9C7547807254}.Release|x86.ActiveCfg = Release|x86
+		{ECF24377-0552-422E-A420-9C7547807254}.Release|x86.Build.0 = Release|x86
+		{18C0F5C3-B68B-4BC9-9028-F31299E5FF6E}.Debug|x86.ActiveCfg = Debug|x86
+		{18C0F5C3-B68B-4BC9-9028-F31299E5FF6E}.Debug|x86.Build.0 = Debug|x86
+		{18C0F5C3-B68B-4BC9-9028-F31299E5FF6E}.Release|x86.ActiveCfg = Release|x86
+		{18C0F5C3-B68B-4BC9-9028-F31299E5FF6E}.Release|x86.Build.0 = Release|x86
+		{40EE8B37-0EF9-4700-9746-ED082402CA1A}.Debug|x86.ActiveCfg = Debug|x86
+		{40EE8B37-0EF9-4700-9746-ED082402CA1A}.Debug|x86.Build.0 = Debug|x86
+		{40EE8B37-0EF9-4700-9746-ED082402CA1A}.Release|x86.ActiveCfg = Release|x86
+		{40EE8B37-0EF9-4700-9746-ED082402CA1A}.Release|x86.Build.0 = Release|x86
+		{C3B1AC13-1B1C-4DAE-8635-16F7AFD11D0E}.Debug|x86.ActiveCfg = Debug|x86
+		{C3B1AC13-1B1C-4DAE-8635-16F7AFD11D0E}.Debug|x86.Build.0 = Debug|x86
+		{C3B1AC13-1B1C-4DAE-8635-16F7AFD11D0E}.Release|x86.ActiveCfg = Release|x86
+		{C3B1AC13-1B1C-4DAE-8635-16F7AFD11D0E}.Release|x86.Build.0 = Release|x86
+		{841C8A2A-1501-4A38-B328-EE4EC4567C2C}.Debug|x86.ActiveCfg = Debug|x86
+		{841C8A2A-1501-4A38-B328-EE4EC4567C2C}.Debug|x86.Build.0 = Debug|x86
+		{841C8A2A-1501-4A38-B328-EE4EC4567C2C}.Release|x86.ActiveCfg = Release|x86
+		{841C8A2A-1501-4A38-B328-EE4EC4567C2C}.Release|x86.Build.0 = Release|x86
+		{625983A1-DFF2-4C31-A834-C7DC61653804}.Debug|x86.ActiveCfg = Debug|x86
+		{625983A1-DFF2-4C31-A834-C7DC61653804}.Debug|x86.Build.0 = Debug|x86
+		{625983A1-DFF2-4C31-A834-C7DC61653804}.Release|x86.ActiveCfg = Release|x86
+		{625983A1-DFF2-4C31-A834-C7DC61653804}.Release|x86.Build.0 = Release|x86
+		{70C0FB1C-446D-42EC-825B-4084DD9CB452}.Debug|x86.ActiveCfg = Debug|x86
+		{70C0FB1C-446D-42EC-825B-4084DD9CB452}.Debug|x86.Build.0 = Debug|x86
+		{70C0FB1C-446D-42EC-825B-4084DD9CB452}.Release|x86.ActiveCfg = Release|x86
+		{70C0FB1C-446D-42EC-825B-4084DD9CB452}.Release|x86.Build.0 = Release|x86
+		{950B0371-1BE5-4D2A-B1B4-B65EF2A5FD3A}.Debug|x86.ActiveCfg = Debug|x86
+		{950B0371-1BE5-4D2A-B1B4-B65EF2A5FD3A}.Debug|x86.Build.0 = Debug|x86
+		{950B0371-1BE5-4D2A-B1B4-B65EF2A5FD3A}.Release|x86.ActiveCfg = Release|x86
+		{950B0371-1BE5-4D2A-B1B4-B65EF2A5FD3A}.Release|x86.Build.0 = Release|x86
+		{20783447-C461-4F56-99FF-F7FCCE6EB5AB}.Debug|x86.ActiveCfg = Debug|x86
+		{20783447-C461-4F56-99FF-F7FCCE6EB5AB}.Debug|x86.Build.0 = Debug|x86
+		{20783447-C461-4F56-99FF-F7FCCE6EB5AB}.Release|x86.ActiveCfg = Release|x86
+		{20783447-C461-4F56-99FF-F7FCCE6EB5AB}.Release|x86.Build.0 = Release|x86
+		{6E85DEEE-1E34-4E79-B329-E986B2625B33}.Debug|x86.ActiveCfg = Debug|x86
+		{6E85DEEE-1E34-4E79-B329-E986B2625B33}.Debug|x86.Build.0 = Debug|x86
+		{6E85DEEE-1E34-4E79-B329-E986B2625B33}.Release|x86.ActiveCfg = Release|x86
+		{6E85DEEE-1E34-4E79-B329-E986B2625B33}.Release|x86.Build.0 = Release|x86
+		{57AF02C6-727D-43BD-91D6-10DFFC1BB496}.Debug|x86.ActiveCfg = Debug|x86
+		{57AF02C6-727D-43BD-91D6-10DFFC1BB496}.Debug|x86.Build.0 = Debug|x86
+		{57AF02C6-727D-43BD-91D6-10DFFC1BB496}.Release|x86.ActiveCfg = Release|x86
+		{57AF02C6-727D-43BD-91D6-10DFFC1BB496}.Release|x86.Build.0 = Release|x86
+		{563FF58E-D800-4309-B63E-CA1CA953538C}.Debug|x86.ActiveCfg = Debug|x86
+		{563FF58E-D800-4309-B63E-CA1CA953538C}.Debug|x86.Build.0 = Debug|x86
+		{563FF58E-D800-4309-B63E-CA1CA953538C}.Release|x86.ActiveCfg = Release|x86
+		{563FF58E-D800-4309-B63E-CA1CA953538C}.Release|x86.Build.0 = Release|x86
+		{21DCE84F-2B35-4F1A-B915-53DDFAB882FF}.Debug|x86.ActiveCfg = Debug|x86
+		{21DCE84F-2B35-4F1A-B915-53DDFAB882FF}.Debug|x86.Build.0 = Debug|x86
+		{21DCE84F-2B35-4F1A-B915-53DDFAB882FF}.Release|x86.ActiveCfg = Release|x86
+		{21DCE84F-2B35-4F1A-B915-53DDFAB882FF}.Release|x86.Build.0 = Release|x86
+		{74365C9A-2C95-4D2B-AEF0-3F7E27DA2DA5}.Debug|x86.ActiveCfg = Debug|x86
+		{74365C9A-2C95-4D2B-AEF0-3F7E27DA2DA5}.Debug|x86.Build.0 = Debug|x86
+		{74365C9A-2C95-4D2B-AEF0-3F7E27DA2DA5}.Release|x86.ActiveCfg = Release|x86
+		{74365C9A-2C95-4D2B-AEF0-3F7E27DA2DA5}.Release|x86.Build.0 = Release|x86
+		{A05680EC-40CC-4A83-897B-3796A3A91F7C}.Debug|x86.ActiveCfg = Debug|x86
+		{A05680EC-40CC-4A83-897B-3796A3A91F7C}.Debug|x86.Build.0 = Debug|x86
+		{A05680EC-40CC-4A83-897B-3796A3A91F7C}.Release|x86.ActiveCfg = Release|x86
+		{A05680EC-40CC-4A83-897B-3796A3A91F7C}.Release|x86.Build.0 = Release|x86
+		{338BD683-34E3-43FD-91F1-6F3747C07EDC}.Debug|x86.ActiveCfg = Debug|x86
+		{338BD683-34E3-43FD-91F1-6F3747C07EDC}.Debug|x86.Build.0 = Debug|x86
+		{338BD683-34E3-43FD-91F1-6F3747C07EDC}.Release|x86.ActiveCfg = Release|x86
+		{338BD683-34E3-43FD-91F1-6F3747C07EDC}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3BE78EA2-8DDF-4F1C-AFCF-6409DAD111B8} = {5A35962A-AB82-41E4-BF10-3F664BD73869}
+		{5C051499-8D21-40D8-B23E-E8CEEC229E9F} = {5A35962A-AB82-41E4-BF10-3F664BD73869}
+		{D5367438-5492-4CAE-AFB2-9DAB18490EE7} = {5A35962A-AB82-41E4-BF10-3F664BD73869}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,17 @@
+C:\Projects\MyProjects\Rastertek\Tutorial8\bin\Debug\Tutorial8.exe
+C:\Projects\MyProjects\Rastertek\Tutorial8\bin\Debug\Tutorial8.pdb
+C:\Projects\MyProjects\Rastertek\Tutorial8\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Projects\MyProjects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.FormMain.resources
+C:\Projects\MyProjects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.Properties.Resources.resources
+C:\Projects\MyProjects\Rastertek\Tutorial8\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Projects\MyProjects\Rastertek\Tutorial8\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Projects\MyProjects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.exe
+C:\Projects\MyProjects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.pdb
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.exe
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.pdb
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\bin\Debug\Tutorial8.exe
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\bin\Debug\Tutorial8.pdb
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.csprojResolveAssemblyReference.cache
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.FormMain.resources
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.Properties.Resources.resources
+D:\Projects\DirectX Projects\Rastertek\Tutorial8\obj\x86\Debug\Tutorial8.csproj.GenerateResource.Cache

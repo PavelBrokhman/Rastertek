@@ -1,0 +1,8 @@
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\bin\Debug\RastertekDX.Common.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\bin\Debug\RastertekDX.Common.pdb
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\bin\Debug\SharpDX.Desktop.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\bin\Debug\SharpDX.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\bin\Debug\SharpDX.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\bin\Debug\SharpDX.Desktop.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\obj\Debug\RastertekDX.Common.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\Common\Rastertek.Common\obj\Debug\RastertekDX.Common.pdb

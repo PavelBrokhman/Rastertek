@@ -1,0 +1,2452 @@
+From: "Saved by Internet Explorer 11"
+Subject: Tutorial 1: Setting up DirectX 11 with Visual Studio
+Date: Thu, 7 Aug 2014 08:15:09 -0400
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----=_NextPart_000_0025_01CFB217.B3F53FE0"
+X-MimeOLE: Produced By Microsoft MimeOLE V6.3.9600.16384
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://web.archive.org/web/20140722085711/http://rastertek.com/dx11tut01.html
+
+=EF=BB=BF<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><META content=3D"IE=3D5.0000" =
+http-equiv=3D"X-UA-Compatible">
+
+<SCRIPT src=3D"http://web.archive.org/static/js/analytics.js" =
+type=3D"text/javascript"></SCRIPT>
+=20
+<META http-equiv=3D"Content-Type" content=3D"text/html; =
+charset=3Dutf-8"><LINK =
+href=3D"http://web.archive.org/static/css/banner-styles.css"=20
+rel=3D"stylesheet" type=3D"text/css"> <TITLE>Tutorial 1: Setting up =
+DirectX 11 with=20
+Visual Studio</TITLE>
+<META name=3D"GENERATOR" content=3D"MSHTML 11.00.9600.17207"></HEAD>=20
+<BODY text=3D"#ffffff" bgcolor=3D"#000000"><!-- BEGIN WAYBACK TOOLBAR =
+INSERT -->=20
+<SCRIPT> if (window.archive_analytics) { =
+window.archive_analytics.values['server_name']=3D"wwwb-app12.us.archive.o=
+rg";}; </SCRIPT>
+=20
+<SCRIPT src=3D"http://web.archive.org/static/js/disclaim-element.js" =
+type=3D"text/javascript"></SCRIPT>
+=20
+<SCRIPT src=3D"http://web.archive.org/static/js/graph-calc.js" =
+type=3D"text/javascript"></SCRIPT>
+=20
+<SCRIPT src=3D"http://web.archive.org/static/jflot/jquery.min.js" =
+type=3D"text/javascript"></SCRIPT>
+=20
+<SCRIPT type=3D"text/javascript">=0A=
+//<![CDATA[=0A=
+var firstDate =3D 820454400000;=0A=
+var lastDate =3D 1420070399999;=0A=
+var wbPrefix =3D "/web/";=0A=
+var wbCurrentUrl =3D "http:\/\/rastertek.com\/dx11tut01.html";=0A=
+=0A=
+var curYear =3D -1;=0A=
+var curMonth =3D -1;=0A=
+var yearCount =3D 18;=0A=
+var firstYear =3D 1996;=0A=
+var imgWidth =3D 475;=0A=
+var yearImgWidth =3D 25;=0A=
+var monthImgWidth =3D 2;=0A=
+var trackerVal =3D "none";=0A=
+var displayDay =3D "22";=0A=
+var displayMonth =3D "Jul";=0A=
+var displayYear =3D "2014";=0A=
+var prettyMonths =3D =
+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]=
+;=0A=
+=0A=
+function showTrackers(val) {=0A=
+	if(val =3D=3D trackerVal) {=0A=
+		return;=0A=
+	}=0A=
+	if(val =3D=3D "inline") {=0A=
+		document.getElementById("displayYearEl").style.color =3D "#ec008c";=0A=
+		document.getElementById("displayMonthEl").style.color =3D "#ec008c";=0A=
+		document.getElementById("displayDayEl").style.color =3D "#ec008c";		=0A=
+	} else {=0A=
+		document.getElementById("displayYearEl").innerHTML =3D displayYear;=0A=
+		document.getElementById("displayYearEl").style.color =3D "#ff0";=0A=
+		document.getElementById("displayMonthEl").innerHTML =3D displayMonth;=0A=
+		document.getElementById("displayMonthEl").style.color =3D "#ff0";=0A=
+		document.getElementById("displayDayEl").innerHTML =3D displayDay;=0A=
+		document.getElementById("displayDayEl").style.color =3D "#ff0";=0A=
+	}=0A=
+   document.getElementById("wbMouseTrackYearImg").style.display =3D val;=0A=
+   document.getElementById("wbMouseTrackMonthImg").style.display =3D val;=0A=
+   trackerVal =3D val;=0A=
+}=0A=
+function getElementX2(obj) {=0A=
+	var thing =3D jQuery(obj);=0A=
+	if((thing =3D=3D undefined) =0A=
+			|| (typeof thing =3D=3D "undefined") =0A=
+			|| (typeof thing.offset =3D=3D "undefined")) {=0A=
+		return getElementX(obj);=0A=
+	}=0A=
+	return Math.round(thing.offset().left);=0A=
+}=0A=
+function trackMouseMove(event,element) {=0A=
+=0A=
+   var eventX =3D getEventX(event);=0A=
+   var elementX =3D getElementX2(element);=0A=
+   var xOff =3D eventX - elementX;=0A=
+	if(xOff < 0) {=0A=
+		xOff =3D 0;=0A=
+	} else if(xOff > imgWidth) {=0A=
+		xOff =3D imgWidth;=0A=
+	}=0A=
+   var monthOff =3D xOff % yearImgWidth;=0A=
+=0A=
+   var year =3D Math.floor(xOff / yearImgWidth);=0A=
+	var yearStart =3D year * yearImgWidth;=0A=
+   var monthOfYear =3D Math.floor(monthOff / monthImgWidth);=0A=
+   if(monthOfYear > 11) {=0A=
+       monthOfYear =3D 11;=0A=
+   }=0A=
+   // 1 extra border pixel at the left edge of the year:=0A=
+   var month =3D (year * 12) + monthOfYear;=0A=
+   var day =3D 1;=0A=
+	if(monthOff % 2 =3D=3D 1) {=0A=
+		day =3D 15;=0A=
+	}=0A=
+	var dateString =3D =0A=
+		zeroPad(year + firstYear) + =0A=
+		zeroPad(monthOfYear+1,2) +=0A=
+		zeroPad(day,2) + "000000";=0A=
+=0A=
+	var monthString =3D prettyMonths[monthOfYear];=0A=
+	document.getElementById("displayYearEl").innerHTML =3D year + 1996;=0A=
+	document.getElementById("displayMonthEl").innerHTML =3D monthString;=0A=
+	// looks too jarring when it changes..=0A=
+	//document.getElementById("displayDayEl").innerHTML =3D zeroPad(day,2);=0A=
+=0A=
+	var url =3D wbPrefix + dateString + '/' +  wbCurrentUrl;=0A=
+	document.getElementById('wm-graph-anchor').href =3D url;=0A=
+=0A=
+   //document.getElementById("wmtbURL").value=3D"evX("+eventX+") =
+elX("+elementX+") xO("+xOff+") y("+year+") m("+month+") =
+monthOff("+monthOff+") DS("+dateString+") Moy("+monthOfYear+") =
+ms("+monthString+")";=0A=
+   if(curYear !=3D year) {=0A=
+       var yrOff =3D year * yearImgWidth;=0A=
+       document.getElementById("wbMouseTrackYearImg").style.left =3D =
+yrOff + "px";=0A=
+       curYear =3D year;=0A=
+   }=0A=
+   if(curMonth !=3D month) {=0A=
+       var mtOff =3D year + (month * monthImgWidth) + 1;=0A=
+       document.getElementById("wbMouseTrackMonthImg").style.left =3D =
+mtOff + "px";=0A=
+       curMonth =3D month;=0A=
+   }=0A=
+}=0A=
+//]]>=0A=
+</SCRIPT>
+=20
+<STYLE =
+type=3D"text/css">body{margin-top:0!important;padding-top:0!important;min=
+-width:800px!important;}#wm-ipp =
+a:hover{text-decoration:underline!important;}</STYLE>
+=20
+<DIV class=3D"__wb_banner_div" id=3D"wm-ipp" lang=3D"en" =
+style=3D"padding: 0px 5px; display: none; position: relative; =
+min-height: 70px; min-width: 800px;">
+<DIV class=3D"__wb_banner_div" id=3D"wm-ipp-inside" =
+style=3D'border-width: medium 5px 5px; border-style: none solid solid; =
+border-color: currentColor rgb(0, 0, 0) rgb(0, 0, 0); margin: 0px =
+!important; padding: 0px !important; border-image: none; width: 97%; =
+text-align: center; font-family: "Lucida Grande","Arial",sans-serif =
+!important; font-size: 11px !important; position: fixed; min-width: =
+780px; box-shadow: 1px 1px 3px #333; background-image: =
+url("/static/images/toolbar/wm_tb_bk_trns.png"); -moz-box-shadow: 1px =
+1px 3px #333; -webkit-box-shadow: 1px 1px 3px #333;'>
+<TABLE style=3D"margin: 0px; padding: 0px; width: 100%; border-collapse: =
+collapse;">
+  <TBODY>
+  <TR>
+    <TD style=3D"padding: 10px; vertical-align: top; min-width: =
+110px;"><A=20
+      title=3D"Wayback Machine home page" style=3D"border: currentColor; =
+border-image: none; background-color: transparent;"=20
+      href=3D"http://web.archive.org/web/"><IMG width=3D"110" =
+height=3D"39" alt=3D"Wayback Machine"=20
+      =
+src=3D"http://web.archive.org/static/images/toolbar/wayback-toolbar-logo.=
+png"=20
+      border=3D"0"></A>    </TD>
+    <TD style=3D"padding: 0px !important; width: 100%; text-align: =
+center; vertical-align: top;">
+      <TABLE style=3D"margin: 0px auto; padding: 0px; width: 570px; =
+border-collapse: collapse;">
+        <TBODY>
+        <TR>
+          <TD style=3D"padding: 3px 0px;" colspan=3D"2">
+            <FORM name=3D"wmtb" id=3D"wmtb" style=3D"margin: 0px =
+!important; padding: 0px !important;"=20
+            action=3D"/web/form-submit.jsp" method=3D"get"=20
+target=3D"_top"><INPUT name=3D"url" id=3D"wmtbURL" style=3D'width: =
+400px; font-family: "Lucida Grande","Arial",sans-serif; font-size: =
+11px;' onfocus=3D"javascript:this.focus();this.select();" type=3D"text" =
+value=3D"http://rastertek.com/dx11tut01.html"><INPUT name=3D"type" =
+type=3D"hidden" value=3D"replay"><INPUT name=3D"date" type=3D"hidden" =
+value=3D"20140722085711"><INPUT style=3D'width: inherit !important; =
+font-family: "Lucida Grande","Arial",sans-serif; font-size: 11px; =
+margin-left: 5px;' type=3D"submit" value=3D"Go"><SPAN=20
+            id=3D"wm_tb_options" style=3D"display: =
+block;"></SPAN></FORM></TD>
+          <TD style=3D"padding: 5px 0px 0px !important; vertical-align: =
+bottom;"=20
+          rowspan=3D"2">
+            <TABLE style=3D'width: 110px; color: rgb(153, 153, 170); =
+font-family: "Helvetica","Lucida Grande","Arial",sans-serif; =
+border-collapse: collapse;'>
+              <TBODY><!-- NEXT/PREV MONTH NAV AND MONTH INDICATOR -->    =
+       =20
+              <TR style=3D"width: 110px; height: 16px; font-size: 10px =
+!important;">
+                <TD nowrap=3D"nowrap" style=3D"text-align: right; =
+text-transform: uppercase; overflow: visible; padding-right: 9px; =
+font-size: 11px !important; font-weight: bold; white-space: nowrap;"><A=20
+                  title=3D"24 Mar 2014" style=3D"border: currentColor; =
+border-image: none; color: rgb(51, 51, 255); font-weight: bold; =
+text-decoration: none; background-color: transparent;"=20
+                  =
+href=3D"http://web.archive.org/web/20140324202823/http://www.rastertek.co=
+m/dx11tut01.html"><STRONG>MAR</STRONG></A>
+                  		                                </TD>
+                <TD title=3D"You are here: 8:57:11 Jul 22, 2014" =
+id=3D"displayMonthEl"=20
+                style=3D"background: rgb(0, 0, 0); width: 34px; height: =
+15px; text-align: center; color: rgb(255, 255, 0); text-transform: =
+uppercase; padding-top: 1px; font-size: 11px !important; font-weight: =
+bold;">JUL</TD>
+                <TD nowrap=3D"nowrap" style=3D"text-transform: =
+uppercase; overflow: visible; padding-left: 9px; font-size: 11px =
+!important; font-weight: bold; white-space: nowrap;">=20
+                                                       Aug               =
+       =20
+                                  </TD></TR><!-- NEXT/PREV CAPTURE NAV =
+AND DAY OF MONTH INDICATOR -->=20
+                        =20
+              <TR>
+                <TD nowrap=3D"nowrap" style=3D"text-align: right =
+!important; overflow: visible; padding-right: 9px; vertical-align: =
+middle !important; white-space: nowrap;"><A=20
+                  title=3D"20:28:23 Mar 24, 2014" style=3D"border: =
+currentColor; border-image: none; background-color: transparent;"=20
+                  =
+href=3D"http://web.archive.org/web/20140324202823/http://www.rastertek.co=
+m/dx11tut01.html"><IMG=20
+                  width=3D"14" height=3D"16" alt=3D"Previous capture" =
+src=3D"http://web.archive.org/static/images/toolbar/wm_tb_prv_on.png"=20
+                  border=3D"0"></A>		                                =
+</TD>
+                <TD title=3D"You are here: 8:57:11 Jul 22, 2014" =
+id=3D"displayDayEl"=20
+                style=3D"background: rgb(0, 0, 0); padding: 2px 0px 0px; =
+width: 34px; height: 24px; text-align: center; color: rgb(255, 255, 0); =
+font-size: 24px; font-weight: bold;">22</TD>
+                <TD nowrap=3D"nowrap" style=3D"text-align: left =
+!important; overflow: visible; padding-left: 9px; vertical-align: middle =
+!important; white-space: nowrap;"><A=20
+                  title=3D"0:11:59 Jul 26, 2014" style=3D"border: =
+currentColor; border-image: none; background-color: transparent;"=20
+                  =
+href=3D"http://web.archive.org/web/20140726001159/http://www.rastertek.co=
+m/dx11tut01.html"><IMG=20
+                  width=3D"14" height=3D"16" alt=3D"Next capture" =
+src=3D"http://web.archive.org/static/images/toolbar/wm_tb_nxt_on.png"=20
+                  border=3D"0"></A>		                			     =
+</TD></TR><!-- NEXT/PREV YEAR NAV AND YEAR INDICATOR -->=20
+                        =20
+              <TR=20
+style=3D"width: 110px; height: 13px; font-size: 9px !important;">
+                <TD nowrap=3D"nowrap" style=3D"text-align: right; =
+overflow: visible; padding-right: 9px; font-size: 11px !important; =
+font-weight: bold; white-space: nowrap;"><A=20
+                  title=3D"28 May 2013" style=3D"border: currentColor; =
+border-image: none; color: rgb(51, 51, 255); font-weight: bold; =
+text-decoration: none; background-color: transparent;"=20
+                  =
+href=3D"http://web.archive.org/web/20130528010507/http://www.rastertek.co=
+m/dx11tut01.html"><STRONG>2013</STRONG></A>
+                  		                                </TD>
+                <TD title=3D"You are here: 8:57:11 Jul 22, 2014" =
+id=3D"displayYearEl"=20
+                style=3D"background: rgb(0, 0, 0); width: 34px; height: =
+13px; text-align: center; color: rgb(255, 255, 0); padding-top: 1px; =
+font-size: 11px !important; font-weight: bold;">2014</TD>
+                <TD nowrap=3D"nowrap" style=3D"overflow: visible; =
+padding-left: 9px; font-size: 11px !important; font-weight: bold; =
+white-space: nowrap;">=20
+                                                       2015              =
+       =20
+                   				 </TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD style=3D"padding: 0px !important; vertical-align: =
+middle;"><A=20
+            title=3D"See a list of every capture for this URL" =
+style=3D"border: currentColor; border-image: none; color: rgb(51, 51, =
+255); font-size: 11px; font-weight: bold; background-color: =
+transparent;"=20
+            =
+href=3D"http://web.archive.org/web/20140722085711*/http://rastertek.com/d=
+x11tut01.html"><STRONG>15=20
+            captures</STRONG></A>           =20
+            <DIV title=3D"Timespan for captures of this URL" =
+class=3D"__wb_banner_div"=20
+            style=3D"margin: 0px !important; padding: 2px 0px 0px =
+!important; color: rgb(102, 102, 102); font-size: 9px; white-space: =
+nowrap;">19=20
+            Mar 11 - 26 Jul 14</DIV></TD>
+          <TD style=3D"padding: 0px !important;"><A =
+id=3D"wm-graph-anchor" style=3D"width: 475px; height: 27px; white-space: =
+nowrap; position: relative;"=20
+            =
+href=3D"http://web.archive.org/web/20140722085711/http://rastertek.com/">=
+
+            <DIV title=3D"Explore captures for this URL" =
+class=3D"__wb_banner_div"=20
+            id=3D"wm-ipp-sparkline" style=3D"width: 475px; height: 27px; =
+border-right-color: rgb(204, 204, 204); border-right-width: 1px; =
+border-right-style: solid; white-space: nowrap; position: relative; =
+cursor: pointer; background-color: rgb(255, 255, 255);"><IMG=20
+            width=3D"475" height=3D"27" id=3D"sparklineImgId" =
+style=3D"left: 0px; top: 0px; position: absolute; z-index: 9012;"=20
+            onmouseover=3D"showTrackers('inline');" =
+onmouseout=3D"showTrackers('none');"=20
+            onmousemove=3D"trackMouseMove(event,this)" =
+alt=3D"sparklines" =
+src=3D"http://web.archive.org/web/jsp/graph.jsp?graphdata=3D475_27_1996:-=
+1:000000000000_1997:-1:000000000000_1998:-1:000000000000_1999:-1:00000000=
+0000_2000:-1:000000000000_2001:-1:000000000000_2002:-1:000000000000_2003:=
+-1:000000000000_2004:-1:000000000000_2005:-1:000000000000_2006:-1:0000000=
+00000_2007:-1:000000000000_2008:-1:000000000000_2009:-1:000000000000_2010=
+:-1:000000000000_2011:-1:001000000111_2012:-1:011101110010_2013:-1:000010=
+000000_2014:6:001000200000"=20
+            border=3D"0">			 <IMG width=3D"25" height=3D"27" =
+id=3D"wbMouseTrackYearImg"=20
+            style=3D"display: none; position: absolute; z-index: 9010;" =
+src=3D"http://web.archive.org/static/images/toolbar/transp-yellow-pixel.p=
+ng"=20
+            border=3D"0">			 <IMG width=3D"2" height=3D"27" =
+id=3D"wbMouseTrackMonthImg"=20
+            style=3D"display: none; position: absolute; z-index: 9011;" =
+src=3D"http://web.archive.org/static/images/toolbar/transp-red-pixel.png"=
+=20
+            border=3D"0">        </DIV></A>        =
+</TD></TR></TBODY></TABLE></TD>
+    <TD style=3D"padding: 5px; width: 65px; text-align: right; =
+font-size: 11px !important;"><A=20
+      title=3D"Close the toolbar" style=3D'background: =
+url("/static/images/toolbar/wm_tb_close.png") no-repeat 100% 0px; =
+border: currentColor; border-image: none; color: rgb(51, 51, 255); =
+padding-right: 18px; font-family: "Lucida Grande","Arial",sans-serif; =
+margin-bottom: 23px; display: block;'=20
+      =
+onclick=3D"document.getElementById('wm-ipp').style.display=3D'none';" =
+href=3D"javascript:;">Close</A><A=20
+      title=3D"Get some help using the Wayback Machine" =
+style=3D'background: url("/static/images/toolbar/wm_tb_help.png") =
+no-repeat 100% 0px; border: currentColor; border-image: none; color: =
+rgb(51, 51, 255); padding-right: 18px; font-family: "Lucida =
+Grande","Arial",sans-serif; display: block;'=20
+      =
+href=3D"http://faq.web.archive.org/">Help</A></TD></TR></TBODY></TABLE></=
+DIV></DIV>
+<SCRIPT type=3D"text/javascript">=0A=
+ var wmDisclaimBanner =3D document.getElementById("wm-ipp");=0A=
+ if(wmDisclaimBanner !=3D null) {=0A=
+   disclaimElement(wmDisclaimBanner);=0A=
+ }=0A=
+</SCRIPT>
+ <!-- END WAYBACK TOOLBAR INSERT -->=20
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"4"><B>Tutorial 1:=20
+Setting up DirectX 11 with Visual Studio </B></FONT></P>
+<P align=3D"left"><IMG width=3D"800" height=3D"1" =
+src=3D"http://web.archive.org/web/20140722085711im_/http://rastertek.com/=
+pic1001.gif"=20
+border=3D"0"></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Before writing any=20
+graphics code we'll need to have the tools to do so.  The first of these =
+tools=20
+is a compiler that is preferably built into a nice IDE. The one I use =
+and will=20
+be supplying project files for is Visual Studio 2010.  There are several =
+others=20
+available and some are even free off the net. I'll leave that up to you =
+to=20
+decide which one you prefer. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">The =
+second tool you=20
+will need is the DirectX SDK.  It can be downloaded from Microsoft's =
+website for=20
+free.   After downloading and installing the SDK you will have the files =
+
+necessary to compile DirectX programs. You will also notice it comes =
+with=20
+samples, tools, and documentation. The documentation is pretty good, it =
+also has=20
+some very simple examples under the DirectX 10 tutorials section which =
+also=20
+applies to DirectX 11. The tools that come with it are also useful, =
+we'll be=20
+using the DDS texture tool quite often. The sample browser also provides =
+some=20
+simple examples to achieve certain effects you may be looking to do. The =
+samples=20
+will generally also have some of the new features of the latest SDK=20
+demonstrated. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">With =
+both installed=20
+you can now setup your IDE to work with the DirectX 11 SDK.   Please =
+note that=20
+some IDEs will need to be installed first before installing the DirectX =
+SDK.=20
+</FONT></P><BR>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"3"><U>Setting Up Visual=20
+Studio 2010</U></FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">In =
+Visual Studio=20
+2010 I used the following steps: </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">First you need to=20
+create an empty Win32 project so select File -&gt; New -&gt; Project. =
+Then=20
+select Win32 project from the choices.  Give the project a name (I =
+called mine=20
+Engine) and a location and then click on "Ok". Click "Next" and you will =
+be=20
+given another menu.  Under "Additional options" put a check mark in the =
+"Empty=20
+project" box and click on "Finish" and then click "Next". You should now =
+have an=20
+basic Win32 empty project setup. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">Now =
+click "View"=20
+from the menu and select "Property Manager". </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">Next =
+click on the=20
+arrow to the left of your project name (mine was called Engine) in the =
+property=20
+manager window on the left part of the screen. This will display the =
+solution=20
+configurations you have. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Select the "Debug |=20
+Win32" folder and double click "Microsoft.Cpp.Win32.user". </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">In =
+the window that=20
+pops up select "VC++ Directories" from the menu on the left side.  This =
+will=20
+then display the directories that the project uses. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">Now =
+select "Include=20
+Directories" from the directory list and click on the down arrow that =
+appears to=20
+the left.  From the choices it pops up choose "Edit". </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Click on the folder=20
+icon at the top (called New Line if you mouse over it) and click on the =
+"..."=20
+that appears to the right side. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Navigate to the=20
+DirectX SDK include folder, different versions are named differently but =
+on my=20
+system it was: C:\Program Files (x86)\Microsoft DirectX SDK (June =
+2010)\Include=20
+</FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">Next =
+click on=20
+"Select Folder" and then click "Ok". </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">The =
+libraries=20
+directory is also needed so now select "Library Directories" from the =
+directory=20
+list and click on the down arrow that appears to the left.  From the =
+choices it=20
+pops up choose "Edit". </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Click on the folder=20
+icon at the top (called New Line if you mouse over it) and click on the =
+"..."=20
+that appears to the right side. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Navigate to the=20
+DirectX SDK library folder, different versions are named differently but =
+on my=20
+system it was: C:\Program Files (x86)\Microsoft DirectX SDK (June =
+2010)\Lib\x86=20
+</FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">Next =
+click on=20
+"Select Folder" and then click "Ok". </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Finally click on the=20
+"Apply" button in the bottom right of the Property Pages window. =
+</FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">Now =
+click "Ok" to=20
+close the window and your settings will be complete.  From the menu =
+click "View"=20
+and then "Solution Explorer" to return to your code. All DirectX =
+projects should=20
+now compile fine and the error of "Cannot open include file: 'd3d11.h': =
+No such=20
+file or directory" should disappear. Also note that these settings will=20
+automatically be applied to the Release | Win32 solution configuration =
+so you=20
+don't need to set them there. As well it should be persistent =
+permanently for=20
+all new projects and will never need to be setup again. </FONT></P><BR>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"3"><U>Setting Up Visual=20
+Studio 2008</U></FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">In =
+Visual Studio=20
+2008 I used the following steps: </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Click "Tools" from=20
+the menu. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Select "Options" at=20
+the bottom of the list. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Click "Projects and=20
+Solutions" from the list on the left side. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">Click "VC++=20
+Directories" from the expanded list. </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">On =
+the right side=20
+under "Show Directories for:" select the drop down choice "Include =
+files".=20
+</FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">Now =
+add the location=20
+of the include directory to the top of the list.   On my setup it was =
+the=20
+following but may be different on yours (month released, etc.), make =
+sure to=20
+double check: </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">C:\Program Files=20
+(x86)\Microsoft DirectX SDK (June 2010)\Include </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">After you have added=20
+that include directory you now need to add the library directory also. =
+On the=20
+right side under "Show Directories for:" select the drop down choice =
+"Library=20
+files". </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">On =
+my setup it was=20
+the following but may be different on yours (month released, etc.), make =
+sure to=20
+double check: </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"2">C:\Program Files=20
+(x86)\Microsoft DirectX SDK (June 2010)\Lib\x86 </FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">With =
+these two=20
+directories setup in Visual Studio you should now be able to compile =
+DirectX 11=20
+code without any issues. </FONT></P><BR>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" =
+size=3D"3"><U>To Do=20
+Exercises</U></FONT></P>
+<P align=3D"left"><FONT color=3D"#ffffff" face=3D"Arial" size=3D"2">1. =
+Compile and run=20
+Tutorial #2 from the DirectX 11 SDK Documentation (source is located: =
+(SDK=20
+root)\Samples\C++\Direct3D10\Tutorials\Tutorial02) </FONT></P>
+<P align=3D"left"><IMG width=3D"800" height=3D"1" =
+src=3D"http://web.archive.org/web/20140722085711im_/http://rastertek.com/=
+pic1002.gif"=20
+border=3D"0"></P>
+<P align=3D"left"><FONT color=3D"#cccccc" face=3D"Arial, Helvetica, =
+sans-serif" size=3D"2"><A=20
+href=3D"http://web.archive.org/web/20140722085711/http://rastertek.com/tu=
+tindex.html">Back=20
+to Tutorial Index</A></FONT></P></BODY></HTML><!--=0A=
+     FILE ARCHIVED ON 8:57:11 Jul 22, 2014 AND RETRIEVED FROM THE=0A=
+     INTERNET ARCHIVE ON 12:14:57 Aug 7, 2014.=0A=
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.=0A=
+=0A=
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.=0A=
+     SECTION 108(a)(3)).=0A=
+-->
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/static/images/toolbar/wayback-toolbar-logo.png
+
+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
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/static/images/toolbar/wm_tb_prv_on.png
+
+iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAYAAAAmlE46AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJ
+bWFnZVJlYWR5ccllPAAAAMZJREFUeNqU07EKQWEUwHEuSSaLkicgg3TZzCySvIKk2GVgJZmsBg9g
+8QK8gcHoASwGNoMS/l+db6Au3zn1W279b+fe796w779Cyimi7ymCFBbYox51CGLoYIS0XHv+C2uY
+ynofExRmJWgG3fE7TGKMHuK/VrFhRJ7DRBmXN2XCBibIa87Ek5US2sM04Ro5DHDRhGbumMu6Szxc
+QztndFHGVhPaOaCKFo6a0Iz5+jcoYYira2jnhhkKWNlO83ec0EYFu7cAAwCVABzGI3/GxAAAAABJ
+RU5ErkJggg==
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/static/images/toolbar/wm_tb_nxt_on.png
+
+iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAYAAAAmlE46AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJ
+bWFnZVJlYWR5ccllPAAAAMhJREFUeNqU0s8KAUEcwPHBJjm5KHkCV+07cJHkKZRyUK6cKYeVPxd5
+BVcHjspB+VPKA7g4cHNQwndqp/awMb9ffdra+jazMxtx3c9UKTXCTgkmihK28JCWhG//2cARdcRt
+wuBkMMQGRUloJo8F5shJQjMV/9D6SElCPQk0cUINMdvQTBYTHFCWhGaSeheOILihiwGeNuELM7Rx
+NS//hUu0sLe9jjOqKIRFYSve0fP/nsevrTiBVfV3dHCxOSkdrjDGWnInXwEGAM40IjLd/vWIAAAA
+AElFTkSuQmCC
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/web/jsp/graph.jsp?graphdata=475_27_1996:-1:000000000000_1997:-1:000000000000_1998:-1:000000000000_1999:-1:000000000000_2000:-1:000000000000_2001:-1:000000000000_2002:-1:000000000000_2003:-1:000000000000_2004:-1:000000000000_2005:-1:000000000000_2006:-1:000000000000_2007:-1:000000000000_2008:-1:000000000000_2009:-1:000000000000_2010:-1:000000000000_2011:-1:001000000111_2012:-1:011101110010_2013:-1:000010000000_2014:6:001000200000
+
+iVBORw0KGgoAAAANSUhEUgAAAdsAAAAbCAYAAAA05SU0AAABUUlEQVR42u3cwQmDMBiA0X9Ozx3H
+Y8fKKN3B1kJoEVOTQCDQF8jJ2KdG+W6NlNIWgweDwWAwGP9svJHXWEZOBoPBYDDmNm73lvmIddtn
+3fpYxJbBYDAYDLFlMBgMBkNsbTqDwWAwxFZsGQwGg8EQWwaDwWAwxNaGMBgMBkNsxZbBYDAYDLFl
+MBgMBkNsbQiDwWAwxFZsGQwGg8EQW5vOYDAYUxoRsf8HcLOdzzvOb6O0pvZ46RprnlXvff2K7ec3
+xZbBYDAYYiu2PhAGg8EQW7EVWwaDwRBbsRVbBoPBYIit2PpAGAwGQ2zFVmwZDAaDIbZiy2AwGAyx
+FVsvL4PBYIit2Iotg8FgMMRWbBkMBoMhtmLr5WUwGAyxFVuxZTAYDIbYiq0PhMFgMMRWbM9iG4MH
+g8FgMKYwcuRaRzG2V2sajp9eY+Wz6r2v7meVY1trPAGOSVUxoktTZQAAAABJRU5ErkJggg==
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/static/images/toolbar/transp-yellow-pixel.png
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4/5/hPwAH/QL+ecrX
+pAAAAABJRU5ErkJggg==
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/static/images/toolbar/transp-red-pixel.png
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A
+/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAA1JREFUCNdjeMPQ8x8ABcwCeP+6qaAAAAAA
+SUVORK5CYII=
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/web/20140722085711im_/http://rastertek.com/pic1001.gif
+
+R0lGODlhIAMBAPcAAAAAAP///wht//7+//b5//z9//L3//f6/wlu/wlt/wtu/wxv/w1w/w9x/xFy
+/xN0/xNz/xV0/xZ1/xd2/xl3/xp3/xt4/xx5/x16/x96/yB7/yF8/yJ9/yR9/yV+/yZ//yeA/ymA
+/yqB/yuC/y2D/y6D/y+E/zCF/zKG/zSH/zWI/zeI/ziJ/zmK/zuL/z2M/z6N/z+O/0GP/0KP/0OQ
+/0SR/0aR/0eS/0iT/0mU/0uU/0yV/02W/0+X/1CY/1KZ/1Oa/1Sa/1ab/1ec/1md/1qd/1ue/1yf
+/1+g/2Ch/2Gi/2Ki/2Sj/2Wk/2al/2il/2mm/2qn/2uo/22o/26p/2+q/3Cr/3Os/3St/3Wu/3eu
+/3iv/3mw/3qx/3yx/32y/3+z/4G0/4K1/4O2/4W3/4a3/4e4/4i5/4q6/4y7/428/4+9/5C9/5G+
+/5K//5TA/5bB/5fC/5jC/5rD/5vE/57F/5/G/6DH/6PI/6TJ/6XK/6fL/6jL/6nM/6rN/6zO/67P
+/6/Q/7HR/7LR/7PS/7TT/7fU/7jV/7rW/7zX/73Y/7/Z/8Ha/8Lb/8Xc/8bd/8fe/8nf/8zh/87i
+/9Dj/9Hk/9Pl/9fn/9no/9rp/93r/97r/9/s/+Lu/+Tv/+jx/+ny/+vz/+71//D2/4m6/5PA/5zF
+/6HI/6vO/7nW/7/a/8Pc/8rg/83i/9Tm/9vq/+Dt/+Hu/+Xw/+fx/+z0//P4//j7/+v0/+/2//T5
+//X6//n8//v9//3+/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAL4ALAAAAAAgAwEA
+AAj/AAMIHEiwoEGCAxIO6MWQYYGHD3lJnLirosVdtjJqtHWg4wECIAnoCpmrZK2TKA2oXDmqZUtc
+uETJnEmrps1boXKGAsWz56efs4LOkkVUlqejSD11WtopFqynTzlJ3URVk1VNr7K+ysQ1E6avYC+J
+HeuqbFlLaC1VWluJklu3k+JOaiWprl1WeFlF2hsJkl9IjwI7Gjx4VaPDjRgpVqxqkeNFiiInmjwZ
+keVUqQ5pNsS5c6HPhQiJHkRakOlAqFEDWg3oj+s/qPzI9tOnNh8+e3Lr2b07j288wIGfukOcuB07
+dZInN0WnefM50OfImS4nDpzr199o117Kjfc24Nuw/xm/prya8+fTqFePpj0aUmfixzdDv4x9MvjJ
+jNm/X4z/MAAGCMaABH5hoBcIdqEgFwwyuMWDWkSYxYRZYGEhFldkqKEVHFpRxYdVUEHFFCRKYaIU
+UaSYIhRQPOGiEzA60cSMTTBho41L5KhEEjwmgcSPPx4h5BFGFGlEEUgSoeQQTA4hxJNCBCFlEED8
+YOUPPmSZZQ9c9sDDlzzsIKYOZOZgJg5o4nDDmja0WcObNdAgJw0zzCDDnTHkGQMMfMLwwp9/uiDo
+oC0UysKhKySqwqKLpuBoCihEGukJlJ5gwqUmlKApCZyO4OmnIoQawqgglFrqB6h6oKqqHbTKwasb
+xFgaqwa0apDBrRlgoCsGF/TqqwXAWlDBsBQUW+wEyCYrwbISROBsBA9EGy0E1FYLgQPYZottA9x2
+2wAD4IYL7gLkLqDAuegioO666ibgrgDwxivvvPTWG29AADs=
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: image/gif
+Content-Transfer-Encoding: base64
+Content-Location: http://web.archive.org/web/20140722085711im_/http://rastertek.com/pic1002.gif
+
+R0lGODlhIAMBAPcAAAAAAP///wht//7+//b5//z9//L3//f6/wlu/wlt/wtu/wxv/w1w/w9x/xFy
+/xN0/xNz/xV0/xZ1/xd2/xl3/xp3/xt4/xx5/x16/x96/yB7/yF8/yJ9/yR9/yV+/yZ//yeA/ymA
+/yqB/yuC/y2D/y6D/y+E/zCF/zKG/zSH/zWI/zeI/ziJ/zmK/zuL/z2M/z6N/z+O/0GP/0KP/0OQ
+/0SR/0aR/0eS/0iT/0mU/0uU/0yV/02W/0+X/1CY/1KZ/1Oa/1Sa/1ab/1ec/1md/1qd/1ue/1yf
+/1+g/2Ch/2Gi/2Ki/2Sj/2Wk/2al/2il/2mm/2qn/2uo/22o/26p/2+q/3Cr/3Os/3St/3Wu/3eu
+/3iv/3mw/3qx/3yx/32y/3+z/4G0/4K1/4O2/4W3/4a3/4e4/4i5/4q6/4y7/428/4+9/5C9/5G+
+/5K//5TA/5bB/5fC/5jC/5rD/5vE/57F/5/G/6DH/6PI/6TJ/6XK/6fL/6jL/6nM/6rN/6zO/67P
+/6/Q/7HR/7LR/7PS/7TT/7fU/7jV/7rW/7zX/73Y/7/Z/8Ha/8Lb/8Xc/8bd/8fe/8nf/8zh/87i
+/9Dj/9Hk/9Pl/9fn/9no/9rp/93r/97r/9/s/+Lu/+Tv/+jx/+ny/+vz/+71//D2/4m6/5PA/5zF
+/6HI/6vO/7nW/7/a/8Pc/8rg/83i/9Tm/9vq/+Dt/+Hu/+Xw/+fx/+z0//P4//j7/+v0/+/2//T5
+//X6//n8//v9//3+/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAL4ALAAAAAAgAwEA
+AAj/AAUIHEiwoMGDAxMoRMCwIUMFECMumLiAgcWLFhto3NjAgcePHiGIHAnhgUmTEVJGkMBSwoSX
+MCnIlFmhpoWbFi7o3ImhJ4YMQDNoGKphg1GjHJJ2WOqhadMPUEFIlRqiqoirI7JqJcG1hFcTYE2c
+GHsChVmzKdKmUMGW7Yq3LOK2mOuirt0XePHC2Asjht8YMgLPmEGjMI0aiGvYWHyjMY7HOHJI1kF5
+h2UemHn02NzDh2fPP0L/ABKkdBAhqIUMWT2EiOsisI3INnKk9hEkuHEn2Z1EyZLfTIIHb0K8iZPj
+Tp4ohwIlinPnUqJLmUKdCpUq2KtY2W7livfvWMJj/8lCPouW81vSc1m/vot7L/C/yAdDv36Y+/jF
+6B/Dnz+Z/2SUIaAZBJ5hoIGkoKEgGmk02KAaEEK4xoRsVNjGhW24oWEpb3TYIRwgghiHHCTKMceJ
+c9Chooqm1OGii3bYcceMM56Cx4035qGjHjzyuMePfPDRx5B+FOkHKn8k+QcgTAISyJNPCiLlIFQS
+YmUhWBZiyJZcHuJlKqkgImYiZJKpyJmLpLmIKoy02WYjcDayiiN00vnInZDkCUkkfEbCyp+sSCLo
+oK1MYugklCSaaCWMVmLJo5a4Iqmkl1RqKSaYZprJppm84ukrmoSqySakcmIqLKiiGksnrHbiyauw
+elgiy6yyzGLrLJ/kCsquvIbiayi30CLssKIUaywuuIyirLIGNOtsLdBGm8u0BFSrS7XVHqDtAbZ0
+660tu4Qr7i68lGtuAeii28u66w7g7gABxCvvvPTWO29AADs=
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: text/css;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://web.archive.org/static/css/banner-styles.css
+
+.__wb_overlay {
+	margin: 0px !important; padding: 0px !important; border-radius: 0px =
+!important; border: 0px currentColor !important; border-image: none =
+!important; left: 0px; top: 0px; width: 100%; height: 100%; position: =
+fixed; z-index: 2147483643 !important; opacity: 0.6; background-color: =
+rgb(0, 0, 0); -moz-opacity: 0.6;
+}
+#__wb_record_overlay_div {
+	cursor: wait !important;
+}
+.__wb_record_content {
+	margin: 0px !important; padding: 0px !important; border-radius: 8px; =
+left: 50%; top: 50%; position: fixed; z-index: 2147483644 !important; =
+opacity: 1; box-shadow: 0px 0px 30px 5px #000; background-color: =
+rgb(255, 255, 255) !important; -moz-box-shadow: 0 0 30px 5px #000; =
+-webkit-box-shadow: 0 0 30px 5px #000;
+}
+#__wb_record_content_loader {
+	width: 574px !important; height: 355px !important; padding-top: 30px =
+!important; margin-top: -177px !important; margin-left: -287px =
+!important; cursor: wait !important;
+}
+#__wb_record_content_done {
+	width: 855px !important; height: 355px !important; margin-top: -177px =
+!important; margin-left: -427px !important;
+}
+.__wb_record_content > * {
+	margin: auto !important; text-align: center !important; font-family: =
+"Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif !important; =
+display: block !important;
+}
+.__wb_record_content > wb_h1 {
+	margin: 0px !important; padding: 0px !important; width: auto =
+!important; height: auto !important; color: rgb(34, 34, 34) !important; =
+line-height: 2em; font-size: 36px !important; font-weight: normal =
+!important;
+}
+.__wb_record_content > wb_p {
+	margin: 8px 0px !important; padding: 0px !important; color: rgb(34, 34, =
+34) !important; line-height: 2em; font-size: 17px !important;
+}
+.__wb_record_content > #_wb_logo {
+	margin-bottom: 10px !important;
+}
+.__wb_record_content > #_wb_spinner {
+	margin-top: 30px !important; margin-bottom: 30px !important;
+}
+.__wb_record_content > #_wb_curr_url {
+	font-weight: bold !important; text-decoration: underline !important;
+}
+#__wb_record_content_done > #__wb_link {
+	padding: 3px !important; border: 1px solid rgb(170, 170, 170) =
+!important; border-image: none !important; width: 80% !important; =
+height: auto !important; text-align: center !important; font-size: 20px =
+!important;
+}
+#__wb_record_content_done > #__wb_link:focus {
+	border-color: rgb(66, 139, 202) !important; outline: 0px !important;
+}
+#__wb_record_content_done > #__wb_donate_close {
+	margin: 0px !important; padding: 8px 8px 0px 0px !important; width: =
+auto !important; font-size: 18px !important; float: right; display: =
+inline-block;
+}
+#__wb_donate_close > #__wb_record_done_close {
+	vertical-align: bottom !important; display: inline-block; cursor: =
+pointer !important;
+}
+#__wb_record_content_done > #__wb_donate_close a {
+	color: rgb(66, 139, 202) !important;
+}
+#__wb_record_content_done > #__wb_donate_close a:link {
+	color: rgb(66, 139, 202) !important; text-decoration: none !important; =
+margin-right: 16px !important;
+}
+#__wb_record_content_done > #__wb_donate_close a:visited {
+	color: rgb(66, 139, 202) !important;
+}
+#__wb_record_content_done > #__wb_donate_close a:hover {
+	color: rgb(0, 177, 247) !important;
+}
+.__wb_banner_div {
+	margin: 0px !important; padding: 0px !important; border-radius: 0px =
+!important; width: inherit !important; z-index: 2147483640 !important;
+}
+#__wb_spinningSquaresG {
+	margin: 30px 0px 30px 160px !important; padding: 0px !important; =
+border-radius: 0px !important; border: 0px currentColor !important; =
+border-image: none !important; width: 240px; height: 20px; position: =
+relative;
+}
+.__wb_spinningSquaresG {
+	margin: 0px !important; padding: 0px !important; border-radius: 0px =
+!important; border: 0px currentColor !important; border-image: none =
+!important; top: 0px; width: 22px; height: 22px; position: absolute; =
+transform: scale(0.3); animation-name: bounce_spinningSquaresG; =
+animation-duration: 1.9s; animation-iteration-count: infinite; =
+background-color: rgb(0, 0, 0); -moz-animation-name: =
+bounce_spinningSquaresG; -moz-animation-duration: 1.9s; =
+-moz-animation-iteration-count: infinite; -moz-animation-direction: =
+linear; -moz-transform: scale(.3); -webkit-animation-name: =
+bounce_spinningSquaresG; -webkit-animation-duration: 1.9s; =
+-webkit-animation-iteration-count: infinite; =
+-webkit-animation-direction: linear; -webkit-transform: scale(.3); =
+-o-animation-name: bounce_spinningSquaresG; -o-animation-duration: 1.9s; =
+-o-animation-iteration-count: infinite; -o-animation-direction: linear; =
+-o-transform: scale(.3);
+}
+#__wb_spinningSquaresG_1 {
+	left: 0px; animation-delay: 0.76s; -moz-animation-delay: 0.76s; =
+-webkit-animation-delay: 0.76s; -o-animation-delay: 0.76s;
+}
+#__wb_spinningSquaresG_2 {
+	left: 30px; animation-delay: 0.95s; -moz-animation-delay: 0.95s; =
+-webkit-animation-delay: 0.95s; -o-animation-delay: 0.95s;
+}
+#__wb_spinningSquaresG_3 {
+	left: 60px; animation-delay: 1.14s; -moz-animation-delay: 1.14s; =
+-webkit-animation-delay: 1.14s; -o-animation-delay: 1.14s;
+}
+#__wb_spinningSquaresG_4 {
+	left: 90px; animation-delay: 1.33s; -moz-animation-delay: 1.33s; =
+-webkit-animation-delay: 1.33s; -o-animation-delay: 1.33s;
+}
+#__wb_spinningSquaresG_5 {
+	left: 120px; animation-delay: 1.52s; -moz-animation-delay: 1.52s; =
+-webkit-animation-delay: 1.52s; -o-animation-delay: 1.52s;
+}
+#__wb_spinningSquaresG_6 {
+	left: 150px; animation-delay: 1.71s; -moz-animation-delay: 1.71s; =
+-webkit-animation-delay: 1.71s; -o-animation-delay: 1.71s;
+}
+#__wb_spinningSquaresG_7 {
+	left: 180px; animation-delay: 1.9s; -moz-animation-delay: 1.9s; =
+-webkit-animation-delay: 1.9s; -o-animation-delay: 1.9s;
+}
+#__wb_spinningSquaresG_8 {
+	left: 210px; animation-delay: 2.09s; -moz-animation-delay: 2.09s; =
+-webkit-animation-delay: 2.09s; -o-animation-delay: 2.09s;
+}
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: application/javascript
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://web.archive.org/static/js/analytics.js
+
+var archive_analytics =3D {=0A=
+    startTime: new Date(),=0A=
+    img_src: "//analytics.archive.org/0.gif",=0A=
+    values: { service: 'wb' },=0A=
+    =0A=
+    onload_func: function() {=0A=
+	var now =3D new Date();=0A=
+	var loadtime =3D now - archive_analytics.startTime;=0A=
+=0A=
+	var v =3D archive_analytics.values;=0A=
+	v.loadtime =3D loadtime;=0A=
+	v.timediff =3D -(now.getTimezoneOffset()/60);=0A=
+	v.locale =3D archive_analytics.get_locale();=0A=
+	// if no referrer set '-' as referrer=0A=
+	v.referrer =3D document.referrer || '-';=0A=
+=0A=
+        var string =3D archive_analytics.format_bug(v);=0A=
+        var loadtime_img =3D new Image(100,25);=0A=
+        loadtime_img.src =3D archive_analytics.img_src + "?" + string;=0A=
+    },=0A=
+    format_bug: function(values) {=0A=
+        var ret =3D ['version=3D2'], count =3D 2;=0A=
+        =0A=
+        for (var data in values) {=0A=
+            ret.push(encodeURIComponent(data) + "=3D" + =
+encodeURIComponent(values[data]));=0A=
+            count =3D count + 1;=0A=
+        }=0A=
+        ret.push('count=3D' + count);=0A=
+        return ret.join("&");=0A=
+    },=0A=
+    get_locale: function() {=0A=
+        if (navigator) {=0A=
+	    return navigator.language || navigator.browserLanguage ||=0A=
+		navigator.systemLanguage || navigator.userLanguage || '';=0A=
+        }=0A=
+        return '';=0A=
+    },=0A=
+    get_cookie: function(name) {=0A=
+      var parts =3D document.cookie.split(name + "=3D");=0A=
+      if (parts.length =3D=3D 2) return parts.pop().split(";").shift();=0A=
+      return 0;=0A=
+    }=0A=
+};=0A=
+=0A=
+if (window.addEventListener) {=0A=
+    window.addEventListener('load', archive_analytics.onload_func, =
+false);=0A=
+} else if (window.attachEvent) {=0A=
+    window.attachEvent('onload', archive_analytics.onload_func);=0A=
+}=0A=
+=0A=
+window.archive_analytics.values['server_ms'] =3D =
+window.archive_analytics.get_cookie("wb_total_perf"); =0A=
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: application/javascript
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://web.archive.org/static/js/disclaim-element.js
+
+function getFrameArea(frame) {=0A=
+  if(frame.innerWidth) return frame.innerWidth * frame.innerHeight;=0A=
+  if(frame.document.documentElement && =
+frame.document.documentElement.clientHeight) return =
+frame.document.documentElement.clientWidth * =
+frame.document.documentElement.clientHeight;=0A=
+  if(frame.document.body) return frame.document.body.clientWidth * =
+frame.document.body.clientHeight;=0A=
+  return 0;=0A=
+}=0A=
+=0A=
+function isLargestFrame() {=0A=
+	if(top =3D=3D self) {=0A=
+		return true;=0A=
+	}=0A=
+	if(top.document.body.tagName =3D=3D "BODY") {=0A=
+		return false;=0A=
+	}=0A=
+	largestArea =3D 0;=0A=
+	largestFrame =3D null;=0A=
+	for(i=3D0;i<top.frames.length;i++) {=0A=
+		frame =3D top.frames[i];=0A=
+		area =3D getFrameArea(frame);=0A=
+		if(area > largestArea) {=0A=
+			largestFrame =3D frame;=0A=
+			largestArea =3D area;=0A=
+		}=0A=
+	}=0A=
+	return (self =3D=3D largestFrame);=0A=
+}=0A=
+=0A=
+function disclaimElement(element) {=0A=
+	if(isLargestFrame()) {=0A=
+		element.style.display=3D"block";=0A=
+		document.body.insertBefore(element,document.body.firstChild);=0A=
+	}=0A=
+}=0A=
+=0A=
+function disclaimToggle(largest, nonLargest) {=0A=
+	if(isLargestFrame()) {=0A=
+		largest.style.display=3D"block";=0A=
+		nonLargest.style.display=3D"none";=0A=
+	} else {=0A=
+		largest.style.display=3D"none";=0A=
+		nonLargest.style.display=3D"block";=0A=
+	}=0A=
+}=0A=
+=0A=
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: application/javascript
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://web.archive.org/static/js/graph-calc.js
+
+function getEventX(event) {=0A=
+	var posx =3D 0;=0A=
+	if (event.pageX || event.pageY) {=0A=
+		posx =3D  event.pageX;=0A=
+	}=0A=
+	else if (event.clientX || event.clientY) 	{=0A=
+		posx =3D event.clientX + document.body.scrollLeft=0A=
+			+ document.documentElement.scrollLeft;=0A=
+	}=0A=
+	return posx;=0A=
+}=0A=
+function getElementX(obj) {=0A=
+	var x =3D 0;=0A=
+	if (obj.offsetParent) {=0A=
+		do {=0A=
+			x +=3D obj.offsetLeft;=0A=
+		} while (obj =3D obj.offsetParent);=0A=
+	}=0A=
+	return x;=0A=
+}=0A=
+function zeroPad(str,len) {=0A=
+	var i;=0A=
+	var pad =3D "";=0A=
+	var s =3D str.toString();=0A=
+	for(i=3Ds.length; i < len; i++) {=0A=
+		pad =3D "0".toString() + pad.toString();=0A=
+	}=0A=
+	return pad.toString() + s.toString();=0A=
+}=0A=
+=0A=
+function dateToTimestamp(date) {=0A=
+	return date.getFullYear() +=0A=
+		zeroPad(date.getMonth()+1,2) +=0A=
+		zeroPad(date.getDay()+1,2) +=0A=
+		zeroPad(date.getHours(),2) +=0A=
+		zeroPad(date.getMinutes(),2) +=0A=
+		zeroPad(date.getSeconds(),2);=0A=
+}=0A=
+=0A=
+function calcTimestamp(event,element,firstMS,lastMS) {=0A=
+	  var eventX =3D getEventX(event);=0A=
+	  var elementX =3D getElementX(element);=0A=
+	  var elementWidth =3D element.width;=0A=
+	  var msWidth =3D lastMS - firstMS;=0A=
+	  var x =3D eventX - elementX;=0A=
+	  var pct =3D x / elementWidth;=0A=
+	  var pctDate =3D pct * msWidth;=0A=
+	  var date =3D pctDate + firstMS;=0A=
+	  return dateToTimestamp(new Date(date));=0A=
+}=0A=
+
+------=_NextPart_000_0025_01CFB217.B3F53FE0
+Content-Type: application/javascript
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://web.archive.org/static/jflot/jquery.min.js
+
+/*=0A=
+ * jQuery JavaScript Library v1.3.2=0A=
+ * http://jquery.com/=0A=
+ *=0A=
+ * Copyright (c) 2009 John Resig=0A=
+ * Dual licensed under the MIT and GPL licenses.=0A=
+ * http://docs.jquery.com/License=0A=
+ *=0A=
+ * Date: 2009-02-19 17:34:21 -0500 (Thu, 19 Feb 2009)=0A=
+ * Revision: 6246=0A=
+ */=0A=
+(function(){var =
+window=3Dthis,undefined,_jQuery=3Dwindow.jQuery,_$=3Dwindow.$,jQuery=3Dwi=
+ndow.jQuery=3Dwindow.$=3Dfunction(selector,context){return new =
+jQuery.fn.init(selector,context)},quickExpr=3D/^[^<]*(<(.|\s)+>)[^>]*$|^#=
+([\w-]+)$/,isSimple=3D/^.[^:#\[\.,]*$/;jQuery.fn=3DjQuery.prototype=3D{in=
+it:function(selector,context){selector=3Dselector||document;if(selector.n=
+odeType){this[0]=3Dselector;this.length=3D1;this.context=3Dselector;retur=
+n this}if(typeof selector=3D=3D=3D"string"){var =
+match=3DquickExpr.exec(selector);if(match&&(match[1]||!context)){if(match=
+[1]){selector=3DjQuery.clean([match[1]],context)}else{var =
+elem=3Ddocument.getElementById(match[3]);if(elem&&elem.id!=3Dmatch[3]){re=
+turn jQuery().find(selector)}var =
+ret=3DjQuery(elem||[]);ret.context=3Ddocument;ret.selector=3Dselector;ret=
+urn ret}}else{return =
+jQuery(context).find(selector)}}else{if(jQuery.isFunction(selector)){retu=
+rn =
+jQuery(document).ready(selector)}}if(selector.selector&&selector.context)=
+{this.selector=3Dselector.selector;this.context=3Dselector.context}return=
+ =
+this.setArray(jQuery.isArray(selector)?selector:jQuery.makeArray(selector=
+))},selector:"",jquery:"1.3.2",size:function(){return =
+this.length},get:function(num){return =
+num=3D=3D=3Dundefined?Array.prototype.slice.call(this):this[num]},pushSta=
+ck:function(elems,name,selector){var =
+ret=3DjQuery(elems);ret.prevObject=3Dthis;ret.context=3Dthis.context;if(n=
+ame=3D=3D=3D"find"){ret.selector=3Dthis.selector+(this.selector?" =
+":"")+selector}else{if(name){ret.selector=3Dthis.selector+"."+name+"("+se=
+lector+")"}}return =
+ret},setArray:function(elems){this.length=3D0;Array.prototype.push.apply(=
+this,elems);return this},each:function(callback,args){return =
+jQuery.each(this,callback,args)},index:function(elem){return =
+jQuery.inArray(elem&&elem.jquery?elem[0]:elem,this)},attr:function(name,v=
+alue,type){var options=3Dname;if(typeof =
+name=3D=3D=3D"string"){if(value=3D=3D=3Dundefined){return =
+this[0]&&jQuery[type||"attr"](this[0],name)}else{options=3D{};options[nam=
+e]=3Dvalue}}return this.each(function(i){for(name in =
+options){jQuery.attr(type?this.style:this,name,jQuery.prop(this,options[n=
+ame],type,i,name))}})},css:function(key,value){if((key=3D=3D"width"||key=3D=
+=3D"height")&&parseFloat(value)<0){value=3Dundefined}return =
+this.attr(key,value,"curCSS")},text:function(text){if(typeof =
+text!=3D=3D"object"&&text!=3Dnull){return =
+this.empty().append((this[0]&&this[0].ownerDocument||document).createText=
+Node(text))}var =
+ret=3D"";jQuery.each(text||this,function(){jQuery.each(this.childNodes,fu=
+nction(){if(this.nodeType!=3D8){ret+=3Dthis.nodeType!=3D1?this.nodeValue:=
+jQuery.fn.text([this])}})});return =
+ret},wrapAll:function(html){if(this[0]){var =
+wrap=3DjQuery(html,this[0].ownerDocument).clone();if(this[0].parentNode){=
+wrap.insertBefore(this[0])}wrap.map(function(){var =
+elem=3Dthis;while(elem.firstChild){elem=3Delem.firstChild}return =
+elem}).append(this)}return this},wrapInner:function(html){return =
+this.each(function(){jQuery(this).contents().wrapAll(html)})},wrap:functi=
+on(html){return =
+this.each(function(){jQuery(this).wrapAll(html)})},append:function(){retu=
+rn =
+this.domManip(arguments,true,function(elem){if(this.nodeType=3D=3D1){this=
+.appendChild(elem)}})},prepend:function(){return =
+this.domManip(arguments,true,function(elem){if(this.nodeType=3D=3D1){this=
+.insertBefore(elem,this.firstChild)}})},before:function(){return =
+this.domManip(arguments,false,function(elem){this.parentNode.insertBefore=
+(elem,this)})},after:function(){return =
+this.domManip(arguments,false,function(elem){this.parentNode.insertBefore=
+(elem,this.nextSibling)})},end:function(){return =
+this.prevObject||jQuery([])},push:[].push,sort:[].sort,splice:[].splice,f=
+ind:function(selector){if(this.length=3D=3D=3D1){var =
+ret=3Dthis.pushStack([],"find",selector);ret.length=3D0;jQuery.find(selec=
+tor,this[0],ret);return ret}else{return =
+this.pushStack(jQuery.unique(jQuery.map(this,function(elem){return =
+jQuery.find(selector,elem)})),"find",selector)}},clone:function(events){v=
+ar =
+ret=3Dthis.map(function(){if(!jQuery.support.noCloneEvent&&!jQuery.isXMLD=
+oc(this)){var html=3Dthis.outerHTML;if(!html){var =
+div=3Dthis.ownerDocument.createElement("div");div.appendChild(this.cloneN=
+ode(true));html=3Ddiv.innerHTML}return jQuery.clean([html.replace(/ =
+jQuery\d+=3D"(?:\d+|null)"/g,"").replace(/^\s*/,"")])[0]}else{return =
+this.cloneNode(true)}});if(events=3D=3D=3Dtrue){var =
+orig=3Dthis.find("*").andSelf(),i=3D0;ret.find("*").andSelf().each(functi=
+on(){if(this.nodeName!=3D=3Dorig[i].nodeName){return }var =
+events=3DjQuery.data(orig[i],"events");for(var type in events){for(var =
+handler in =
+events[type]){jQuery.event.add(this,type,events[type][handler],events[typ=
+e][handler].data)}}i++})}return ret},filter:function(selector){return =
+this.pushStack(jQuery.isFunction(selector)&&jQuery.grep(this,function(ele=
+m,i){return =
+selector.call(elem,i)})||jQuery.multiFilter(selector,jQuery.grep(this,fun=
+ction(elem){return =
+elem.nodeType=3D=3D=3D1})),"filter",selector)},closest:function(selector)=
+{var =
+pos=3DjQuery.expr.match.POS.test(selector)?jQuery(selector):null,closer=3D=
+0;return this.map(function(){var =
+cur=3Dthis;while(cur&&cur.ownerDocument){if(pos?pos.index(cur)>-1:jQuery(=
+cur).is(selector)){jQuery.data(cur,"closest",closer);return =
+cur}cur=3Dcur.parentNode;closer++}})},not:function(selector){if(typeof =
+selector=3D=3D=3D"string"){if(isSimple.test(selector)){return =
+this.pushStack(jQuery.multiFilter(selector,this,true),"not",selector)}els=
+e{selector=3DjQuery.multiFilter(selector,this)}}var =
+isArrayLike=3Dselector.length&&selector[selector.length-1]!=3D=3Dundefine=
+d&&!selector.nodeType;return this.filter(function(){return =
+isArrayLike?jQuery.inArray(this,selector)<0:this!=3Dselector})},add:funct=
+ion(selector){return =
+this.pushStack(jQuery.unique(jQuery.merge(this.get(),typeof =
+selector=3D=3D=3D"string"?jQuery(selector):jQuery.makeArray(selector))))}=
+,is:function(selector){return =
+!!selector&&jQuery.multiFilter(selector,this).length>0},hasClass:function=
+(selector){return =
+!!selector&&this.is("."+selector)},val:function(value){if(value=3D=3D=3Du=
+ndefined){var =
+elem=3Dthis[0];if(elem){if(jQuery.nodeName(elem,"option")){return(elem.at=
+tributes.value||{}).specified?elem.value:elem.text}if(jQuery.nodeName(ele=
+m,"select")){var =
+index=3Delem.selectedIndex,values=3D[],options=3Delem.options,one=3Delem.=
+type=3D=3D"select-one";if(index<0){return null}for(var =
+i=3Done?index:0,max=3Done?index+1:options.length;i<max;i++){var =
+option=3Doptions[i];if(option.selected){value=3DjQuery(option).val();if(o=
+ne){return value}values.push(value)}}return =
+values}return(elem.value||"").replace(/\r/g,"")}return =
+undefined}if(typeof value=3D=3D=3D"number"){value+=3D""}return =
+this.each(function(){if(this.nodeType!=3D1){return =
+}if(jQuery.isArray(value)&&/radio|checkbox/.test(this.type)){this.checked=
+=3D(jQuery.inArray(this.value,value)>=3D0||jQuery.inArray(this.name,value=
+)>=3D0)}else{if(jQuery.nodeName(this,"select")){var =
+values=3DjQuery.makeArray(value);jQuery("option",this).each(function(){th=
+is.selected=3D(jQuery.inArray(this.value,values)>=3D0||jQuery.inArray(thi=
+s.text,values)>=3D0)});if(!values.length){this.selectedIndex=3D-1}}else{t=
+his.value=3Dvalue}}})},html:function(value){return =
+value=3D=3D=3Dundefined?(this[0]?this[0].innerHTML.replace(/ =
+jQuery\d+=3D"(?:\d+|null)"/g,""):null):this.empty().append(value)},replac=
+eWith:function(value){return =
+this.after(value).remove()},eq:function(i){return =
+this.slice(i,+i+1)},slice:function(){return =
+this.pushStack(Array.prototype.slice.apply(this,arguments),"slice",Array.=
+prototype.slice.call(arguments).join(","))},map:function(callback){return=
+ this.pushStack(jQuery.map(this,function(elem,i){return =
+callback.call(elem,i,elem)}))},andSelf:function(){return =
+this.add(this.prevObject)},domManip:function(args,table,callback){if(this=
+[0]){var =
+fragment=3D(this[0].ownerDocument||this[0]).createDocumentFragment(),scri=
+pts=3DjQuery.clean(args,(this[0].ownerDocument||this[0]),fragment),first=3D=
+fragment.firstChild;if(first){for(var =
+i=3D0,l=3Dthis.length;i<l;i++){callback.call(root(this[i],first),this.len=
+gth>1||i>0?fragment.cloneNode(true):fragment)}}if(scripts){jQuery.each(sc=
+ripts,evalScript)}}return this;function root(elem,cur){return =
+table&&jQuery.nodeName(elem,"table")&&jQuery.nodeName(cur,"tr")?(elem.get=
+ElementsByTagName("tbody")[0]||elem.appendChild(elem.ownerDocument.create=
+Element("tbody"))):elem}}};jQuery.fn.init.prototype=3DjQuery.fn;function =
+evalScript(i,elem){if(elem.src){jQuery.ajax({url:elem.src,async:false,dat=
+aType:"script"})}else{jQuery.globalEval(elem.text||elem.textContent||elem=
+.innerHTML||"")}if(elem.parentNode){elem.parentNode.removeChild(elem)}}fu=
+nction now(){return +new =
+Date}jQuery.extend=3DjQuery.fn.extend=3Dfunction(){var =
+target=3Darguments[0]||{},i=3D1,length=3Darguments.length,deep=3Dfalse,op=
+tions;if(typeof =
+target=3D=3D=3D"boolean"){deep=3Dtarget;target=3Darguments[1]||{};i=3D2}i=
+f(typeof =
+target!=3D=3D"object"&&!jQuery.isFunction(target)){target=3D{}}if(length=3D=
+=3Di){target=3Dthis;--i}for(;i<length;i++){if((options=3Darguments[i])!=3D=
+null){for(var name in options){var =
+src=3Dtarget[name],copy=3Doptions[name];if(target=3D=3D=3Dcopy){continue}=
+if(deep&&copy&&typeof =
+copy=3D=3D=3D"object"&&!copy.nodeType){target[name]=3DjQuery.extend(deep,=
+src||(copy.length!=3Dnull?[]:{}),copy)}else{if(copy!=3D=3Dundefined){targ=
+et[name]=3Dcopy}}}}}return target};var =
+exclude=3D/z-?index|font-?weight|opacity|zoom|line-?height/i,defaultView=3D=
+document.defaultView||{},toString=3DObject.prototype.toString;jQuery.exte=
+nd({noConflict:function(deep){window.$=3D_$;if(deep){window.jQuery=3D_jQu=
+ery}return jQuery},isFunction:function(obj){return =
+toString.call(obj)=3D=3D=3D"[object =
+Function]"},isArray:function(obj){return =
+toString.call(obj)=3D=3D=3D"[object =
+Array]"},isXMLDoc:function(elem){return =
+elem.nodeType=3D=3D=3D9&&elem.documentElement.nodeName!=3D=3D"HTML"||!!el=
+em.ownerDocument&&jQuery.isXMLDoc(elem.ownerDocument)},globalEval:functio=
+n(data){if(data&&/\S/.test(data)){var =
+head=3Ddocument.getElementsByTagName("head")[0]||document.documentElement=
+,script=3Ddocument.createElement("script");script.type=3D"text/javascript=
+";if(jQuery.support.scriptEval){script.appendChild(document.createTextNod=
+e(data))}else{script.text=3Ddata}head.insertBefore(script,head.firstChild=
+);head.removeChild(script)}},nodeName:function(elem,name){return =
+elem.nodeName&&elem.nodeName.toUpperCase()=3D=3Dname.toUpperCase()},each:=
+function(object,callback,args){var =
+name,i=3D0,length=3Dobject.length;if(args){if(length=3D=3D=3Dundefined){f=
+or(name in =
+object){if(callback.apply(object[name],args)=3D=3D=3Dfalse){break}}}else{=
+for(;i<length;){if(callback.apply(object[i++],args)=3D=3D=3Dfalse){break}=
+}}}else{if(length=3D=3D=3Dundefined){for(name in =
+object){if(callback.call(object[name],name,object[name])=3D=3D=3Dfalse){b=
+reak}}}else{for(var =
+value=3Dobject[0];i<length&&callback.call(value,i,value)!=3D=3Dfalse;valu=
+e=3Dobject[++i]){}}}return =
+object},prop:function(elem,value,type,i,name){if(jQuery.isFunction(value)=
+){value=3Dvalue.call(elem,i)}return typeof =
+value=3D=3D=3D"number"&&type=3D=3D"curCSS"&&!exclude.test(name)?value+"px=
+":value},className:{add:function(elem,classNames){jQuery.each((classNames=
+||"").split(/\s+/),function(i,className){if(elem.nodeType=3D=3D1&&!jQuery=
+.className.has(elem.className,className)){elem.className+=3D(elem.classNa=
+me?" =
+":"")+className}})},remove:function(elem,classNames){if(elem.nodeType=3D=3D=
+1){elem.className=3DclassNames!=3D=3Dundefined?jQuery.grep(elem.className=
+.split(/\s+/),function(className){return =
+!jQuery.className.has(classNames,className)}).join(" =
+"):""}},has:function(elem,className){return =
+elem&&jQuery.inArray(className,(elem.className||elem).toString().split(/\=
+s+/))>-1}},swap:function(elem,options,callback){var old=3D{};for(var =
+name in =
+options){old[name]=3Delem.style[name];elem.style[name]=3Doptions[name]}ca=
+llback.call(elem);for(var name in =
+options){elem.style[name]=3Dold[name]}},css:function(elem,name,force,extr=
+a){if(name=3D=3D"width"||name=3D=3D"height"){var =
+val,props=3D{position:"absolute",visibility:"hidden",display:"block"},whi=
+ch=3Dname=3D=3D"width"?["Left","Right"]:["Top","Bottom"];function =
+getWH(){val=3Dname=3D=3D"width"?elem.offsetWidth:elem.offsetHeight;if(ext=
+ra=3D=3D=3D"border"){return =
+}jQuery.each(which,function(){if(!extra){val-=3DparseFloat(jQuery.curCSS(=
+elem,"padding"+this,true))||0}if(extra=3D=3D=3D"margin"){val+=3DparseFloa=
+t(jQuery.curCSS(elem,"margin"+this,true))||0}else{val-=3DparseFloat(jQuer=
+y.curCSS(elem,"border"+this+"Width",true))||0}})}if(elem.offsetWidth!=3D=3D=
+0){getWH()}else{jQuery.swap(elem,props,getWH)}return =
+Math.max(0,Math.round(val))}return =
+jQuery.curCSS(elem,name,force)},curCSS:function(elem,name,force){var =
+ret,style=3Delem.style;if(name=3D=3D"opacity"&&!jQuery.support.opacity){r=
+et=3DjQuery.attr(style,"opacity");return =
+ret=3D=3D""?"1":ret}if(name.match(/float/i)){name=3DstyleFloat}if(!force&=
+&style&&style[name]){ret=3Dstyle[name]}else{if(defaultView.getComputedSty=
+le){if(name.match(/float/i)){name=3D"float"}name=3Dname.replace(/([A-Z])/=
+g,"-$1").toLowerCase();var =
+computedStyle=3DdefaultView.getComputedStyle(elem,null);if(computedStyle)=
+{ret=3DcomputedStyle.getPropertyValue(name)}if(name=3D=3D"opacity"&&ret=3D=
+=3D""){ret=3D"1"}}else{if(elem.currentStyle){var =
+camelCase=3Dname.replace(/\-(\w)/g,function(all,letter){return =
+letter.toUpperCase()});ret=3Delem.currentStyle[name]||elem.currentStyle[c=
+amelCase];if(!/^\d+(px)?$/i.test(ret)&&/^\d/.test(ret)){var =
+left=3Dstyle.left,rsLeft=3Delem.runtimeStyle.left;elem.runtimeStyle.left=3D=
+elem.currentStyle.left;style.left=3Dret||0;ret=3Dstyle.pixelLeft+"px";sty=
+le.left=3Dleft;elem.runtimeStyle.left=3DrsLeft}}}}return =
+ret},clean:function(elems,context,fragment){context=3Dcontext||document;i=
+f(typeof =
+context.createElement=3D=3D=3D"undefined"){context=3Dcontext.ownerDocumen=
+t||context[0]&&context[0].ownerDocument||document}if(!fragment&&elems.len=
+gth=3D=3D=3D1&&typeof elems[0]=3D=3D=3D"string"){var =
+match=3D/^<(\w+)\s*\/?>$/.exec(elems[0]);if(match){return[context.createE=
+lement(match[1])]}}var =
+ret=3D[],scripts=3D[],div=3Dcontext.createElement("div");jQuery.each(elem=
+s,function(i,elem){if(typeof =
+elem=3D=3D=3D"number"){elem+=3D""}if(!elem){return }if(typeof =
+elem=3D=3D=3D"string"){elem=3Delem.replace(/(<(\w+)[^>]*?)\/>/g,function(=
+all,front,tag){return =
+tag.match(/^(abbr|br|col|img|input|link|meta|param|hr|area|embed)$/i)?all=
+:front+"></"+tag+">"});var =
+tags=3Delem.replace(/^\s+/,"").substring(0,10).toLowerCase();var =
+wrap=3D!tags.indexOf("<opt")&&[1,"<select =
+multiple=3D'multiple'>","</select>"]||!tags.indexOf("<leg")&&[1,"<fieldse=
+t>","</fieldset>"]||tags.match(/^<(thead|tbody|tfoot|colg|cap)/)&&[1,"<ta=
+ble>","</table>"]||!tags.indexOf("<tr")&&[2,"<table><tbody>","</tbody></t=
+able>"]||(!tags.indexOf("<td")||!tags.indexOf("<th"))&&[3,"<table><tbody>=
+<tr>","</tr></tbody></table>"]||!tags.indexOf("<col")&&[2,"<table><tbody>=
+</tbody><colgroup>","</colgroup></table>"]||!jQuery.support.htmlSerialize=
+&&[1,"div<div>","</div>"]||[0,"",""];div.innerHTML=3Dwrap[1]+elem+wrap[2]=
+;while(wrap[0]--){div=3Ddiv.lastChild}if(!jQuery.support.tbody){var =
+hasBody=3D/<tbody/i.test(elem),tbody=3D!tags.indexOf("<table")&&!hasBody?=
+div.firstChild&&div.firstChild.childNodes:wrap[1]=3D=3D"<table>"&&!hasBod=
+y?div.childNodes:[];for(var =
+j=3Dtbody.length-1;j>=3D0;--j){if(jQuery.nodeName(tbody[j],"tbody")&&!tbo=
+dy[j].childNodes.length){tbody[j].parentNode.removeChild(tbody[j])}}}if(!=
+jQuery.support.leadingWhitespace&&/^\s/.test(elem)){div.insertBefore(cont=
+ext.createTextNode(elem.match(/^\s*/)[0]),div.firstChild)}elem=3DjQuery.m=
+akeArray(div.childNodes)}if(elem.nodeType){ret.push(elem)}else{ret=3DjQue=
+ry.merge(ret,elem)}});if(fragment){for(var =
+i=3D0;ret[i];i++){if(jQuery.nodeName(ret[i],"script")&&(!ret[i].type||ret=
+[i].type.toLowerCase()=3D=3D=3D"text/javascript")){scripts.push(ret[i].pa=
+rentNode?ret[i].parentNode.removeChild(ret[i]):ret[i])}else{if(ret[i].nod=
+eType=3D=3D=3D1){ret.splice.apply(ret,[i+1,0].concat(jQuery.makeArray(ret=
+[i].getElementsByTagName("script"))))}fragment.appendChild(ret[i])}}retur=
+n scripts}return =
+ret},attr:function(elem,name,value){if(!elem||elem.nodeType=3D=3D3||elem.=
+nodeType=3D=3D8){return undefined}var =
+notxml=3D!jQuery.isXMLDoc(elem),set=3Dvalue!=3D=3Dundefined;name=3Dnotxml=
+&&jQuery.props[name]||name;if(elem.tagName){var =
+special=3D/href|src|style/.test(name);if(name=3D=3D"selected"&&elem.paren=
+tNode){elem.parentNode.selectedIndex}if(name in =
+elem&&notxml&&!special){if(set){if(name=3D=3D"type"&&jQuery.nodeName(elem=
+,"input")&&elem.parentNode){throw"type property can't be =
+changed"}elem[name]=3Dvalue}if(jQuery.nodeName(elem,"form")&&elem.getAttr=
+ibuteNode(name)){return =
+elem.getAttributeNode(name).nodeValue}if(name=3D=3D"tabIndex"){var =
+attributeNode=3Delem.getAttributeNode("tabIndex");return =
+attributeNode&&attributeNode.specified?attributeNode.value:elem.nodeName.=
+match(/(button|input|object|select|textarea)/i)?0:elem.nodeName.match(/^(=
+a|area)$/i)&&elem.href?0:undefined}return =
+elem[name]}if(!jQuery.support.style&&notxml&&name=3D=3D"style"){return =
+jQuery.attr(elem.style,"cssText",value)}if(set){elem.setAttribute(name,""=
++value)}var =
+attr=3D!jQuery.support.hrefNormalized&&notxml&&special?elem.getAttribute(=
+name,2):elem.getAttribute(name);return =
+attr=3D=3D=3Dnull?undefined:attr}if(!jQuery.support.opacity&&name=3D=3D"o=
+pacity"){if(set){elem.zoom=3D1;elem.filter=3D(elem.filter||"").replace(/a=
+lpha\([^)]*\)/,"")+(parseInt(value)+""=3D=3D"NaN"?"":"alpha(opacity=3D"+v=
+alue*100+")")}return =
+elem.filter&&elem.filter.indexOf("opacity=3D")>=3D0?(parseFloat(elem.filt=
+er.match(/opacity=3D([^)]*)/)[1])/100)+"":""}name=3Dname.replace(/-([a-z]=
+)/ig,function(all,letter){return =
+letter.toUpperCase()});if(set){elem[name]=3Dvalue}return =
+elem[name]},trim:function(text){return(text||"").replace(/^\s+|\s+$/g,"")=
+},makeArray:function(array){var ret=3D[];if(array!=3Dnull){var =
+i=3Darray.length;if(i=3D=3Dnull||typeof =
+array=3D=3D=3D"string"||jQuery.isFunction(array)||array.setInterval){ret[=
+0]=3Darray}else{while(i){ret[--i]=3Darray[i]}}}return =
+ret},inArray:function(elem,array){for(var =
+i=3D0,length=3Darray.length;i<length;i++){if(array[i]=3D=3D=3Delem){retur=
+n i}}return -1},merge:function(first,second){var =
+i=3D0,elem,pos=3Dfirst.length;if(!jQuery.support.getAll){while((elem=3Dse=
+cond[i++])!=3Dnull){if(elem.nodeType!=3D8){first[pos++]=3Delem}}}else{whi=
+le((elem=3Dsecond[i++])!=3Dnull){first[pos++]=3Delem}}return =
+first},unique:function(array){var ret=3D[],done=3D{};try{for(var =
+i=3D0,length=3Darray.length;i<length;i++){var =
+id=3DjQuery.data(array[i]);if(!done[id]){done[id]=3Dtrue;ret.push(array[i=
+])}}}catch(e){ret=3Darray}return =
+ret},grep:function(elems,callback,inv){var ret=3D[];for(var =
+i=3D0,length=3Delems.length;i<length;i++){if(!inv!=3D!callback(elems[i],i=
+)){ret.push(elems[i])}}return ret},map:function(elems,callback){var =
+ret=3D[];for(var i=3D0,length=3Delems.length;i<length;i++){var =
+value=3Dcallback(elems[i],i);if(value!=3Dnull){ret[ret.length]=3Dvalue}}r=
+eturn ret.concat.apply([],ret)}});var =
+userAgent=3Dnavigator.userAgent.toLowerCase();jQuery.browser=3D{version:(=
+userAgent.match(/.+(?:rv|it|ra|ie)[\/: =
+]([\d.]+)/)||[0,"0"])[1],safari:/webkit/.test(userAgent),opera:/opera/.te=
+st(userAgent),msie:/msie/.test(userAgent)&&!/opera/.test(userAgent),mozil=
+la:/mozilla/.test(userAgent)&&!/(compatible|webkit)/.test(userAgent)};jQu=
+ery.each({parent:function(elem){return =
+elem.parentNode},parents:function(elem){return =
+jQuery.dir(elem,"parentNode")},next:function(elem){return =
+jQuery.nth(elem,2,"nextSibling")},prev:function(elem){return =
+jQuery.nth(elem,2,"previousSibling")},nextAll:function(elem){return =
+jQuery.dir(elem,"nextSibling")},prevAll:function(elem){return =
+jQuery.dir(elem,"previousSibling")},siblings:function(elem){return =
+jQuery.sibling(elem.parentNode.firstChild,elem)},children:function(elem){=
+return jQuery.sibling(elem.firstChild)},contents:function(elem){return =
+jQuery.nodeName(elem,"iframe")?elem.contentDocument||elem.contentWindow.d=
+ocument:jQuery.makeArray(elem.childNodes)}},function(name,fn){jQuery.fn[n=
+ame]=3Dfunction(selector){var =
+ret=3DjQuery.map(this,fn);if(selector&&typeof =
+selector=3D=3D"string"){ret=3DjQuery.multiFilter(selector,ret)}return =
+this.pushStack(jQuery.unique(ret),name,selector)}});jQuery.each({appendTo=
+:"append",prependTo:"prepend",insertBefore:"before",insertAfter:"after",r=
+eplaceAll:"replaceWith"},function(name,original){jQuery.fn[name]=3Dfuncti=
+on(selector){var ret=3D[],insert=3DjQuery(selector);for(var =
+i=3D0,l=3Dinsert.length;i<l;i++){var =
+elems=3D(i>0?this.clone(true):this).get();jQuery.fn[original].apply(jQuer=
+y(insert[i]),elems);ret=3Dret.concat(elems)}return =
+this.pushStack(ret,name,selector)}});jQuery.each({removeAttr:function(nam=
+e){jQuery.attr(this,name,"");if(this.nodeType=3D=3D1){this.removeAttribut=
+e(name)}},addClass:function(classNames){jQuery.className.add(this,classNa=
+mes)},removeClass:function(classNames){jQuery.className.remove(this,class=
+Names)},toggleClass:function(classNames,state){if(typeof =
+state!=3D=3D"boolean"){state=3D!jQuery.className.has(this,classNames)}jQu=
+ery.className[state?"add":"remove"](this,classNames)},remove:function(sel=
+ector){if(!selector||jQuery.filter(selector,[this]).length){jQuery("*",th=
+is).add([this]).each(function(){jQuery.event.remove(this);jQuery.removeDa=
+ta(this)});if(this.parentNode){this.parentNode.removeChild(this)}}},empty=
+:function(){jQuery(this).children().remove();while(this.firstChild){this.=
+removeChild(this.firstChild)}}},function(name,fn){jQuery.fn[name]=3Dfunct=
+ion(){return this.each(fn,arguments)}});function num(elem,prop){return =
+elem[0]&&parseInt(jQuery.curCSS(elem[0],prop,true),10)||0}var =
+expando=3D"jQuery"+now(),uuid=3D0,windowData=3D{};jQuery.extend({cache:{}=
+,data:function(elem,name,data){elem=3Delem=3D=3Dwindow?windowData:elem;va=
+r =
+id=3Delem[expando];if(!id){id=3Delem[expando]=3D++uuid}if(name&&!jQuery.c=
+ache[id]){jQuery.cache[id]=3D{}}if(data!=3D=3Dundefined){jQuery.cache[id]=
+[name]=3Ddata}return =
+name?jQuery.cache[id][name]:id},removeData:function(elem,name){elem=3Dele=
+m=3D=3Dwindow?windowData:elem;var =
+id=3Delem[expando];if(name){if(jQuery.cache[id]){delete =
+jQuery.cache[id][name];name=3D"";for(name in =
+jQuery.cache[id]){break}if(!name){jQuery.removeData(elem)}}}else{try{dele=
+te =
+elem[expando]}catch(e){if(elem.removeAttribute){elem.removeAttribute(expa=
+ndo)}}delete =
+jQuery.cache[id]}},queue:function(elem,type,data){if(elem){type=3D(type||=
+"fx")+"queue";var =
+q=3DjQuery.data(elem,type);if(!q||jQuery.isArray(data)){q=3DjQuery.data(e=
+lem,type,jQuery.makeArray(data))}else{if(data){q.push(data)}}}return =
+q},dequeue:function(elem,type){var =
+queue=3DjQuery.queue(elem,type),fn=3Dqueue.shift();if(!type||type=3D=3D=3D=
+"fx"){fn=3Dqueue[0]}if(fn!=3D=3Dundefined){fn.call(elem)}}});jQuery.fn.ex=
+tend({data:function(key,value){var =
+parts=3Dkey.split(".");parts[1]=3Dparts[1]?"."+parts[1]:"";if(value=3D=3D=
+=3Dundefined){var =
+data=3Dthis.triggerHandler("getData"+parts[1]+"!",[parts[0]]);if(data=3D=3D=
+=3Dundefined&&this.length){data=3DjQuery.data(this[0],key)}return =
+data=3D=3D=3Dundefined&&parts[1]?this.data(parts[0]):data}else{return =
+this.trigger("setData"+parts[1]+"!",[parts[0],value]).each(function(){jQu=
+ery.data(this,key,value)})}},removeData:function(key){return =
+this.each(function(){jQuery.removeData(this,key)})},queue:function(type,d=
+ata){if(typeof =
+type!=3D=3D"string"){data=3Dtype;type=3D"fx"}if(data=3D=3D=3Dundefined){r=
+eturn jQuery.queue(this[0],type)}return this.each(function(){var =
+queue=3DjQuery.queue(this,type,data);if(type=3D=3D"fx"&&queue.length=3D=3D=
+1){queue[0].call(this)}})},dequeue:function(type){return =
+this.each(function(){jQuery.dequeue(this,type)})}});=0A=
+/*=0A=
+ * Sizzle CSS Selector Engine - v0.9.3=0A=
+ *  Copyright 2009, The Dojo Foundation=0A=
+ *  Released under the MIT, BSD, and GPL Licenses.=0A=
+ *  More information: http://sizzlejs.com/=0A=
+ */=0A=
+(function(){var =
+chunker=3D/((?:\((?:\([^()]+\)|[^()]+)+\)|\[(?:\[[^[\]]*\]|['"][^'"]*['"]=
+|[^[\]'"]+)+\]|\\.|[^ =
+>+~,(\[\\]+)+|[>+~])(\s*,\s*)?/g,done=3D0,toString=3DObject.prototype.toS=
+tring;var =
+Sizzle=3Dfunction(selector,context,results,seed){results=3Dresults||[];co=
+ntext=3Dcontext||document;if(context.nodeType!=3D=3D1&&context.nodeType!=3D=
+=3D9){return[]}if(!selector||typeof selector!=3D=3D"string"){return =
+results}var =
+parts=3D[],m,set,checkSet,check,mode,extra,prune=3Dtrue;chunker.lastIndex=
+=3D0;while((m=3Dchunker.exec(selector))!=3D=3Dnull){parts.push(m[1]);if(m=
+[2]){extra=3DRegExp.rightContext;break}}if(parts.length>1&&origPOS.exec(s=
+elector)){if(parts.length=3D=3D=3D2&&Expr.relative[parts[0]]){set=3DposPr=
+ocess(parts[0]+parts[1],context)}else{set=3DExpr.relative[parts[0]]?[cont=
+ext]:Sizzle(parts.shift(),context);while(parts.length){selector=3Dparts.s=
+hift();if(Expr.relative[selector]){selector+=3Dparts.shift()}set=3DposPro=
+cess(selector,set)}}}else{var =
+ret=3Dseed?{expr:parts.pop(),set:makeArray(seed)}:Sizzle.find(parts.pop()=
+,parts.length=3D=3D=3D1&&context.parentNode?context.parentNode:context,is=
+XML(context));set=3DSizzle.filter(ret.expr,ret.set);if(parts.length>0){ch=
+eckSet=3DmakeArray(set)}else{prune=3Dfalse}while(parts.length){var =
+cur=3Dparts.pop(),pop=3Dcur;if(!Expr.relative[cur]){cur=3D""}else{pop=3Dp=
+arts.pop()}if(pop=3D=3Dnull){pop=3Dcontext}Expr.relative[cur](checkSet,po=
+p,isXML(context))}}if(!checkSet){checkSet=3Dset}if(!checkSet){throw"Synta=
+x error, unrecognized expression: =
+"+(cur||selector)}if(toString.call(checkSet)=3D=3D=3D"[object =
+Array]"){if(!prune){results.push.apply(results,checkSet)}else{if(context.=
+nodeType=3D=3D=3D1){for(var =
+i=3D0;checkSet[i]!=3Dnull;i++){if(checkSet[i]&&(checkSet[i]=3D=3D=3Dtrue|=
+|checkSet[i].nodeType=3D=3D=3D1&&contains(context,checkSet[i]))){results.=
+push(set[i])}}}else{for(var =
+i=3D0;checkSet[i]!=3Dnull;i++){if(checkSet[i]&&checkSet[i].nodeType=3D=3D=
+=3D1){results.push(set[i])}}}}}else{makeArray(checkSet,results)}if(extra)=
+{Sizzle(extra,context,results,seed);if(sortOrder){hasDuplicate=3Dfalse;re=
+sults.sort(sortOrder);if(hasDuplicate){for(var =
+i=3D1;i<results.length;i++){if(results[i]=3D=3D=3Dresults[i-1]){results.s=
+plice(i--,1)}}}}}return =
+results};Sizzle.matches=3Dfunction(expr,set){return =
+Sizzle(expr,null,null,set)};Sizzle.find=3Dfunction(expr,context,isXML){va=
+r set,match;if(!expr){return[]}for(var =
+i=3D0,l=3DExpr.order.length;i<l;i++){var =
+type=3DExpr.order[i],match;if((match=3DExpr.match[type].exec(expr))){var =
+left=3DRegExp.leftContext;if(left.substr(left.length-1)!=3D=3D"\\"){match=
+[1]=3D(match[1]||"").replace(/\\/g,"");set=3DExpr.find[type](match,contex=
+t,isXML);if(set!=3Dnull){expr=3Dexpr.replace(Expr.match[type],"");break}}=
+}}if(!set){set=3Dcontext.getElementsByTagName("*")}return{set:set,expr:ex=
+pr}};Sizzle.filter=3Dfunction(expr,set,inplace,not){var =
+old=3Dexpr,result=3D[],curLoop=3Dset,match,anyFound,isXMLFilter=3Dset&&se=
+t[0]&&isXML(set[0]);while(expr&&set.length){for(var type in =
+Expr.filter){if((match=3DExpr.match[type].exec(expr))!=3Dnull){var =
+filter=3DExpr.filter[type],found,item;anyFound=3Dfalse;if(curLoop=3D=3Dre=
+sult){result=3D[]}if(Expr.preFilter[type]){match=3DExpr.preFilter[type](m=
+atch,curLoop,inplace,result,not,isXMLFilter);if(!match){anyFound=3Dfound=3D=
+true}else{if(match=3D=3D=3Dtrue){continue}}}if(match){for(var =
+i=3D0;(item=3DcurLoop[i])!=3Dnull;i++){if(item){found=3Dfilter(item,match=
+,i,curLoop);var =
+pass=3Dnot^!!found;if(inplace&&found!=3Dnull){if(pass){anyFound=3Dtrue}el=
+se{curLoop[i]=3Dfalse}}else{if(pass){result.push(item);anyFound=3Dtrue}}}=
+}}if(found!=3D=3Dundefined){if(!inplace){curLoop=3Dresult}expr=3Dexpr.rep=
+lace(Expr.match[type],"");if(!anyFound){return[]}break}}}if(expr=3D=3Dold=
+){if(anyFound=3D=3Dnull){throw"Syntax error, unrecognized expression: =
+"+expr}else{break}}old=3Dexpr}return curLoop};var =
+Expr=3DSizzle.selectors=3D{order:["ID","NAME","TAG"],match:{ID:/#((?:[\w\=
+u00c0-\uFFFF_-]|\\.)+)/,CLASS:/\.((?:[\w\u00c0-\uFFFF_-]|\\.)+)/,NAME:/\[=
+name=3D['"]*((?:[\w\u00c0-\uFFFF_-]|\\.)+)['"]*\]/,ATTR:/\[\s*((?:[\w\u00=
+c0-\uFFFF_-]|\\.)+)\s*(?:(\S?=3D)\s*(['"]*)(.*?)\3|)\s*\]/,TAG:/^((?:[\w\=
+u00c0-\uFFFF\*_-]|\\.)+)/,CHILD:/:(only|nth|last|first)-child(?:\((even|o=
+dd|[\dn+-]*)\))?/,POS:/:(nth|eq|gt|lt|first|last|even|odd)(?:\((\d*)\))?(=
+?=3D[^-]|$)/,PSEUDO:/:((?:[\w\u00c0-\uFFFF_-]|\\.)+)(?:\((['"]*)((?:\([^\=
+)]+\)|[^\2\(\)]*)+)\2\))?/},attrMap:{"class":"className","for":"htmlFor"}=
+,attrHandle:{href:function(elem){return =
+elem.getAttribute("href")}},relative:{"+":function(checkSet,part,isXML){v=
+ar isPartStr=3Dtypeof =
+part=3D=3D=3D"string",isTag=3DisPartStr&&!/\W/.test(part),isPartStrNotTag=
+=3DisPartStr&&!isTag;if(isTag&&!isXML){part=3Dpart.toUpperCase()}for(var =
+i=3D0,l=3DcheckSet.length,elem;i<l;i++){if((elem=3DcheckSet[i])){while((e=
+lem=3Delem.previousSibling)&&elem.nodeType!=3D=3D1){}checkSet[i]=3DisPart=
+StrNotTag||elem&&elem.nodeName=3D=3D=3Dpart?elem||false:elem=3D=3D=3Dpart=
+}}if(isPartStrNotTag){Sizzle.filter(part,checkSet,true)}},">":function(ch=
+eckSet,part,isXML){var isPartStr=3Dtypeof =
+part=3D=3D=3D"string";if(isPartStr&&!/\W/.test(part)){part=3DisXML?part:p=
+art.toUpperCase();for(var i=3D0,l=3DcheckSet.length;i<l;i++){var =
+elem=3DcheckSet[i];if(elem){var =
+parent=3Delem.parentNode;checkSet[i]=3Dparent.nodeName=3D=3D=3Dpart?paren=
+t:false}}}else{for(var i=3D0,l=3DcheckSet.length;i<l;i++){var =
+elem=3DcheckSet[i];if(elem){checkSet[i]=3DisPartStr?elem.parentNode:elem.=
+parentNode=3D=3D=3Dpart}}if(isPartStr){Sizzle.filter(part,checkSet,true)}=
+}},"":function(checkSet,part,isXML){var =
+doneName=3Ddone++,checkFn=3DdirCheck;if(!part.match(/\W/)){var =
+nodeCheck=3Dpart=3DisXML?part:part.toUpperCase();checkFn=3DdirNodeCheck}c=
+heckFn("parentNode",part,doneName,checkSet,nodeCheck,isXML)},"~":function=
+(checkSet,part,isXML){var doneName=3Ddone++,checkFn=3DdirCheck;if(typeof =
+part=3D=3D=3D"string"&&!part.match(/\W/)){var =
+nodeCheck=3Dpart=3DisXML?part:part.toUpperCase();checkFn=3DdirNodeCheck}c=
+heckFn("previousSibling",part,doneName,checkSet,nodeCheck,isXML)}},find:{=
+ID:function(match,context,isXML){if(typeof =
+context.getElementById!=3D=3D"undefined"&&!isXML){var =
+m=3Dcontext.getElementById(match[1]);return =
+m?[m]:[]}},NAME:function(match,context,isXML){if(typeof =
+context.getElementsByName!=3D=3D"undefined"){var =
+ret=3D[],results=3Dcontext.getElementsByName(match[1]);for(var =
+i=3D0,l=3Dresults.length;i<l;i++){if(results[i].getAttribute("name")=3D=3D=
+=3Dmatch[1]){ret.push(results[i])}}return =
+ret.length=3D=3D=3D0?null:ret}},TAG:function(match,context){return =
+context.getElementsByTagName(match[1])}},preFilter:{CLASS:function(match,=
+curLoop,inplace,result,not,isXML){match=3D" =
+"+match[1].replace(/\\/g,"")+" ";if(isXML){return match}for(var =
+i=3D0,elem;(elem=3DcurLoop[i])!=3Dnull;i++){if(elem){if(not^(elem.classNa=
+me&&(" "+elem.className+" =
+").indexOf(match)>=3D0)){if(!inplace){result.push(elem)}}else{if(inplace)=
+{curLoop[i]=3Dfalse}}}}return false},ID:function(match){return =
+match[1].replace(/\\/g,"")},TAG:function(match,curLoop){for(var =
+i=3D0;curLoop[i]=3D=3D=3Dfalse;i++){}return =
+curLoop[i]&&isXML(curLoop[i])?match[1]:match[1].toUpperCase()},CHILD:func=
+tion(match){if(match[1]=3D=3D"nth"){var =
+test=3D/(-?)(\d*)n((?:\+|-)?\d*)/.exec(match[2]=3D=3D"even"&&"2n"||match[=
+2]=3D=3D"odd"&&"2n+1"||!/\D/.test(match[2])&&"0n+"+match[2]||match[2]);ma=
+tch[2]=3D(test[1]+(test[2]||1))-0;match[3]=3Dtest[3]-0}match[0]=3Ddone++;=
+return match},ATTR:function(match,curLoop,inplace,result,not,isXML){var =
+name=3Dmatch[1].replace(/\\/g,"");if(!isXML&&Expr.attrMap[name]){match[1]=
+=3DExpr.attrMap[name]}if(match[2]=3D=3D=3D"~=3D"){match[4]=3D" =
+"+match[4]+" "}return =
+match},PSEUDO:function(match,curLoop,inplace,result,not){if(match[1]=3D=3D=
+=3D"not"){if(match[3].match(chunker).length>1||/^\w/.test(match[3])){matc=
+h[3]=3DSizzle(match[3],null,null,curLoop)}else{var =
+ret=3DSizzle.filter(match[3],curLoop,inplace,true^not);if(!inplace){resul=
+t.push.apply(result,ret)}return =
+false}}else{if(Expr.match.POS.test(match[0])||Expr.match.CHILD.test(match=
+[0])){return true}}return =
+match},POS:function(match){match.unshift(true);return =
+match}},filters:{enabled:function(elem){return =
+elem.disabled=3D=3D=3Dfalse&&elem.type!=3D=3D"hidden"},disabled:function(=
+elem){return elem.disabled=3D=3D=3Dtrue},checked:function(elem){return =
+elem.checked=3D=3D=3Dtrue},selected:function(elem){elem.parentNode.select=
+edIndex;return elem.selected=3D=3D=3Dtrue},parent:function(elem){return =
+!!elem.firstChild},empty:function(elem){return =
+!elem.firstChild},has:function(elem,i,match){return =
+!!Sizzle(match[3],elem).length},header:function(elem){return/h\d/i.test(e=
+lem.nodeName)},text:function(elem){return"text"=3D=3D=3Delem.type},radio:=
+function(elem){return"radio"=3D=3D=3Delem.type},checkbox:function(elem){r=
+eturn"checkbox"=3D=3D=3Delem.type},file:function(elem){return"file"=3D=3D=
+=3Delem.type},password:function(elem){return"password"=3D=3D=3Delem.type}=
+,submit:function(elem){return"submit"=3D=3D=3Delem.type},image:function(e=
+lem){return"image"=3D=3D=3Delem.type},reset:function(elem){return"reset"=3D=
+=3D=3Delem.type},button:function(elem){return"button"=3D=3D=3Delem.type||=
+elem.nodeName.toUpperCase()=3D=3D=3D"BUTTON"},input:function(elem){return=
+/input|select|textarea|button/i.test(elem.nodeName)}},setFilters:{first:f=
+unction(elem,i){return =
+i=3D=3D=3D0},last:function(elem,i,match,array){return =
+i=3D=3D=3Darray.length-1},even:function(elem,i){return =
+i%2=3D=3D=3D0},odd:function(elem,i){return =
+i%2=3D=3D=3D1},lt:function(elem,i,match){return =
+i<match[3]-0},gt:function(elem,i,match){return =
+i>match[3]-0},nth:function(elem,i,match){return =
+match[3]-0=3D=3Di},eq:function(elem,i,match){return =
+match[3]-0=3D=3Di}},filter:{PSEUDO:function(elem,match,i,array){var =
+name=3Dmatch[1],filter=3DExpr.filters[name];if(filter){return =
+filter(elem,i,match,array)}else{if(name=3D=3D=3D"contains"){return(elem.t=
+extContent||elem.innerText||"").indexOf(match[3])>=3D0}else{if(name=3D=3D=
+=3D"not"){var not=3Dmatch[3];for(var =
+i=3D0,l=3Dnot.length;i<l;i++){if(not[i]=3D=3D=3Delem){return =
+false}}return true}}}},CHILD:function(elem,match){var =
+type=3Dmatch[1],node=3Delem;switch(type){case"only":case"first":while(nod=
+e=3Dnode.previousSibling){if(node.nodeType=3D=3D=3D1){return =
+false}}if(type=3D=3D"first"){return =
+true}node=3Delem;case"last":while(node=3Dnode.nextSibling){if(node.nodeTy=
+pe=3D=3D=3D1){return false}}return true;case"nth":var =
+first=3Dmatch[2],last=3Dmatch[3];if(first=3D=3D1&&last=3D=3D0){return =
+true}var =
+doneName=3Dmatch[0],parent=3Delem.parentNode;if(parent&&(parent.sizcache!=
+=3D=3DdoneName||!elem.nodeIndex)){var =
+count=3D0;for(node=3Dparent.firstChild;node;node=3Dnode.nextSibling){if(n=
+ode.nodeType=3D=3D=3D1){node.nodeIndex=3D++count}}parent.sizcache=3DdoneN=
+ame}var diff=3Delem.nodeIndex-last;if(first=3D=3D0){return =
+diff=3D=3D0}else{return(diff%first=3D=3D0&&diff/first>=3D0)}}},ID:functio=
+n(elem,match){return =
+elem.nodeType=3D=3D=3D1&&elem.getAttribute("id")=3D=3D=3Dmatch},TAG:funct=
+ion(elem,match){return(match=3D=3D=3D"*"&&elem.nodeType=3D=3D=3D1)||elem.=
+nodeName=3D=3D=3Dmatch},CLASS:function(elem,match){return(" =
+"+(elem.className||elem.getAttribute("class"))+" =
+").indexOf(match)>-1},ATTR:function(elem,match){var =
+name=3Dmatch[1],result=3DExpr.attrHandle[name]?Expr.attrHandle[name](elem=
+):elem[name]!=3Dnull?elem[name]:elem.getAttribute(name),value=3Dresult+""=
+,type=3Dmatch[2],check=3Dmatch[4];return =
+result=3D=3Dnull?type=3D=3D=3D"!=3D":type=3D=3D=3D"=3D"?value=3D=3D=3Dche=
+ck:type=3D=3D=3D"*=3D"?value.indexOf(check)>=3D0:type=3D=3D=3D"~=3D"?(" =
+"+value+" =
+").indexOf(check)>=3D0:!check?value&&result!=3D=3Dfalse:type=3D=3D=3D"!=3D=
+"?value!=3Dcheck:type=3D=3D=3D"^=3D"?value.indexOf(check)=3D=3D=3D0:type=3D=
+=3D=3D"$=3D"?value.substr(value.length-check.length)=3D=3D=3Dcheck:type=3D=
+=3D=3D"|=3D"?value=3D=3D=3Dcheck||value.substr(0,check.length+1)=3D=3D=3D=
+check+"-":false},POS:function(elem,match,i,array){var =
+name=3Dmatch[2],filter=3DExpr.setFilters[name];if(filter){return =
+filter(elem,i,match,array)}}}};var origPOS=3DExpr.match.POS;for(var type =
+in =
+Expr.match){Expr.match[type]=3DRegExp(Expr.match[type].source+/(?![^\[]*\=
+])(?![^\(]*\))/.source)}var =
+makeArray=3Dfunction(array,results){array=3DArray.prototype.slice.call(ar=
+ray);if(results){results.push.apply(results,array);return results}return =
+array};try{Array.prototype.slice.call(document.documentElement.childNodes=
+)}catch(e){makeArray=3Dfunction(array,results){var =
+ret=3Dresults||[];if(toString.call(array)=3D=3D=3D"[object =
+Array]"){Array.prototype.push.apply(ret,array)}else{if(typeof =
+array.length=3D=3D=3D"number"){for(var =
+i=3D0,l=3Darray.length;i<l;i++){ret.push(array[i])}}else{for(var =
+i=3D0;array[i];i++){ret.push(array[i])}}}return ret}}var =
+sortOrder;if(document.documentElement.compareDocumentPosition){sortOrder=3D=
+function(a,b){var =
+ret=3Da.compareDocumentPosition(b)&4?-1:a=3D=3D=3Db?0:1;if(ret=3D=3D=3D0)=
+{hasDuplicate=3Dtrue}return ret}}else{if("sourceIndex" in =
+document.documentElement){sortOrder=3Dfunction(a,b){var =
+ret=3Da.sourceIndex-b.sourceIndex;if(ret=3D=3D=3D0){hasDuplicate=3Dtrue}r=
+eturn ret}}else{if(document.createRange){sortOrder=3Dfunction(a,b){var =
+aRange=3Da.ownerDocument.createRange(),bRange=3Db.ownerDocument.createRan=
+ge();aRange.selectNode(a);aRange.collapse(true);bRange.selectNode(b);bRan=
+ge.collapse(true);var =
+ret=3DaRange.compareBoundaryPoints(Range.START_TO_END,bRange);if(ret=3D=3D=
+=3D0){hasDuplicate=3Dtrue}return ret}}}}(function(){var =
+form=3Ddocument.createElement("form"),id=3D"script"+(new =
+Date).getTime();form.innerHTML=3D"<input name=3D'"+id+"'/>";var =
+root=3Ddocument.documentElement;root.insertBefore(form,root.firstChild);i=
+f(!!document.getElementById(id)){Expr.find.ID=3Dfunction(match,context,is=
+XML){if(typeof context.getElementById!=3D=3D"undefined"&&!isXML){var =
+m=3Dcontext.getElementById(match[1]);return =
+m?m.id=3D=3D=3Dmatch[1]||typeof =
+m.getAttributeNode!=3D=3D"undefined"&&m.getAttributeNode("id").nodeValue=3D=
+=3D=3Dmatch[1]?[m]:undefined:[]}};Expr.filter.ID=3Dfunction(elem,match){v=
+ar node=3Dtypeof =
+elem.getAttributeNode!=3D=3D"undefined"&&elem.getAttributeNode("id");retu=
+rn =
+elem.nodeType=3D=3D=3D1&&node&&node.nodeValue=3D=3D=3Dmatch}}root.removeC=
+hild(form)})();(function(){var =
+div=3Ddocument.createElement("div");div.appendChild(document.createCommen=
+t(""));if(div.getElementsByTagName("*").length>0){Expr.find.TAG=3Dfunctio=
+n(match,context){var =
+results=3Dcontext.getElementsByTagName(match[1]);if(match[1]=3D=3D=3D"*")=
+{var tmp=3D[];for(var =
+i=3D0;results[i];i++){if(results[i].nodeType=3D=3D=3D1){tmp.push(results[=
+i])}}results=3Dtmp}return results}}div.innerHTML=3D"<a =
+href=3D'#'></a>";if(div.firstChild&&typeof =
+div.firstChild.getAttribute!=3D=3D"undefined"&&div.firstChild.getAttribut=
+e("href")!=3D=3D"#"){Expr.attrHandle.href=3Dfunction(elem){return =
+elem.getAttribute("href",2)}}})();if(document.querySelectorAll){(function=
+(){var =
+oldSizzle=3DSizzle,div=3Ddocument.createElement("div");div.innerHTML=3D"<=
+p =
+class=3D'TEST'></p>";if(div.querySelectorAll&&div.querySelectorAll(".TEST=
+").length=3D=3D=3D0){return =
+}Sizzle=3Dfunction(query,context,extra,seed){context=3Dcontext||document;=
+if(!seed&&context.nodeType=3D=3D=3D9&&!isXML(context)){try{return =
+makeArray(context.querySelectorAll(query),extra)}catch(e){}}return =
+oldSizzle(query,context,extra,seed)};Sizzle.find=3DoldSizzle.find;Sizzle.=
+filter=3DoldSizzle.filter;Sizzle.selectors=3DoldSizzle.selectors;Sizzle.m=
+atches=3DoldSizzle.matches})()}if(document.getElementsByClassName&&docume=
+nt.documentElement.getElementsByClassName){(function(){var =
+div=3Ddocument.createElement("div");div.innerHTML=3D"<div class=3D'test =
+e'></div><div =
+class=3D'test'></div>";if(div.getElementsByClassName("e").length=3D=3D=3D=
+0){return =
+}div.lastChild.className=3D"e";if(div.getElementsByClassName("e").length=3D=
+=3D=3D1){return =
+}Expr.order.splice(1,0,"CLASS");Expr.find.CLASS=3Dfunction(match,context,=
+isXML){if(typeof =
+context.getElementsByClassName!=3D=3D"undefined"&&!isXML){return =
+context.getElementsByClassName(match[1])}}})()}function =
+dirNodeCheck(dir,cur,doneName,checkSet,nodeCheck,isXML){var =
+sibDir=3Ddir=3D=3D"previousSibling"&&!isXML;for(var =
+i=3D0,l=3DcheckSet.length;i<l;i++){var =
+elem=3DcheckSet[i];if(elem){if(sibDir&&elem.nodeType=3D=3D=3D1){elem.sizc=
+ache=3DdoneName;elem.sizset=3Di}elem=3Delem[dir];var =
+match=3Dfalse;while(elem){if(elem.sizcache=3D=3D=3DdoneName){match=3Dchec=
+kSet[elem.sizset];break}if(elem.nodeType=3D=3D=3D1&&!isXML){elem.sizcache=
+=3DdoneName;elem.sizset=3Di}if(elem.nodeName=3D=3D=3Dcur){match=3Delem;br=
+eak}elem=3Delem[dir]}checkSet[i]=3Dmatch}}}function =
+dirCheck(dir,cur,doneName,checkSet,nodeCheck,isXML){var =
+sibDir=3Ddir=3D=3D"previousSibling"&&!isXML;for(var =
+i=3D0,l=3DcheckSet.length;i<l;i++){var =
+elem=3DcheckSet[i];if(elem){if(sibDir&&elem.nodeType=3D=3D=3D1){elem.sizc=
+ache=3DdoneName;elem.sizset=3Di}elem=3Delem[dir];var =
+match=3Dfalse;while(elem){if(elem.sizcache=3D=3D=3DdoneName){match=3Dchec=
+kSet[elem.sizset];break}if(elem.nodeType=3D=3D=3D1){if(!isXML){elem.sizca=
+che=3DdoneName;elem.sizset=3Di}if(typeof =
+cur!=3D=3D"string"){if(elem=3D=3D=3Dcur){match=3Dtrue;break}}else{if(Sizz=
+le.filter(cur,[elem]).length>0){match=3Delem;break}}}elem=3Delem[dir]}che=
+ckSet[i]=3Dmatch}}}var =
+contains=3Ddocument.compareDocumentPosition?function(a,b){return =
+a.compareDocumentPosition(b)&16}:function(a,b){return =
+a!=3D=3Db&&(a.contains?a.contains(b):true)};var =
+isXML=3Dfunction(elem){return =
+elem.nodeType=3D=3D=3D9&&elem.documentElement.nodeName!=3D=3D"HTML"||!!el=
+em.ownerDocument&&isXML(elem.ownerDocument)};var =
+posProcess=3Dfunction(selector,context){var =
+tmpSet=3D[],later=3D"",match,root=3Dcontext.nodeType?[context]:context;wh=
+ile((match=3DExpr.match.PSEUDO.exec(selector))){later+=3Dmatch[0];selecto=
+r=3Dselector.replace(Expr.match.PSEUDO,"")}selector=3DExpr.relative[selec=
+tor]?selector+"*":selector;for(var =
+i=3D0,l=3Droot.length;i<l;i++){Sizzle(selector,root[i],tmpSet)}return =
+Sizzle.filter(later,tmpSet)};jQuery.find=3DSizzle;jQuery.filter=3DSizzle.=
+filter;jQuery.expr=3DSizzle.selectors;jQuery.expr[":"]=3DjQuery.expr.filt=
+ers;Sizzle.selectors.filters.hidden=3Dfunction(elem){return =
+elem.offsetWidth=3D=3D=3D0||elem.offsetHeight=3D=3D=3D0};Sizzle.selectors=
+.filters.visible=3Dfunction(elem){return =
+elem.offsetWidth>0||elem.offsetHeight>0};Sizzle.selectors.filters.animate=
+d=3Dfunction(elem){return jQuery.grep(jQuery.timers,function(fn){return =
+elem=3D=3D=3Dfn.elem}).length};jQuery.multiFilter=3Dfunction(expr,elems,n=
+ot){if(not){expr=3D":not("+expr+")"}return =
+Sizzle.matches(expr,elems)};jQuery.dir=3Dfunction(elem,dir){var =
+matched=3D[],cur=3Delem[dir];while(cur&&cur!=3Ddocument){if(cur.nodeType=3D=
+=3D1){matched.push(cur)}cur=3Dcur[dir]}return =
+matched};jQuery.nth=3Dfunction(cur,result,dir,elem){result=3Dresult||1;va=
+r =
+num=3D0;for(;cur;cur=3Dcur[dir]){if(cur.nodeType=3D=3D1&&++num=3D=3Dresul=
+t){break}}return cur};jQuery.sibling=3Dfunction(n,elem){var =
+r=3D[];for(;n;n=3Dn.nextSibling){if(n.nodeType=3D=3D1&&n!=3Delem){r.push(=
+n)}}return r};return =
+;window.Sizzle=3DSizzle})();jQuery.event=3D{add:function(elem,types,handl=
+er,data){if(elem.nodeType=3D=3D3||elem.nodeType=3D=3D8){return =
+}if(elem.setInterval&&elem!=3Dwindow){elem=3Dwindow}if(!handler.guid){han=
+dler.guid=3Dthis.guid++}if(data!=3D=3Dundefined){var =
+fn=3Dhandler;handler=3Dthis.proxy(fn);handler.data=3Ddata}var =
+events=3DjQuery.data(elem,"events")||jQuery.data(elem,"events",{}),handle=
+=3DjQuery.data(elem,"handle")||jQuery.data(elem,"handle",function(){retur=
+n typeof =
+jQuery!=3D=3D"undefined"&&!jQuery.event.triggered?jQuery.event.handle.app=
+ly(arguments.callee.elem,arguments):undefined});handle.elem=3Delem;jQuery=
+.each(types.split(/\s+/),function(index,type){var =
+namespaces=3Dtype.split(".");type=3Dnamespaces.shift();handler.type=3Dnam=
+espaces.slice().sort().join(".");var =
+handlers=3Devents[type];if(jQuery.event.specialAll[type]){jQuery.event.sp=
+ecialAll[type].setup.call(elem,data,namespaces)}if(!handlers){handlers=3D=
+events[type]=3D{};if(!jQuery.event.special[type]||jQuery.event.special[ty=
+pe].setup.call(elem,data,namespaces)=3D=3D=3Dfalse){if(elem.addEventListe=
+ner){elem.addEventListener(type,handle,false)}else{if(elem.attachEvent){e=
+lem.attachEvent("on"+type,handle)}}}}handlers[handler.guid]=3Dhandler;jQu=
+ery.event.global[type]=3Dtrue});elem=3Dnull},guid:1,global:{},remove:func=
+tion(elem,types,handler){if(elem.nodeType=3D=3D3||elem.nodeType=3D=3D8){r=
+eturn }var =
+events=3DjQuery.data(elem,"events"),ret,index;if(events){if(types=3D=3D=3D=
+undefined||(typeof =
+types=3D=3D=3D"string"&&types.charAt(0)=3D=3D".")){for(var type in =
+events){this.remove(elem,type+(types||""))}}else{if(types.type){handler=3D=
+types.handler;types=3Dtypes.type}jQuery.each(types.split(/\s+/),function(=
+index,type){var =
+namespaces=3Dtype.split(".");type=3Dnamespaces.shift();var =
+namespace=3DRegExp("(^|\\.)"+namespaces.slice().sort().join(".*\\.")+"(\\=
+.|$)");if(events[type]){if(handler){delete =
+events[type][handler.guid]}else{for(var handle in =
+events[type]){if(namespace.test(events[type][handle].type)){delete =
+events[type][handle]}}}if(jQuery.event.specialAll[type]){jQuery.event.spe=
+cialAll[type].teardown.call(elem,namespaces)}for(ret in =
+events[type]){break}if(!ret){if(!jQuery.event.special[type]||jQuery.event=
+.special[type].teardown.call(elem,namespaces)=3D=3D=3Dfalse){if(elem.remo=
+veEventListener){elem.removeEventListener(type,jQuery.data(elem,"handle")=
+,false)}else{if(elem.detachEvent){elem.detachEvent("on"+type,jQuery.data(=
+elem,"handle"))}}}ret=3Dnull;delete events[type]}}})}for(ret in =
+events){break}if(!ret){var =
+handle=3DjQuery.data(elem,"handle");if(handle){handle.elem=3Dnull}jQuery.=
+removeData(elem,"events");jQuery.removeData(elem,"handle")}}},trigger:fun=
+ction(event,data,elem,bubbling){var =
+type=3Devent.type||event;if(!bubbling){event=3Dtypeof =
+event=3D=3D=3D"object"?event[expando]?event:jQuery.extend(jQuery.Event(ty=
+pe),event):jQuery.Event(type);if(type.indexOf("!")>=3D0){event.type=3Dtyp=
+e=3Dtype.slice(0,-1);event.exclusive=3Dtrue}if(!elem){event.stopPropagati=
+on();if(this.global[type]){jQuery.each(jQuery.cache,function(){if(this.ev=
+ents&&this.events[type]){jQuery.event.trigger(event,data,this.handle.elem=
+)}})}}if(!elem||elem.nodeType=3D=3D3||elem.nodeType=3D=3D8){return =
+undefined}event.result=3Dundefined;event.target=3Delem;data=3DjQuery.make=
+Array(data);data.unshift(event)}event.currentTarget=3Delem;var =
+handle=3DjQuery.data(elem,"handle");if(handle){handle.apply(elem,data)}if=
+((!elem[type]||(jQuery.nodeName(elem,"a")&&type=3D=3D"click"))&&elem["on"=
++type]&&elem["on"+type].apply(elem,data)=3D=3D=3Dfalse){event.result=3Dfa=
+lse}if(!bubbling&&elem[type]&&!event.isDefaultPrevented()&&!(jQuery.nodeN=
+ame(elem,"a")&&type=3D=3D"click")){this.triggered=3Dtrue;try{elem[type]()=
+}catch(e){}}this.triggered=3Dfalse;if(!event.isPropagationStopped()){var =
+parent=3Delem.parentNode||elem.ownerDocument;if(parent){jQuery.event.trig=
+ger(event,data,parent,true)}}},handle:function(event){var =
+all,handlers;event=3Darguments[0]=3DjQuery.event.fix(event||window.event)=
+;event.currentTarget=3Dthis;var =
+namespaces=3Devent.type.split(".");event.type=3Dnamespaces.shift();all=3D=
+!namespaces.length&&!event.exclusive;var =
+namespace=3DRegExp("(^|\\.)"+namespaces.slice().sort().join(".*\\.")+"(\\=
+.|$)");handlers=3D(jQuery.data(this,"events")||{})[event.type];for(var j =
+in handlers){var =
+handler=3Dhandlers[j];if(all||namespace.test(handler.type)){event.handler=
+=3Dhandler;event.data=3Dhandler.data;var =
+ret=3Dhandler.apply(this,arguments);if(ret!=3D=3Dundefined){event.result=3D=
+ret;if(ret=3D=3D=3Dfalse){event.preventDefault();event.stopPropagation()}=
+}if(event.isImmediatePropagationStopped()){break}}}},props:"altKey =
+attrChange attrName bubbles button cancelable charCode clientX clientY =
+ctrlKey currentTarget data detail eventPhase fromElement handler keyCode =
+metaKey newValue originalTarget pageX pageY prevValue relatedNode =
+relatedTarget screenX screenY shiftKey srcElement target toElement view =
+wheelDelta which".split(" =
+"),fix:function(event){if(event[expando]){return event}var =
+originalEvent=3Devent;event=3DjQuery.Event(originalEvent);for(var =
+i=3Dthis.props.length,prop;i;){prop=3Dthis.props[--i];event[prop]=3Dorigi=
+nalEvent[prop]}if(!event.target){event.target=3Devent.srcElement||documen=
+t}if(event.target.nodeType=3D=3D3){event.target=3Devent.target.parentNode=
+}if(!event.relatedTarget&&event.fromElement){event.relatedTarget=3Devent.=
+fromElement=3D=3Devent.target?event.toElement:event.fromElement}if(event.=
+pageX=3D=3Dnull&&event.clientX!=3Dnull){var =
+doc=3Ddocument.documentElement,body=3Ddocument.body;event.pageX=3Devent.c=
+lientX+(doc&&doc.scrollLeft||body&&body.scrollLeft||0)-(doc.clientLeft||0=
+);event.pageY=3Devent.clientY+(doc&&doc.scrollTop||body&&body.scrollTop||=
+0)-(doc.clientTop||0)}if(!event.which&&((event.charCode||event.charCode=3D=
+=3D=3D0)?event.charCode:event.keyCode)){event.which=3Devent.charCode||eve=
+nt.keyCode}if(!event.metaKey&&event.ctrlKey){event.metaKey=3Devent.ctrlKe=
+y}if(!event.which&&event.button){event.which=3D(event.button&1?1:(event.b=
+utton&2?3:(event.button&4?2:0)))}return =
+event},proxy:function(fn,proxy){proxy=3Dproxy||function(){return =
+fn.apply(this,arguments)};proxy.guid=3Dfn.guid=3Dfn.guid||proxy.guid||thi=
+s.guid++;return =
+proxy},special:{ready:{setup:bindReady,teardown:function(){}}},specialAll=
+:{live:{setup:function(selector,namespaces){jQuery.event.add(this,namespa=
+ces[0],liveHandler)},teardown:function(namespaces){if(namespaces.length){=
+var =
+remove=3D0,name=3DRegExp("(^|\\.)"+namespaces[0]+"(\\.|$)");jQuery.each((=
+jQuery.data(this,"events").live||{}),function(){if(name.test(this.type)){=
+remove++}});if(remove<1){jQuery.event.remove(this,namespaces[0],liveHandl=
+er)}}}}}};jQuery.Event=3Dfunction(src){if(!this.preventDefault){return =
+new =
+jQuery.Event(src)}if(src&&src.type){this.originalEvent=3Dsrc;this.type=3D=
+src.type}else{this.type=3Dsrc}this.timeStamp=3Dnow();this[expando]=3Dtrue=
+};function returnFalse(){return false}function returnTrue(){return =
+true}jQuery.Event.prototype=3D{preventDefault:function(){this.isDefaultPr=
+evented=3DreturnTrue;var e=3Dthis.originalEvent;if(!e){return =
+}if(e.preventDefault){e.preventDefault()}e.returnValue=3Dfalse},stopPropa=
+gation:function(){this.isPropagationStopped=3DreturnTrue;var =
+e=3Dthis.originalEvent;if(!e){return =
+}if(e.stopPropagation){e.stopPropagation()}e.cancelBubble=3Dtrue},stopImm=
+ediatePropagation:function(){this.isImmediatePropagationStopped=3DreturnT=
+rue;this.stopPropagation()},isDefaultPrevented:returnFalse,isPropagationS=
+topped:returnFalse,isImmediatePropagationStopped:returnFalse};var =
+withinElement=3Dfunction(event){var =
+parent=3Devent.relatedTarget;while(parent&&parent!=3Dthis){try{parent=3Dp=
+arent.parentNode}catch(e){parent=3Dthis}}if(parent!=3Dthis){event.type=3D=
+event.data;jQuery.event.handle.apply(this,arguments)}};jQuery.each({mouse=
+over:"mouseenter",mouseout:"mouseleave"},function(orig,fix){jQuery.event.=
+special[fix]=3D{setup:function(){jQuery.event.add(this,orig,withinElement=
+,fix)},teardown:function(){jQuery.event.remove(this,orig,withinElement)}}=
+});jQuery.fn.extend({bind:function(type,data,fn){return =
+type=3D=3D"unload"?this.one(type,data,fn):this.each(function(){jQuery.eve=
+nt.add(this,type,fn||data,fn&&data)})},one:function(type,data,fn){var =
+one=3DjQuery.event.proxy(fn||data,function(event){jQuery(this).unbind(eve=
+nt,one);return(fn||data).apply(this,arguments)});return =
+this.each(function(){jQuery.event.add(this,type,one,fn&&data)})},unbind:f=
+unction(type,fn){return =
+this.each(function(){jQuery.event.remove(this,type,fn)})},trigger:functio=
+n(type,data){return =
+this.each(function(){jQuery.event.trigger(type,data,this)})},triggerHandl=
+er:function(type,data){if(this[0]){var =
+event=3DjQuery.Event(type);event.preventDefault();event.stopPropagation()=
+;jQuery.event.trigger(event,data,this[0]);return =
+event.result}},toggle:function(fn){var =
+args=3Darguments,i=3D1;while(i<args.length){jQuery.event.proxy(fn,args[i+=
++])}return =
+this.click(jQuery.event.proxy(fn,function(event){this.lastToggle=3D(this.=
+lastToggle||0)%i;event.preventDefault();return =
+args[this.lastToggle++].apply(this,arguments)||false}))},hover:function(f=
+nOver,fnOut){return =
+this.mouseenter(fnOver).mouseleave(fnOut)},ready:function(fn){bindReady()=
+;if(jQuery.isReady){fn.call(document,jQuery)}else{jQuery.readyList.push(f=
+n)}return this},live:function(type,fn){var =
+proxy=3DjQuery.event.proxy(fn);proxy.guid+=3Dthis.selector+type;jQuery(do=
+cument).bind(liveConvert(type,this.selector),this.selector,proxy);return =
+this},die:function(type,fn){jQuery(document).unbind(liveConvert(type,this=
+.selector),fn?{guid:fn.guid+this.selector+type}:null);return =
+this}});function liveHandler(event){var =
+check=3DRegExp("(^|\\.)"+event.type+"(\\.|$)"),stop=3Dtrue,elems=3D[];jQu=
+ery.each(jQuery.data(this,"events").live||[],function(i,fn){if(check.test=
+(fn.type)){var =
+elem=3DjQuery(event.target).closest(fn.data)[0];if(elem){elems.push({elem=
+:elem,fn:fn})}}});elems.sort(function(a,b){return =
+jQuery.data(a.elem,"closest")-jQuery.data(b.elem,"closest")});jQuery.each=
+(elems,function(){if(this.fn.call(this.elem,event,this.fn.data)=3D=3D=3Df=
+alse){return(stop=3Dfalse)}});return stop}function =
+liveConvert(type,selector){return["live",type,selector.replace(/\./g,"`")=
+.replace(/ =
+/g,"|")].join(".")}jQuery.extend({isReady:false,readyList:[],ready:functi=
+on(){if(!jQuery.isReady){jQuery.isReady=3Dtrue;if(jQuery.readyList){jQuer=
+y.each(jQuery.readyList,function(){this.call(document,jQuery)});jQuery.re=
+adyList=3Dnull}jQuery(document).triggerHandler("ready")}}});var =
+readyBound=3Dfalse;function bindReady(){if(readyBound){return =
+}readyBound=3Dtrue;if(document.addEventListener){document.addEventListene=
+r("DOMContentLoaded",function(){document.removeEventListener("DOMContentL=
+oaded",arguments.callee,false);jQuery.ready()},false)}else{if(document.at=
+tachEvent){document.attachEvent("onreadystatechange",function(){if(docume=
+nt.readyState=3D=3D=3D"complete"){document.detachEvent("onreadystatechang=
+e",arguments.callee);jQuery.ready()}});if(document.documentElement.doScro=
+ll&&window=3D=3Dwindow.top){(function(){if(jQuery.isReady){return =
+}try{document.documentElement.doScroll("left")}catch(error){setTimeout(ar=
+guments.callee,0);return =
+}jQuery.ready()})()}}}jQuery.event.add(window,"load",jQuery.ready)}jQuery=
+.each(("blur,focus,load,resize,scroll,unload,click,dblclick,mousedown,mou=
+seup,mousemove,mouseover,mouseout,mouseenter,mouseleave,change,select,sub=
+mit,keydown,keypress,keyup,error").split(","),function(i,name){jQuery.fn[=
+name]=3Dfunction(fn){return =
+fn?this.bind(name,fn):this.trigger(name)}});jQuery(window).bind("unload",=
+function(){for(var id in =
+jQuery.cache){if(id!=3D1&&jQuery.cache[id].handle){jQuery.event.remove(jQ=
+uery.cache[id].handle.elem)}}});(function(){jQuery.support=3D{};var =
+root=3Ddocument.documentElement,script=3Ddocument.createElement("script")=
+,div=3Ddocument.createElement("div"),id=3D"script"+(new =
+Date).getTime();div.style.display=3D"none";div.innerHTML=3D'   =
+<link/><table></table><a href=3D"/a" =
+style=3D"color:red;float:left;opacity:.5;">a</a><select><option>text</opt=
+ion></select><object><param/></object>';var =
+all=3Ddiv.getElementsByTagName("*"),a=3Ddiv.getElementsByTagName("a")[0];=
+if(!all||!all.length||!a){return =
+}jQuery.support=3D{leadingWhitespace:div.firstChild.nodeType=3D=3D3,tbody=
+:!div.getElementsByTagName("tbody").length,objectAll:!!div.getElementsByT=
+agName("object")[0].getElementsByTagName("*").length,htmlSerialize:!!div.=
+getElementsByTagName("link").length,style:/red/.test(a.getAttribute("styl=
+e")),hrefNormalized:a.getAttribute("href")=3D=3D=3D"/a",opacity:a.style.o=
+pacity=3D=3D=3D"0.5",cssFloat:!!a.style.cssFloat,scriptEval:false,noClone=
+Event:true,boxModel:null};script.type=3D"text/javascript";try{script.appe=
+ndChild(document.createTextNode("window."+id+"=3D1;"))}catch(e){}root.ins=
+ertBefore(script,root.firstChild);if(window[id]){jQuery.support.scriptEva=
+l=3Dtrue;delete =
+window[id]}root.removeChild(script);if(div.attachEvent&&div.fireEvent){di=
+v.attachEvent("onclick",function(){jQuery.support.noCloneEvent=3Dfalse;di=
+v.detachEvent("onclick",arguments.callee)});div.cloneNode(true).fireEvent=
+("onclick")}jQuery(function(){var =
+div=3Ddocument.createElement("div");div.style.width=3Ddiv.style.paddingLe=
+ft=3D"1px";document.body.appendChild(div);jQuery.boxModel=3DjQuery.suppor=
+t.boxModel=3Ddiv.offsetWidth=3D=3D=3D2;document.body.removeChild(div).sty=
+le.display=3D"none"})})();var =
+styleFloat=3DjQuery.support.cssFloat?"cssFloat":"styleFloat";jQuery.props=
+=3D{"for":"htmlFor","class":"className","float":styleFloat,cssFloat:style=
+Float,styleFloat:styleFloat,readonly:"readOnly",maxlength:"maxLength",cel=
+lspacing:"cellSpacing",rowspan:"rowSpan",tabindex:"tabIndex"};jQuery.fn.e=
+xtend({_load:jQuery.fn.load,load:function(url,params,callback){if(typeof =
+url!=3D=3D"string"){return this._load(url)}var off=3Durl.indexOf(" =
+");if(off>=3D0){var =
+selector=3Durl.slice(off,url.length);url=3Durl.slice(0,off)}var =
+type=3D"GET";if(params){if(jQuery.isFunction(params)){callback=3Dparams;p=
+arams=3Dnull}else{if(typeof =
+params=3D=3D=3D"object"){params=3DjQuery.param(params);type=3D"POST"}}}va=
+r =
+self=3Dthis;jQuery.ajax({url:url,type:type,dataType:"html",data:params,co=
+mplete:function(res,status){if(status=3D=3D"success"||status=3D=3D"notmod=
+ified"){self.html(selector?jQuery("<div/>").append(res.responseText.repla=
+ce(/<script(.|\s)*?\/script>/g,"")).find(selector):res.responseText)}if(c=
+allback){self.each(callback,[res.responseText,status,res])}}});return =
+this},serialize:function(){return =
+jQuery.param(this.serializeArray())},serializeArray:function(){return =
+this.map(function(){return =
+this.elements?jQuery.makeArray(this.elements):this}).filter(function(){re=
+turn =
+this.name&&!this.disabled&&(this.checked||/select|textarea/i.test(this.no=
+deName)||/text|hidden|password|search/i.test(this.type))}).map(function(i=
+,elem){var val=3DjQuery(this).val();return =
+val=3D=3Dnull?null:jQuery.isArray(val)?jQuery.map(val,function(val,i){ret=
+urn{name:elem.name,value:val}}):{name:elem.name,value:val}}).get()}});jQu=
+ery.each("ajaxStart,ajaxStop,ajaxComplete,ajaxError,ajaxSuccess,ajaxSend"=
+.split(","),function(i,o){jQuery.fn[o]=3Dfunction(f){return =
+this.bind(o,f)}});var =
+jsc=3Dnow();jQuery.extend({get:function(url,data,callback,type){if(jQuery=
+.isFunction(data)){callback=3Ddata;data=3Dnull}return =
+jQuery.ajax({type:"GET",url:url,data:data,success:callback,dataType:type}=
+)},getScript:function(url,callback){return =
+jQuery.get(url,null,callback,"script")},getJSON:function(url,data,callbac=
+k){return =
+jQuery.get(url,data,callback,"json")},post:function(url,data,callback,typ=
+e){if(jQuery.isFunction(data)){callback=3Ddata;data=3D{}}return =
+jQuery.ajax({type:"POST",url:url,data:data,success:callback,dataType:type=
+})},ajaxSetup:function(settings){jQuery.extend(jQuery.ajaxSettings,settin=
+gs)},ajaxSettings:{url:location.href,global:true,type:"GET",contentType:"=
+application/x-www-form-urlencoded",processData:true,async:true,xhr:functi=
+on(){return window.ActiveXObject?new =
+ActiveXObject("Microsoft.XMLHTTP"):new =
+XMLHttpRequest()},accepts:{xml:"application/xml, =
+text/xml",html:"text/html",script:"text/javascript, =
+application/javascript",json:"application/json, =
+text/javascript",text:"text/plain",_default:"*/*"}},lastModified:{},ajax:=
+function(s){s=3DjQuery.extend(true,s,jQuery.extend(true,{},jQuery.ajaxSet=
+tings,s));var =
+jsonp,jsre=3D/=3D\?(&|$)/g,status,data,type=3Ds.type.toUpperCase();if(s.d=
+ata&&s.processData&&typeof =
+s.data!=3D=3D"string"){s.data=3DjQuery.param(s.data)}if(s.dataType=3D=3D"=
+jsonp"){if(type=3D=3D"GET"){if(!s.url.match(jsre)){s.url+=3D(s.url.match(=
+/\?/)?"&":"?")+(s.jsonp||"callback")+"=3D?"}}else{if(!s.data||!s.data.mat=
+ch(jsre)){s.data=3D(s.data?s.data+"&":"")+(s.jsonp||"callback")+"=3D?"}}s=
+.dataType=3D"json"}if(s.dataType=3D=3D"json"&&(s.data&&s.data.match(jsre)=
+||s.url.match(jsre))){jsonp=3D"jsonp"+jsc++;if(s.data){s.data=3D(s.data+"=
+").replace(jsre,"=3D"+jsonp+"$1")}s.url=3Ds.url.replace(jsre,"=3D"+jsonp+=
+"$1");s.dataType=3D"script";window[jsonp]=3Dfunction(tmp){data=3Dtmp;succ=
+ess();complete();window[jsonp]=3Dundefined;try{delete =
+window[jsonp]}catch(e){}if(head){head.removeChild(script)}}}if(s.dataType=
+=3D=3D"script"&&s.cache=3D=3Dnull){s.cache=3Dfalse}if(s.cache=3D=3D=3Dfal=
+se&&type=3D=3D"GET"){var ts=3Dnow();var =
+ret=3Ds.url.replace(/(\?|&)_=3D.*?(&|$)/,"$1_=3D"+ts+"$2");s.url=3Dret+((=
+ret=3D=3Ds.url)?(s.url.match(/\?/)?"&":"?")+"_=3D"+ts:"")}if(s.data&&type=
+=3D=3D"GET"){s.url+=3D(s.url.match(/\?/)?"&":"?")+s.data;s.data=3Dnull}if=
+(s.global&&!jQuery.active++){jQuery.event.trigger("ajaxStart")}var =
+parts=3D/^(\w+:)?\/\/([^\/?#]+)/.exec(s.url);if(s.dataType=3D=3D"script"&=
+&type=3D=3D"GET"&&parts&&(parts[1]&&parts[1]!=3Dlocation.protocol||parts[=
+2]!=3Dlocation.host)){var =
+head=3Ddocument.getElementsByTagName("head")[0];var =
+script=3Ddocument.createElement("script");script.src=3Ds.url;if(s.scriptC=
+harset){script.charset=3Ds.scriptCharset}if(!jsonp){var =
+done=3Dfalse;script.onload=3Dscript.onreadystatechange=3Dfunction(){if(!d=
+one&&(!this.readyState||this.readyState=3D=3D"loaded"||this.readyState=3D=
+=3D"complete")){done=3Dtrue;success();complete();script.onload=3Dscript.o=
+nreadystatechange=3Dnull;head.removeChild(script)}}}head.appendChild(scri=
+pt);return undefined}var requestDone=3Dfalse;var =
+xhr=3Ds.xhr();if(s.username){xhr.open(type,s.url,s.async,s.username,s.pas=
+sword)}else{xhr.open(type,s.url,s.async)}try{if(s.data){xhr.setRequestHea=
+der("Content-Type",s.contentType)}if(s.ifModified){xhr.setRequestHeader("=
+If-Modified-Since",jQuery.lastModified[s.url]||"Thu, 01 Jan 1970 =
+00:00:00 =
+GMT")}xhr.setRequestHeader("X-Requested-With","XMLHttpRequest");xhr.setRe=
+questHeader("Accept",s.dataType&&s.accepts[s.dataType]?s.accepts[s.dataTy=
+pe]+", =
+*/*":s.accepts._default)}catch(e){}if(s.beforeSend&&s.beforeSend(xhr,s)=3D=
+=3D=3Dfalse){if(s.global&&!--jQuery.active){jQuery.event.trigger("ajaxSto=
+p")}xhr.abort();return =
+false}if(s.global){jQuery.event.trigger("ajaxSend",[xhr,s])}var =
+onreadystatechange=3Dfunction(isTimeout){if(xhr.readyState=3D=3D0){if(iva=
+l){clearInterval(ival);ival=3Dnull;if(s.global&&!--jQuery.active){jQuery.=
+event.trigger("ajaxStop")}}}else{if(!requestDone&&xhr&&(xhr.readyState=3D=
+=3D4||isTimeout=3D=3D"timeout")){requestDone=3Dtrue;if(ival){clearInterva=
+l(ival);ival=3Dnull}status=3DisTimeout=3D=3D"timeout"?"timeout":!jQuery.h=
+ttpSuccess(xhr)?"error":s.ifModified&&jQuery.httpNotModified(xhr,s.url)?"=
+notmodified":"success";if(status=3D=3D"success"){try{data=3DjQuery.httpDa=
+ta(xhr,s.dataType,s)}catch(e){status=3D"parsererror"}}if(status=3D=3D"suc=
+cess"){var =
+modRes;try{modRes=3Dxhr.getResponseHeader("Last-Modified")}catch(e){}if(s=
+.ifModified&&modRes){jQuery.lastModified[s.url]=3DmodRes}if(!jsonp){succe=
+ss()}}else{jQuery.handleError(s,xhr,status)}complete();if(isTimeout){xhr.=
+abort()}if(s.async){xhr=3Dnull}}}};if(s.async){var =
+ival=3DsetInterval(onreadystatechange,13);if(s.timeout>0){setTimeout(func=
+tion(){if(xhr&&!requestDone){onreadystatechange("timeout")}},s.timeout)}}=
+try{xhr.send(s.data)}catch(e){jQuery.handleError(s,xhr,null,e)}if(!s.asyn=
+c){onreadystatechange()}function =
+success(){if(s.success){s.success(data,status)}if(s.global){jQuery.event.=
+trigger("ajaxSuccess",[xhr,s])}}function =
+complete(){if(s.complete){s.complete(xhr,status)}if(s.global){jQuery.even=
+t.trigger("ajaxComplete",[xhr,s])}if(s.global&&!--jQuery.active){jQuery.e=
+vent.trigger("ajaxStop")}}return =
+xhr},handleError:function(s,xhr,status,e){if(s.error){s.error(xhr,status,=
+e)}if(s.global){jQuery.event.trigger("ajaxError",[xhr,s,e])}},active:0,ht=
+tpSuccess:function(xhr){try{return =
+!xhr.status&&location.protocol=3D=3D"file:"||(xhr.status>=3D200&&xhr.stat=
+us<300)||xhr.status=3D=3D304||xhr.status=3D=3D1223}catch(e){}return =
+false},httpNotModified:function(xhr,url){try{var =
+xhrRes=3Dxhr.getResponseHeader("Last-Modified");return =
+xhr.status=3D=3D304||xhrRes=3D=3DjQuery.lastModified[url]}catch(e){}retur=
+n false},httpData:function(xhr,type,s){var =
+ct=3Dxhr.getResponseHeader("content-type"),xml=3Dtype=3D=3D"xml"||!type&&=
+ct&&ct.indexOf("xml")>=3D0,data=3Dxml?xhr.responseXML:xhr.responseText;if=
+(xml&&data.documentElement.tagName=3D=3D"parsererror"){throw"parsererror"=
+}if(s&&s.dataFilter){data=3Ds.dataFilter(data,type)}if(typeof =
+data=3D=3D=3D"string"){if(type=3D=3D"script"){jQuery.globalEval(data)}if(=
+type=3D=3D"json"){data=3Dwindow["eval"]("("+data+")")}}return =
+data},param:function(a){var s=3D[];function =
+add(key,value){s[s.length]=3DencodeURIComponent(key)+"=3D"+encodeURICompo=
+nent(value)}if(jQuery.isArray(a)||a.jquery){jQuery.each(a,function(){add(=
+this.name,this.value)})}else{for(var j in =
+a){if(jQuery.isArray(a[j])){jQuery.each(a[j],function(){add(j,this)})}els=
+e{add(j,jQuery.isFunction(a[j])?a[j]():a[j])}}}return =
+s.join("&").replace(/%20/g,"+")}});var =
+elemdisplay=3D{},timerId,fxAttrs=3D[["height","marginTop","marginBottom",=
+"paddingTop","paddingBottom"],["width","marginLeft","marginRight","paddin=
+gLeft","paddingRight"],["opacity"]];function genFx(type,num){var =
+obj=3D{};jQuery.each(fxAttrs.concat.apply([],fxAttrs.slice(0,num)),functi=
+on(){obj[this]=3Dtype});return =
+obj}jQuery.fn.extend({show:function(speed,callback){if(speed){return =
+this.animate(genFx("show",3),speed,callback)}else{for(var =
+i=3D0,l=3Dthis.length;i<l;i++){var =
+old=3DjQuery.data(this[i],"olddisplay");this[i].style.display=3Dold||"";i=
+f(jQuery.css(this[i],"display")=3D=3D=3D"none"){var =
+tagName=3Dthis[i].tagName,display;if(elemdisplay[tagName]){display=3Delem=
+display[tagName]}else{var elem=3DjQuery("<"+tagName+" =
+/>").appendTo("body");display=3Delem.css("display");if(display=3D=3D=3D"n=
+one"){display=3D"block"}elem.remove();elemdisplay[tagName]=3Ddisplay}jQue=
+ry.data(this[i],"olddisplay",display)}}for(var =
+i=3D0,l=3Dthis.length;i<l;i++){this[i].style.display=3DjQuery.data(this[i=
+],"olddisplay")||""}return =
+this}},hide:function(speed,callback){if(speed){return =
+this.animate(genFx("hide",3),speed,callback)}else{for(var =
+i=3D0,l=3Dthis.length;i<l;i++){var =
+old=3DjQuery.data(this[i],"olddisplay");if(!old&&old!=3D=3D"none"){jQuery=
+.data(this[i],"olddisplay",jQuery.css(this[i],"display"))}}for(var =
+i=3D0,l=3Dthis.length;i<l;i++){this[i].style.display=3D"none"}return =
+this}},_toggle:jQuery.fn.toggle,toggle:function(fn,fn2){var =
+bool=3Dtypeof fn=3D=3D=3D"boolean";return =
+jQuery.isFunction(fn)&&jQuery.isFunction(fn2)?this._toggle.apply(this,arg=
+uments):fn=3D=3Dnull||bool?this.each(function(){var =
+state=3Dbool?fn:jQuery(this).is(":hidden");jQuery(this)[state?"show":"hid=
+e"]()}):this.animate(genFx("toggle",3),fn,fn2)},fadeTo:function(speed,to,=
+callback){return =
+this.animate({opacity:to},speed,callback)},animate:function(prop,speed,ea=
+sing,callback){var optall=3DjQuery.speed(speed,easing,callback);return =
+this[optall.queue=3D=3D=3Dfalse?"each":"queue"](function(){var =
+opt=3DjQuery.extend({},optall),p,hidden=3Dthis.nodeType=3D=3D1&&jQuery(th=
+is).is(":hidden"),self=3Dthis;for(p in =
+prop){if(prop[p]=3D=3D"hide"&&hidden||prop[p]=3D=3D"show"&&!hidden){retur=
+n =
+opt.complete.call(this)}if((p=3D=3D"height"||p=3D=3D"width")&&this.style)=
+{opt.display=3DjQuery.css(this,"display");opt.overflow=3Dthis.style.overf=
+low}}if(opt.overflow!=3Dnull){this.style.overflow=3D"hidden"}opt.curAnim=3D=
+jQuery.extend({},prop);jQuery.each(prop,function(name,val){var e=3Dnew =
+jQuery.fx(self,opt,name);if(/toggle|show|hide/.test(val)){e[val=3D=3D"tog=
+gle"?hidden?"show":"hide":val](prop)}else{var =
+parts=3Dval.toString().match(/^([+-]=3D)?([\d+-.]+)(.*)$/),start=3De.cur(=
+true)||0;if(parts){var =
+end=3DparseFloat(parts[2]),unit=3Dparts[3]||"px";if(unit!=3D"px"){self.st=
+yle[name]=3D(end||1)+unit;start=3D((end||1)/e.cur(true))*start;self.style=
+[name]=3Dstart+unit}if(parts[1]){end=3D((parts[1]=3D=3D"-=3D"?-1:1)*end)+=
+start}e.custom(start,end,unit)}else{e.custom(start,val,"")}}});return =
+true})},stop:function(clearQueue,gotoEnd){var =
+timers=3DjQuery.timers;if(clearQueue){this.queue([])}this.each(function()=
+{for(var =
+i=3Dtimers.length-1;i>=3D0;i--){if(timers[i].elem=3D=3Dthis){if(gotoEnd){=
+timers[i](true)}timers.splice(i,1)}}});if(!gotoEnd){this.dequeue()}return=
+ =
+this}});jQuery.each({slideDown:genFx("show",1),slideUp:genFx("hide",1),sl=
+ideToggle:genFx("toggle",1),fadeIn:{opacity:"show"},fadeOut:{opacity:"hid=
+e"}},function(name,props){jQuery.fn[name]=3Dfunction(speed,callback){retu=
+rn =
+this.animate(props,speed,callback)}});jQuery.extend({speed:function(speed=
+,easing,fn){var opt=3Dtypeof =
+speed=3D=3D=3D"object"?speed:{complete:fn||!fn&&easing||jQuery.isFunction=
+(speed)&&speed,duration:speed,easing:fn&&easing||easing&&!jQuery.isFuncti=
+on(easing)&&easing};opt.duration=3DjQuery.fx.off?0:typeof =
+opt.duration=3D=3D=3D"number"?opt.duration:jQuery.fx.speeds[opt.duration]=
+||jQuery.fx.speeds._default;opt.old=3Dopt.complete;opt.complete=3Dfunctio=
+n(){if(opt.queue!=3D=3Dfalse){jQuery(this).dequeue()}if(jQuery.isFunction=
+(opt.old)){opt.old.call(this)}};return =
+opt},easing:{linear:function(p,n,firstNum,diff){return =
+firstNum+diff*p},swing:function(p,n,firstNum,diff){return((-Math.cos(p*Ma=
+th.PI)/2)+0.5)*diff+firstNum}},timers:[],fx:function(elem,options,prop){t=
+his.options=3Doptions;this.elem=3Delem;this.prop=3Dprop;if(!options.orig)=
+{options.orig=3D{}}}});jQuery.fx.prototype=3D{update:function(){if(this.o=
+ptions.step){this.options.step.call(this.elem,this.now,this)}(jQuery.fx.s=
+tep[this.prop]||jQuery.fx.step._default)(this);if((this.prop=3D=3D"height=
+"||this.prop=3D=3D"width")&&this.elem.style){this.elem.style.display=3D"b=
+lock"}},cur:function(force){if(this.elem[this.prop]!=3Dnull&&(!this.elem.=
+style||this.elem.style[this.prop]=3D=3Dnull)){return =
+this.elem[this.prop]}var =
+r=3DparseFloat(jQuery.css(this.elem,this.prop,force));return =
+r&&r>-10000?r:parseFloat(jQuery.curCSS(this.elem,this.prop))||0},custom:f=
+unction(from,to,unit){this.startTime=3Dnow();this.start=3Dfrom;this.end=3D=
+to;this.unit=3Dunit||this.unit||"px";this.now=3Dthis.start;this.pos=3Dthi=
+s.state=3D0;var self=3Dthis;function t(gotoEnd){return =
+self.step(gotoEnd)}t.elem=3Dthis.elem;if(t()&&jQuery.timers.push(t)&&!tim=
+erId){timerId=3DsetInterval(function(){var =
+timers=3DjQuery.timers;for(var =
+i=3D0;i<timers.length;i++){if(!timers[i]()){timers.splice(i--,1)}}if(!tim=
+ers.length){clearInterval(timerId);timerId=3Dundefined}},13)}},show:funct=
+ion(){this.options.orig[this.prop]=3DjQuery.attr(this.elem.style,this.pro=
+p);this.options.show=3Dtrue;this.custom(this.prop=3D=3D"width"||this.prop=
+=3D=3D"height"?1:0,this.cur());jQuery(this.elem).show()},hide:function(){=
+this.options.orig[this.prop]=3DjQuery.attr(this.elem.style,this.prop);thi=
+s.options.hide=3Dtrue;this.custom(this.cur(),0)},step:function(gotoEnd){v=
+ar =
+t=3Dnow();if(gotoEnd||t>=3Dthis.options.duration+this.startTime){this.now=
+=3Dthis.end;this.pos=3Dthis.state=3D1;this.update();this.options.curAnim[=
+this.prop]=3Dtrue;var done=3Dtrue;for(var i in =
+this.options.curAnim){if(this.options.curAnim[i]!=3D=3Dtrue){done=3Dfalse=
+}}if(done){if(this.options.display!=3Dnull){this.elem.style.overflow=3Dth=
+is.options.overflow;this.elem.style.display=3Dthis.options.display;if(jQu=
+ery.css(this.elem,"display")=3D=3D"none"){this.elem.style.display=3D"bloc=
+k"}}if(this.options.hide){jQuery(this.elem).hide()}if(this.options.hide||=
+this.options.show){for(var p in =
+this.options.curAnim){jQuery.attr(this.elem.style,p,this.options.orig[p])=
+}}this.options.complete.call(this.elem)}return false}else{var =
+n=3Dt-this.startTime;this.state=3Dn/this.options.duration;this.pos=3DjQue=
+ry.easing[this.options.easing||(jQuery.easing.swing?"swing":"linear")](th=
+is.state,n,0,1,this.options.duration);this.now=3Dthis.start+((this.end-th=
+is.start)*this.pos);this.update()}return =
+true}};jQuery.extend(jQuery.fx,{speeds:{slow:600,fast:200,_default:400},s=
+tep:{opacity:function(fx){jQuery.attr(fx.elem.style,"opacity",fx.now)},_d=
+efault:function(fx){if(fx.elem.style&&fx.elem.style[fx.prop]!=3Dnull){fx.=
+elem.style[fx.prop]=3Dfx.now+fx.unit}else{fx.elem[fx.prop]=3Dfx.now}}}});=
+if(document.documentElement.getBoundingClientRect){jQuery.fn.offset=3Dfun=
+ction(){if(!this[0]){return{top:0,left:0}}if(this[0]=3D=3D=3Dthis[0].owne=
+rDocument.body){return jQuery.offset.bodyOffset(this[0])}var =
+box=3Dthis[0].getBoundingClientRect(),doc=3Dthis[0].ownerDocument,body=3D=
+doc.body,docElem=3Ddoc.documentElement,clientTop=3DdocElem.clientTop||bod=
+y.clientTop||0,clientLeft=3DdocElem.clientLeft||body.clientLeft||0,top=3D=
+box.top+(self.pageYOffset||jQuery.boxModel&&docElem.scrollTop||body.scrol=
+lTop)-clientTop,left=3Dbox.left+(self.pageXOffset||jQuery.boxModel&&docEl=
+em.scrollLeft||body.scrollLeft)-clientLeft;return{top:top,left:left}}}els=
+e{jQuery.fn.offset=3Dfunction(){if(!this[0]){return{top:0,left:0}}if(this=
+[0]=3D=3D=3Dthis[0].ownerDocument.body){return =
+jQuery.offset.bodyOffset(this[0])}jQuery.offset.initialized||jQuery.offse=
+t.initialize();var =
+elem=3Dthis[0],offsetParent=3Delem.offsetParent,prevOffsetParent=3Delem,d=
+oc=3Delem.ownerDocument,computedStyle,docElem=3Ddoc.documentElement,body=3D=
+doc.body,defaultView=3Ddoc.defaultView,prevComputedStyle=3DdefaultView.ge=
+tComputedStyle(elem,null),top=3Delem.offsetTop,left=3Delem.offsetLeft;whi=
+le((elem=3Delem.parentNode)&&elem!=3D=3Dbody&&elem!=3D=3DdocElem){compute=
+dStyle=3DdefaultView.getComputedStyle(elem,null);top-=3Delem.scrollTop,le=
+ft-=3Delem.scrollLeft;if(elem=3D=3D=3DoffsetParent){top+=3Delem.offsetTop=
+,left+=3Delem.offsetLeft;if(jQuery.offset.doesNotAddBorder&&!(jQuery.offs=
+et.doesAddBorderForTableAndCells&&/^t(able|d|h)$/i.test(elem.tagName))){t=
+op+=3DparseInt(computedStyle.borderTopWidth,10)||0,left+=3DparseInt(compu=
+tedStyle.borderLeftWidth,10)||0}prevOffsetParent=3DoffsetParent,offsetPar=
+ent=3Delem.offsetParent}if(jQuery.offset.subtractsBorderForOverflowNotVis=
+ible&&computedStyle.overflow!=3D=3D"visible"){top+=3DparseInt(computedSty=
+le.borderTopWidth,10)||0,left+=3DparseInt(computedStyle.borderLeftWidth,1=
+0)||0}prevComputedStyle=3DcomputedStyle}if(prevComputedStyle.position=3D=3D=
+=3D"relative"||prevComputedStyle.position=3D=3D=3D"static"){top+=3Dbody.o=
+ffsetTop,left+=3Dbody.offsetLeft}if(prevComputedStyle.position=3D=3D=3D"f=
+ixed"){top+=3DMath.max(docElem.scrollTop,body.scrollTop),left+=3DMath.max=
+(docElem.scrollLeft,body.scrollLeft)}return{top:top,left:left}}}jQuery.of=
+fset=3D{initialize:function(){if(this.initialized){return }var =
+body=3Ddocument.body,container=3Ddocument.createElement("div"),innerDiv,c=
+heckDiv,table,td,rules,prop,bodyMarginTop=3Dbody.style.marginTop,html=3D'=
+<div style=3D"position:absolute;top:0;left:0;margin:0;border:5px solid =
+#000;padding:0;width:1px;height:1px;"><div></div></div><table =
+style=3D"position:absolute;top:0;left:0;margin:0;border:5px solid =
+#000;padding:0;width:1px;height:1px;" cellpadding=3D"0" =
+cellspacing=3D"0"><tr><td></td></tr></table>';rules=3D{position:"absolute=
+",top:0,left:0,margin:0,border:0,width:"1px",height:"1px",visibility:"hid=
+den"};for(prop in =
+rules){container.style[prop]=3Drules[prop]}container.innerHTML=3Dhtml;bod=
+y.insertBefore(container,body.firstChild);innerDiv=3Dcontainer.firstChild=
+,checkDiv=3DinnerDiv.firstChild,td=3DinnerDiv.nextSibling.firstChild.firs=
+tChild;this.doesNotAddBorder=3D(checkDiv.offsetTop!=3D=3D5);this.doesAddB=
+orderForTableAndCells=3D(td.offsetTop=3D=3D=3D5);innerDiv.style.overflow=3D=
+"hidden",innerDiv.style.position=3D"relative";this.subtractsBorderForOver=
+flowNotVisible=3D(checkDiv.offsetTop=3D=3D=3D-5);body.style.marginTop=3D"=
+1px";this.doesNotIncludeMarginInBodyOffset=3D(body.offsetTop=3D=3D=3D0);b=
+ody.style.marginTop=3DbodyMarginTop;body.removeChild(container);this.init=
+ialized=3Dtrue},bodyOffset:function(body){jQuery.offset.initialized||jQue=
+ry.offset.initialize();var =
+top=3Dbody.offsetTop,left=3Dbody.offsetLeft;if(jQuery.offset.doesNotInclu=
+deMarginInBodyOffset){top+=3DparseInt(jQuery.curCSS(body,"marginTop",true=
+),10)||0,left+=3DparseInt(jQuery.curCSS(body,"marginLeft",true),10)||0}re=
+turn{top:top,left:left}}};jQuery.fn.extend({position:function(){var =
+left=3D0,top=3D0,results;if(this[0]){var =
+offsetParent=3Dthis.offsetParent(),offset=3Dthis.offset(),parentOffset=3D=
+/^body|html$/i.test(offsetParent[0].tagName)?{top:0,left:0}:offsetParent.=
+offset();offset.top-=3Dnum(this,"marginTop");offset.left-=3Dnum(this,"mar=
+ginLeft");parentOffset.top+=3Dnum(offsetParent,"borderTopWidth");parentOf=
+fset.left+=3Dnum(offsetParent,"borderLeftWidth");results=3D{top:offset.to=
+p-parentOffset.top,left:offset.left-parentOffset.left}}return =
+results},offsetParent:function(){var =
+offsetParent=3Dthis[0].offsetParent||document.body;while(offsetParent&&(!=
+/^body|html$/i.test(offsetParent.tagName)&&jQuery.css(offsetParent,"posit=
+ion")=3D=3D"static")){offsetParent=3DoffsetParent.offsetParent}return =
+jQuery(offsetParent)}});jQuery.each(["Left","Top"],function(i,name){var =
+method=3D"scroll"+name;jQuery.fn[method]=3Dfunction(val){if(!this[0]){ret=
+urn null}return =
+val!=3D=3Dundefined?this.each(function(){this=3D=3Dwindow||this=3D=3Ddocu=
+ment?window.scrollTo(!i?val:jQuery(window).scrollLeft(),i?val:jQuery(wind=
+ow).scrollTop()):this[method]=3Dval}):this[0]=3D=3Dwindow||this[0]=3D=3Dd=
+ocument?self[i?"pageYOffset":"pageXOffset"]||jQuery.boxModel&&document.do=
+cumentElement[method]||document.body[method]:this[0][method]}});jQuery.ea=
+ch(["Height","Width"],function(i,name){var =
+tl=3Di?"Left":"Top",br=3Di?"Right":"Bottom",lower=3Dname.toLowerCase();jQ=
+uery.fn["inner"+name]=3Dfunction(){return =
+this[0]?jQuery.css(this[0],lower,false,"padding"):null};jQuery.fn["outer"=
++name]=3Dfunction(margin){return =
+this[0]?jQuery.css(this[0],lower,false,margin?"margin":"border"):null};va=
+r type=3Dname.toLowerCase();jQuery.fn[type]=3Dfunction(size){return =
+this[0]=3D=3Dwindow?document.compatMode=3D=3D"CSS1Compat"&&document.docum=
+entElement["client"+name]||document.body["client"+name]:this[0]=3D=3Ddocu=
+ment?Math.max(document.documentElement["client"+name],document.body["scro=
+ll"+name],document.documentElement["scroll"+name],document.body["offset"+=
+name],document.documentElement["offset"+name]):size=3D=3D=3Dundefined?(th=
+is.length?jQuery.css(this[0],type):null):this.css(type,typeof =
+size=3D=3D=3D"string"?size:size+"px")}})})();
+------=_NextPart_000_0025_01CFB217.B3F53FE0--

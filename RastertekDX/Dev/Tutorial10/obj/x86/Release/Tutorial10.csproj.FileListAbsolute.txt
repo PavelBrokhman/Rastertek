@@ -1,0 +1,15 @@
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\Tutorial10.exe.config
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\Tutorial10.exe
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\Tutorial10.pdb
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.D3DCompiler.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.Direct3D11.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.DXGI.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.D3DCompiler.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.Direct3D11.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\bin\Release\SharpDX.DXGI.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\obj\x86\Release\Tutorial10.Properties.Resources.resources
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\obj\x86\Release\Tutorial10.csproj.GenerateResource.Cache
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\obj\x86\Release\Tutorial10.exe
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial10\obj\x86\Release\Tutorial10.pdb

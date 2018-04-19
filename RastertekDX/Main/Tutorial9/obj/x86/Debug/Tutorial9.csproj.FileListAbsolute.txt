@@ -1,0 +1,34 @@
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\Tutorial9.exe.config
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\Tutorial9.exe
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\Tutorial9.pdb
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.D3DCompiler.dll
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.Diagnostics.dll
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.Direct3D11.dll
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.dll
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.DXGI.dll
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.xml
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.D3DCompiler.xml
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.Diagnostics.xml
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.Direct3D11.xml
+C:\Projects\MyProjects\Rastertek\Tutorial9\bin\Debug\SharpDX.DXGI.xml
+C:\Projects\MyProjects\Rastertek\Tutorial9\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Projects\MyProjects\Rastertek\Tutorial9\obj\x86\Debug\Tutorial9.Properties.Resources.resources
+C:\Projects\MyProjects\Rastertek\Tutorial9\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\Projects\MyProjects\Rastertek\Tutorial9\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Projects\MyProjects\Rastertek\Tutorial9\obj\x86\Debug\Tutorial9.exe
+C:\Projects\MyProjects\Rastertek\Tutorial9\obj\x86\Debug\Tutorial9.pdb
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\Tutorial9.exe.config
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\obj\x86\Debug\Tutorial9.exe
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\obj\x86\Debug\Tutorial9.pdb
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\Tutorial9.exe
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\Tutorial9.pdb
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.xml
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.D3DCompiler.xml
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.Direct3D11.xml
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.DXGI.xml
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\obj\x86\Debug\Tutorial9.Properties.Resources.resources
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\obj\x86\Debug\Tutorial9.csproj.GenerateResource.Cache
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.D3DCompiler.dll
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.Direct3D11.dll
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.dll
+D:\Projects\DirectX Projects\Rastertek\Tutorial9\bin\Debug\SharpDX.DXGI.dll

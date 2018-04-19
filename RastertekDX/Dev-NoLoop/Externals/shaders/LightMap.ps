@@ -1,0 +1,35 @@
+﻿//////////////////////
+////   GLOBALS
+//////////////////////
+Texture2D shaderTexture[2];
+SamplerState SampleType;
+
+//////////////////////
+////   TYPEDEFS
+//////////////////////
+struct PixelInputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+};
+
+//////////////////////
+////   Pixel Shader
+/////////////////////
+float4 LightMapPixelShader(PixelInputType input) : SV_TARGET
+{
+	float4 color;
+	float4 lightColor;
+	float4 finalColor;
+
+	// Get the pixel color from the first texture.
+	color = shaderTexture[0].Sample(SampleType, input.tex);
+
+	// Get the pixel color from the second texture.
+	lightColor = shaderTexture[1].Sample(SampleType, input.tex);
+
+	// Blend the two pixels together and multiply by the gamma value.
+	finalColor = color * lightColor;
+
+	return finalColor;
+}

@@ -1,0 +1,396 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0143)mhtml:file://D:\Projects\DirectX Projects\Rastertek\Original Tutorials\DirectX11Archive\Tutorial 1 Setting up DirectX 11 with Visual Studio.mht -->
+<HTML><HEAD><META content="IE=5.0000" http-equiv="X-UA-Compatible">
+<TITLE>Tutorial 1: Setting up DirectX 11 with Visual Studio</TITLE>
+<META content=IE=5.0000 http-equiv=X-UA-Compatible>
+<SCRIPT type=text/javascript 
+src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/analytics.js"></SCRIPT>
+
+<META content="text/html; charset=utf-8" http-equiv=Content-Type><LINK 
+rel=stylesheet type=text/css 
+href="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/banner-styles.css">
+<META name=GENERATOR content="MSHTML 11.00.9600.17344"></HEAD>
+<BODY bgColor=#000000 text=#ffffff><!-- BEGIN WAYBACK TOOLBAR INSERT -->
+<SCRIPT> if (window.archive_analytics) { window.archive_analytics.values['server_name']="wwwb-app12.us.archive.org";}; </SCRIPT>
+
+<SCRIPT type=text/javascript 
+src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/disclaim-element.js"></SCRIPT>
+
+<SCRIPT type=text/javascript 
+src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/graph-calc.js"></SCRIPT>
+
+<SCRIPT type=text/javascript 
+src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/jquery.min.js"></SCRIPT>
+
+<SCRIPT type=text/javascript>
+//<![CDATA[
+var firstDate = 820454400000;
+var lastDate = 1420070399999;
+var wbPrefix = "/web/";
+var wbCurrentUrl = "http:\/\/rastertek.com\/dx11tut01.html";
+
+var curYear = -1;
+var curMonth = -1;
+var yearCount = 18;
+var firstYear = 1996;
+var imgWidth = 475;
+var yearImgWidth = 25;
+var monthImgWidth = 2;
+var trackerVal = "none";
+var displayDay = "22";
+var displayMonth = "Jul";
+var displayYear = "2014";
+var prettyMonths = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function showTrackers(val) {
+	if(val == trackerVal) {
+		return;
+	}
+	if(val == "inline") {
+		document.getElementById("displayYearEl").style.color = "#ec008c";
+		document.getElementById("displayMonthEl").style.color = "#ec008c";
+		document.getElementById("displayDayEl").style.color = "#ec008c";		
+	} else {
+		document.getElementById("displayYearEl").innerHTML = displayYear;
+		document.getElementById("displayYearEl").style.color = "#ff0";
+		document.getElementById("displayMonthEl").innerHTML = displayMonth;
+		document.getElementById("displayMonthEl").style.color = "#ff0";
+		document.getElementById("displayDayEl").innerHTML = displayDay;
+		document.getElementById("displayDayEl").style.color = "#ff0";
+	}
+   document.getElementById("wbMouseTrackYearImg").style.display = val;
+   document.getElementById("wbMouseTrackMonthImg").style.display = val;
+   trackerVal = val;
+}
+function getElementX2(obj) {
+	var thing = jQuery(obj);
+	if((thing == undefined) 
+			|| (typeof thing == "undefined") 
+			|| (typeof thing.offset == "undefined")) {
+		return getElementX(obj);
+	}
+	return Math.round(thing.offset().left);
+}
+function trackMouseMove(event,element) {
+
+   var eventX = getEventX(event);
+   var elementX = getElementX2(element);
+   var xOff = eventX - elementX;
+	if(xOff < 0) {
+		xOff = 0;
+	} else if(xOff > imgWidth) {
+		xOff = imgWidth;
+	}
+   var monthOff = xOff % yearImgWidth;
+
+   var year = Math.floor(xOff / yearImgWidth);
+	var yearStart = year * yearImgWidth;
+   var monthOfYear = Math.floor(monthOff / monthImgWidth);
+   if(monthOfYear > 11) {
+       monthOfYear = 11;
+   }
+   // 1 extra border pixel at the left edge of the year:
+   var month = (year * 12) + monthOfYear;
+   var day = 1;
+	if(monthOff % 2 == 1) {
+		day = 15;
+	}
+	var dateString = 
+		zeroPad(year + firstYear) + 
+		zeroPad(monthOfYear+1,2) +
+		zeroPad(day,2) + "000000";
+
+	var monthString = prettyMonths[monthOfYear];
+	document.getElementById("displayYearEl").innerHTML = year + 1996;
+	document.getElementById("displayMonthEl").innerHTML = monthString;
+	// looks too jarring when it changes..
+	//document.getElementById("displayDayEl").innerHTML = zeroPad(day,2);
+
+	var url = wbPrefix + dateString + '/' +  wbCurrentUrl;
+	document.getElementById('wm-graph-anchor').href = url;
+
+   //document.getElementById("wmtbURL").value="evX("+eventX+") elX("+elementX+") xO("+xOff+") y("+year+") m("+month+") monthOff("+monthOff+") DS("+dateString+") Moy("+monthOfYear+") ms("+monthString+")";
+   if(curYear != year) {
+       var yrOff = year * yearImgWidth;
+       document.getElementById("wbMouseTrackYearImg").style.left = yrOff + "px";
+       curYear = year;
+   }
+   if(curMonth != month) {
+       var mtOff = year + (month * monthImgWidth) + 1;
+       document.getElementById("wbMouseTrackMonthImg").style.left = mtOff + "px";
+       curMonth = month;
+   }
+}
+//]]>
+</SCRIPT>
+
+<STYLE type=text/css>BODY {
+	MIN-WIDTH: 800px !important; PADDING-TOP: 0px !important; MARGIN-TOP: 0px !important
+}
+#wm-ipp A:hover {
+	TEXT-DECORATION: underline !important
+}
+</STYLE>
+
+<DIV lang=en id=wm-ipp class=__wb_banner_div 
+style="MIN-WIDTH: 800px; POSITION: relative; PADDING-BOTTOM: 0px; PADDING-TOP: 0px; PADDING-LEFT: 5px; MIN-HEIGHT: 70px; DISPLAY: none; PADDING-RIGHT: 5px">
+<DIV id=wm-ipp-inside class=__wb_banner_div 
+style='FONT-SIZE: 11px !important; BORDER-TOP: medium none; FONT-FAMILY: "Lucida Grande","Arial",sans-serif !important; BORDER-RIGHT: 5px solid; WIDTH: 97%; BACKGROUND-IMAGE: url(/static/images/toolbar/wm_tb_bk_trns.png); MIN-WIDTH: 780px; BORDER-BOTTOM: 5px solid; POSITION: fixed; PADDING-BOTTOM: 0px !important; TEXT-ALIGN: center; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; MARGIN: 0px; BORDER-LEFT: 5px solid; PADDING-RIGHT: 0px !important; border-image: none; box-shadow: 1px 1px 3px #333; -moz-box-shadow: 1px 1px 3px #333; -webkit-box-shadow: 1px 1px 3px #333'>
+<TABLE 
+style="WIDTH: 100%; BORDER-COLLAPSE: collapse; PADDING-BOTTOM: 0px; PADDING-TOP: 0px; PADDING-LEFT: 0px; MARGIN: 0px; PADDING-RIGHT: 0px">
+  <TBODY>
+  <TR>
+    <TD 
+    style="VERTICAL-ALIGN: top; MIN-WIDTH: 110px; PADDING-BOTTOM: 10px; PADDING-TOP: 10px; PADDING-LEFT: 10px; PADDING-RIGHT: 10px"><A 
+      title="Wayback Machine home page" 
+      style="BACKGROUND-COLOR: transparent; border-image: none" 
+      href="http://web.archive.org/web/"><IMG border=0 alt="Wayback Machine" 
+      src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A34(1).tmp" 
+      width=110 height=39></A> </TD>
+    <TD 
+    style="WIDTH: 100%; VERTICAL-ALIGN: top; PADDING-BOTTOM: 0px !important; TEXT-ALIGN: center; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important">
+      <TABLE 
+      style="WIDTH: 570px; BORDER-COLLAPSE: collapse; PADDING-BOTTOM: 0px; PADDING-TOP: 0px; PADDING-LEFT: 0px; MARGIN: 0px auto; PADDING-RIGHT: 0px">
+        <TBODY>
+        <TR>
+          <TD 
+          style="PADDING-BOTTOM: 3px; PADDING-TOP: 3px; PADDING-LEFT: 0px; PADDING-RIGHT: 0px" 
+          colSpan=2>
+            <FORM id=wmtb 
+            style="PADDING-BOTTOM: 0px !important; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; MARGIN: 0px; PADDING-RIGHT: 0px !important" 
+            method=get name=wmtb action=/web/form-submit.jsp target=_top><INPUT 
+            onfocus=javascript:this.focus();this.select(); id=wmtbURL 
+            style='FONT-SIZE: 11px; FONT-FAMILY: "Lucida Grande","Arial",sans-serif; WIDTH: 400px' 
+            value=http://rastertek.com/dx11tut01.html name=url><INPUT 
+            type=hidden value=replay name=type><INPUT type=hidden 
+            value=20140722085711 name=date><INPUT style='FONT-SIZE: 11px; FONT-FAMILY: "Lucida Grande","Arial",sans-serif; MARGIN-LEFT: 5px' type=submit value=Go><SPAN 
+            id=wm_tb_options style="DISPLAY: block"></SPAN></FORM></TD>
+          <TD 
+          style="VERTICAL-ALIGN: bottom; PADDING-BOTTOM: 0px !important; PADDING-TOP: 5px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important" 
+          rowSpan=2>
+            <TABLE 
+            style='FONT-FAMILY: "Helvetica","Lucida Grande","Arial",sans-serif; WIDTH: 110px; BORDER-COLLAPSE: collapse; COLOR: rgb(153,153,170)'>
+              <TBODY><!-- NEXT/PREV MONTH NAV AND MONTH INDICATOR -->
+              <TR 
+style="FONT-SIZE: 10px !important; HEIGHT: 16px; WIDTH: 110px">
+                <TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; TEXT-TRANSFORM: uppercase; FONT-WEIGHT: bold; TEXT-ALIGN: right; PADDING-RIGHT: 9px" 
+                noWrap><A title="24 Mar 2014" 
+                  style="TEXT-DECORATION: none; FONT-WEIGHT: bold; COLOR: rgb(51,51,255); BACKGROUND-COLOR: transparent; border-image: none" 
+                  href="http://web.archive.org/web/20140324202823/http://www.rastertek.com/dx11tut01.html"><STRONG>MAR</STRONG></A> 
+                </TD>
+                <TD id=displayMonthEl title="You are here: 8:57:11 Jul 22, 2014" 
+                style="FONT-SIZE: 11px !important; HEIGHT: 15px; WIDTH: 34px; BACKGROUND: rgb(0,0,0); TEXT-TRANSFORM: uppercase; FONT-WEIGHT: bold; COLOR: rgb(255,255,0); TEXT-ALIGN: center; PADDING-TOP: 1px">JUL</TD>
+                <TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; TEXT-TRANSFORM: uppercase; FONT-WEIGHT: bold; PADDING-LEFT: 9px" 
+                noWrap>Aug </TD></TR><!-- NEXT/PREV CAPTURE NAV AND DAY OF MONTH INDICATOR -->
+              <TR>
+                <TD 
+                style="OVERFLOW: visible; VERTICAL-ALIGN: middle !important; WHITE-SPACE: nowrap; TEXT-ALIGN: right !important; PADDING-RIGHT: 9px" 
+                noWrap><A title="20:28:23 Mar 24, 2014" 
+                  style="BACKGROUND-COLOR: transparent; border-image: none" 
+                  href="http://web.archive.org/web/20140324202823/http://www.rastertek.com/dx11tut01.html"><IMG 
+                  border=0 alt="Previous capture" 
+                  src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A37(1).tmp" 
+                  width=14 height=16></A> </TD>
+                <TD id=displayDayEl title="You are here: 8:57:11 Jul 22, 2014" 
+                style="FONT-SIZE: 24px; HEIGHT: 24px; WIDTH: 34px; BACKGROUND: rgb(0,0,0); FONT-WEIGHT: bold; COLOR: rgb(255,255,0); PADDING-BOTTOM: 0px; TEXT-ALIGN: center; PADDING-TOP: 2px; PADDING-LEFT: 0px; PADDING-RIGHT: 0px">22</TD>
+                <TD 
+                style="OVERFLOW: visible; VERTICAL-ALIGN: middle !important; WHITE-SPACE: nowrap; TEXT-ALIGN: left !important; PADDING-LEFT: 9px" 
+                noWrap><A title="0:11:59 Jul 26, 2014" 
+                  style="BACKGROUND-COLOR: transparent; border-image: none" 
+                  href="http://web.archive.org/web/20140726001159/http://www.rastertek.com/dx11tut01.html"><IMG 
+                  border=0 alt="Next capture" 
+                  src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A59(1).tmp" 
+                  width=14 height=16></A> </TD></TR><!-- NEXT/PREV YEAR NAV AND YEAR INDICATOR -->
+              <TR 
+                style="FONT-SIZE: 9px !important; HEIGHT: 13px; WIDTH: 110px"><TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; FONT-WEIGHT: bold; TEXT-ALIGN: right; PADDING-RIGHT: 9px" 
+                noWrap><A title="28 May 2013" 
+                  style="TEXT-DECORATION: none; FONT-WEIGHT: bold; COLOR: rgb(51,51,255); BACKGROUND-COLOR: transparent; border-image: none" 
+                  href="http://web.archive.org/web/20130528010507/http://www.rastertek.com/dx11tut01.html"><STRONG>2013</STRONG></A> 
+                </TD>
+                <TD id=displayYearEl title="You are here: 8:57:11 Jul 22, 2014" 
+                style="FONT-SIZE: 11px !important; HEIGHT: 13px; WIDTH: 34px; BACKGROUND: rgb(0,0,0); FONT-WEIGHT: bold; COLOR: rgb(255,255,0); TEXT-ALIGN: center; PADDING-TOP: 1px">2014</TD>
+                <TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; FONT-WEIGHT: bold; PADDING-LEFT: 9px" 
+                noWrap>2015 </TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD 
+          style="VERTICAL-ALIGN: middle; PADDING-BOTTOM: 0px !important; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important"><A 
+            title="See a list of every capture for this URL" 
+            style="FONT-SIZE: 11px; FONT-WEIGHT: bold; COLOR: rgb(51,51,255); BACKGROUND-COLOR: transparent; border-image: none" 
+            href="http://web.archive.org/web/20140722085711*/http://rastertek.com/dx11tut01.html"><STRONG>15 
+            captures</STRONG></A> 
+            <DIV title="Timespan for captures of this URL" class=__wb_banner_div 
+            style="FONT-SIZE: 9px; WHITE-SPACE: nowrap; COLOR: rgb(102,102,102); PADDING-BOTTOM: 0px !important; PADDING-TOP: 2px !important; PADDING-LEFT: 0px !important; MARGIN: 0px; PADDING-RIGHT: 0px !important">19 
+            Mar 11 - 26 Jul 14</DIV></TD>
+          <TD 
+          style="PADDING-BOTTOM: 0px !important; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important"><A 
+            id=wm-graph-anchor 
+            style="HEIGHT: 27px; WIDTH: 475px; WHITE-SPACE: nowrap; POSITION: relative" 
+            href="http://web.archive.org/web/20140722085711/http://rastertek.com/">
+            <DIV id=wm-ipp-sparkline title="Explore captures for this URL" 
+            class=__wb_banner_div 
+            style="CURSOR: pointer; HEIGHT: 27px; BORDER-RIGHT: rgb(204,204,204) 1px solid; WIDTH: 475px; WHITE-SPACE: nowrap; POSITION: relative; BACKGROUND-COLOR: rgb(255,255,255)"><IMG 
+            onmouseover="showTrackers('inline');" 
+            onmousemove=trackMouseMove(event,this) 
+            onmouseout="showTrackers('none');" id=sparklineImgId 
+            style="POSITION: absolute; LEFT: 0px; Z-INDEX: 9012; TOP: 0px" 
+            border=0 alt=sparklines 
+            src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A5C(1).tmp" 
+            width=475 height=27> <IMG id=wbMouseTrackYearImg 
+            style="POSITION: absolute; Z-INDEX: 9010; DISPLAY: none" border=0 
+            src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A5F(1).tmp" 
+            width=25 height=27> <IMG id=wbMouseTrackMonthImg 
+            style="POSITION: absolute; Z-INDEX: 9011; DISPLAY: none" border=0 
+            src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A72(1).tmp" 
+            width=2 height=27> </DIV></A></TD></TR></TBODY></TABLE></TD>
+    <TD 
+    style="FONT-SIZE: 11px !important; WIDTH: 65px; PADDING-BOTTOM: 5px; TEXT-ALIGN: right; PADDING-TOP: 5px; PADDING-LEFT: 5px; PADDING-RIGHT: 5px"><A 
+      onclick="document.getElementById('wm-ipp').style.display='none';" 
+      title="Close the toolbar" 
+      style='MARGIN-BOTTOM: 23px; FONT-FAMILY: "Lucida Grande","Arial",sans-serif; BACKGROUND: url(/static/images/toolbar/wm_tb_close.png) no-repeat 100% 0px; COLOR: rgb(51,51,255); DISPLAY: block; PADDING-RIGHT: 18px; border-image: none' 
+      href="javascript:;">Close</A><A 
+      title="Get some help using the Wayback Machine" 
+      style='FONT-FAMILY: "Lucida Grande","Arial",sans-serif; BACKGROUND: url(/static/images/toolbar/wm_tb_help.png) no-repeat 100% 0px; COLOR: rgb(51,51,255); DISPLAY: block; PADDING-RIGHT: 18px; border-image: none' 
+      href="http://faq.web.archive.org/">Help</A></TD></TR></TBODY></TABLE></DIV></DIV>
+<SCRIPT type=text/javascript>
+ var wmDisclaimBanner = document.getElementById("wm-ipp");
+ if(wmDisclaimBanner != null) {
+   disclaimElement(wmDisclaimBanner);
+ }
+</SCRIPT>
+<!-- END WAYBACK TOOLBAR INSERT -->
+<P align=left><FONT color=#ffffff size=4 face=Arial><B>Tutorial 1: Setting up 
+DirectX 11 with Visual Studio </B></FONT></P>
+<P align=left><IMG border=0 
+src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A84(1).tmp" 
+width=800 height=1></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Before writing any graphics 
+code we'll need to have the tools to do so. The first of these tools is a 
+compiler that is preferably built into a nice IDE. The one I use and will be 
+supplying project files for is Visual Studio 2010. There are several others 
+available and some are even free off the net. I'll leave that up to you to 
+decide which one you prefer. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The second tool you will 
+need is the DirectX SDK. It can be downloaded from Microsoft's website for free. 
+After downloading and installing the SDK you will have the files necessary to 
+compile DirectX programs. You will also notice it comes with samples, tools, and 
+documentation. The documentation is pretty good, it also has some very simple 
+examples under the DirectX 10 tutorials section which also applies to DirectX 
+11. The tools that come with it are also useful, we'll be using the DDS texture 
+tool quite often. The sample browser also provides some simple examples to 
+achieve certain effects you may be looking to do. The samples will generally 
+also have some of the new features of the latest SDK demonstrated. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>With both installed you can 
+now setup your IDE to work with the DirectX 11 SDK. Please note that some IDEs 
+will need to be installed first before installing the DirectX SDK. 
+</FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>Setting Up Visual Studio 
+2010</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>In Visual Studio 2010 I used 
+the following steps: </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>First you need to create an 
+empty Win32 project so select File -&gt; New -&gt; Project. Then select Win32 
+project from the choices. Give the project a name (I called mine Engine) and a 
+location and then click on "Ok". Click "Next" and you will be given another 
+menu. Under "Additional options" put a check mark in the "Empty project" box and 
+click on "Finish" and then click "Next". You should now have an basic Win32 
+empty project setup. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Now click "View" from the 
+menu and select "Property Manager". </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Next click on the arrow to 
+the left of your project name (mine was called Engine) in the property manager 
+window on the left part of the screen. This will display the solution 
+configurations you have. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Select the "Debug | Win32" 
+folder and double click "Microsoft.Cpp.Win32.user". </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>In the window that pops up 
+select "VC++ Directories" from the menu on the left side. This will then display 
+the directories that the project uses. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Now select "Include 
+Directories" from the directory list and click on the down arrow that appears to 
+the left. From the choices it pops up choose "Edit". </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Click on the folder icon at 
+the top (called New Line if you mouse over it) and click on the "..." that 
+appears to the right side. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Navigate to the DirectX SDK 
+include folder, different versions are named differently but on my system it 
+was: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include 
+</FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Next click on "Select 
+Folder" and then click "Ok". </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The libraries directory is 
+also needed so now select "Library Directories" from the directory list and 
+click on the down arrow that appears to the left. From the choices it pops up 
+choose "Edit". </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Click on the folder icon at 
+the top (called New Line if you mouse over it) and click on the "..." that 
+appears to the right side. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Navigate to the DirectX SDK 
+library folder, different versions are named differently but on my system it 
+was: C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86 
+</FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Next click on "Select 
+Folder" and then click "Ok". </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Finally click on the "Apply" 
+button in the bottom right of the Property Pages window. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Now click "Ok" to close the 
+window and your settings will be complete. From the menu click "View" and then 
+"Solution Explorer" to return to your code. All DirectX projects should now 
+compile fine and the error of "Cannot open include file: 'd3d11.h': No such file 
+or directory" should disappear. Also note that these settings will automatically 
+be applied to the Release | Win32 solution configuration so you don't need to 
+set them there. As well it should be persistent permanently for all new projects 
+and will never need to be setup again. </FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>Setting Up Visual Studio 
+2008</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>In Visual Studio 2008 I used 
+the following steps: </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Click "Tools" from the menu. 
+</FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Select "Options" at the 
+bottom of the list. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Click "Projects and 
+Solutions" from the list on the left side. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Click "VC++ Directories" 
+from the expanded list. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>On the right side under 
+"Show Directories for:" select the drop down choice "Include files". </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Now add the location of the 
+include directory to the top of the list. On my setup it was the following but 
+may be different on yours (month released, etc.), make sure to double check: 
+</FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>C:\Program Files 
+(x86)\Microsoft DirectX SDK (June 2010)\Include </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>After you have added that 
+include directory you now need to add the library directory also. On the right 
+side under "Show Directories for:" select the drop down choice "Library files". 
+</FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>On my setup it was the 
+following but may be different on yours (month released, etc.), make sure to 
+double check: </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>C:\Program Files 
+(x86)\Microsoft DirectX SDK (June 2010)\Lib\x86 </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>With these two directories 
+setup in Visual Studio you should now be able to compile DirectX 11 code without 
+any issues. </FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>To Do 
+Exercises</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>1. Compile and run Tutorial 
+#2 from the DirectX 11 SDK Documentation (source is located: (SDK 
+root)\Samples\C++\Direct3D10\Tutorials\Tutorial02) </FONT></P>
+<P align=left><IMG border=0 
+src="Tutorial%201%20Setting%20up%20DirectX%2011%20with%20Visual%20Studio_files/mht4A87(1).tmp" 
+width=800 height=1></P>
+<P align=left><FONT color=#cccccc size=2 face="Arial, Helvetica, sans-serif"><A 
+href="http://web.archive.org/web/20140722085711/http://rastertek.com/tutindex.html">Back 
+to Tutorial Index</A></FONT></P><!--
+     FILE ARCHIVED ON 8:57:11 Jul 22, 2014 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 12:14:57 Aug 7, 2014.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+--></BODY></HTML>

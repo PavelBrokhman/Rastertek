@@ -1,0 +1,3 @@
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\TerrainTutorial4\obj\x86\Debug\TerrainTutorial4.csprojResolveAssemblyReference.cache
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\TerrainTutorial4\obj\x86\Debug\Engine.Properties.Resources.resources
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev-NoLoop\TerrainTutorial4\obj\x86\Debug\TerrainTutorial4.csproj.GenerateResource.Cache

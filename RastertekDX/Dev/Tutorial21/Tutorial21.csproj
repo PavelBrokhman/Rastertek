@@ -1,0 +1,198 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{841C8A2A-1501-4A38-B328-EE4EC4567C2C}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Tutorial21</RootNamespace>
+    <AssemblyName>Tutorial21</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="SharpDX, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.D3DCompiler, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.D3DCompiler.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D11, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DirectInput, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.DirectInput.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DirectSound, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.DirectSound.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DXGI, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.RawInput">
+      <HintPath>..\BIN\Standard-net40\SharpDX.RawInput.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Graphics\Cameras\Camera.cs" />
+    <Compile Include="Graphics\Data\Textures.cs" />
+    <Compile Include="Graphics\Data\Font.cs" />
+    <Compile Include="Graphics\Data\Frustum.cs" />
+    <Compile Include="Graphics\Models\BumpMapModel.cs" />
+    <Compile Include="Graphics\Models\ModelList.cs" />
+    <Compile Include="Graphics\Models\Text.cs" />
+    <Compile Include="Graphics\Shaders\ColorShader.cs" />
+    <Compile Include="Graphics\Models\Bitmap.cs" />
+    <Compile Include="Graphics\Data\Light.cs" />
+    <Compile Include="Graphics\Shaders\AlphaMapShader.cs" />
+    <Compile Include="Graphics\Shaders\BumpMapShader.cs" />
+    <Compile Include="Graphics\Shaders\SpecMapShader.cs" />
+    <Compile Include="Graphics\Shaders\LightMapShader.cs" />
+    <Compile Include="Graphics\Shaders\MultiTextureLightShader.cs" />
+    <Compile Include="Graphics\Shaders\MultiTextureShader.cs" />
+    <Compile Include="Graphics\Shaders\FontShader.cs" />
+    <Compile Include="Graphics\Shaders\LightShader.cs" />
+    <Compile Include="Graphics\Graphics.cs" />
+    <Compile Include="Graphics\Models\Model.cs" />
+    <Compile Include="Graphics\Data\Texture.cs" />
+    <Compile Include="Graphics\Shaders\ShaderUtilities.cs" />
+    <Compile Include="Graphics\Shaders\TextureShader.cs" />
+    <Compile Include="Inputs\Input.cs" />
+    <Compile Include="Inputs\Position.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sounds\Sound.cs" />
+    <Compile Include="Sounds\WaveSound.cs" />
+    <Compile Include="System\CPU.cs" />
+    <Compile Include="System\FPS.cs" />
+    <Compile Include="System\System.cs" />
+    <Compile Include="System\SystemConfiguration.cs" />
+    <Compile Include="Graphics\DX11.cs" />
+    <Compile Include="System\Timer.cs" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="app.config" />
+    <None Include="Externals\data\alpha01.dds" />
+    <None Include="Externals\data\bump01.dds" />
+    <None Include="Externals\data\bump02.dds" />
+    <None Include="Externals\data\dirt01.dds" />
+    <None Include="Externals\data\font.dds" />
+    <None Include="Externals\data\light01.dds" />
+    <None Include="Externals\data\seafloor.dds" />
+    <None Include="Externals\data\spec02.dds" />
+    <None Include="Externals\data\stone01.dds" />
+    <None Include="Externals\data\stone02.dds" />
+    <None Include="Externals\models\Cube.rastertek" />
+    <None Include="Externals\shaders\AlphaMap.ps" />
+    <None Include="Externals\shaders\AlphaMap.vs" />
+    <None Include="Externals\shaders\BumpMap.ps" />
+    <None Include="Externals\shaders\BumpMap.vs" />
+    <None Include="Externals\shaders\SpecMap.ps" />
+    <None Include="Externals\shaders\SpecMap.vs" />
+    <None Include="Externals\shaders\LightMap.ps" />
+    <None Include="Externals\shaders\LightMap.vs" />
+    <None Include="Externals\shaders\MultiTextureLight.vs" />
+    <None Include="Externals\shaders\MultiTextureLight.ps" />
+    <None Include="Externals\shaders\MultiTexture.ps" />
+    <None Include="Externals\shaders\MultiTexture.vs" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="Externals\shaders\Color.ps" />
+    <None Include="Externals\shaders\Color.vs" />
+    <None Include="Externals\shaders\LightSimple.ps" />
+    <None Include="Externals\shaders\LightSimple.vs" />
+    <None Include="Externals\shaders\Font.ps" />
+    <None Include="Externals\shaders\Font.vs" />
+    <None Include="Externals\shaders\Light.ps" />
+    <None Include="Externals\shaders\Light.vs" />
+    <None Include="Externals\shaders\Texture.ps" />
+    <None Include="Externals\shaders\Texture.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Externals\data\sound01.wav" />
+    <Content Include="Externals\models\fontdata.txt" />
+    <Content Include="Externals\models\Font.txt" />
+    <Content Include="Externals\models\sphere.txt" />
+    <Content Include="Externals\models\Triangle.txt" />
+    <Content Include="Externals\models\Square.txt" />
+    <Content Include="Externals\models\Cube.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpDX.2.6.3\build\SharpDX.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

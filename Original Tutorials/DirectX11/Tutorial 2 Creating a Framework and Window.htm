@@ -1,0 +1,1026 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0134)mhtml:file://D:\Projects\DirectX Projects\Rastertek\Original Tutorials\DirectX11Archive\Tutorial 2 Creating a Framework and Window.mht -->
+<HTML><HEAD><META content="IE=5.0000" http-equiv="X-UA-Compatible">
+<TITLE>Tutorial 2: Creating a Framework and Window</TITLE>
+<META content=IE=5.0000 http-equiv=X-UA-Compatible>
+<SCRIPT type=text/javascript 
+src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/analytics.js"></SCRIPT>
+
+<META content="text/html; charset=utf-8" http-equiv=Content-Type><LINK 
+rel=stylesheet type=text/css 
+href="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/banner-styles.css">
+<META name=GENERATOR content="MSHTML 11.00.9600.17344"></HEAD>
+<BODY bgColor=#000000 text=#ffffff><!-- BEGIN WAYBACK TOOLBAR INSERT -->
+<SCRIPT> if (window.archive_analytics) { window.archive_analytics.values['server_name']="wwwb-app2.us.archive.org";}; </SCRIPT>
+
+<SCRIPT type=text/javascript 
+src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/disclaim-element.js"></SCRIPT>
+
+<SCRIPT type=text/javascript 
+src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/graph-calc.js"></SCRIPT>
+
+<SCRIPT type=text/javascript 
+src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/jquery.min.js"></SCRIPT>
+
+<SCRIPT type=text/javascript>
+//<![CDATA[
+var firstDate = 820454400000;
+var lastDate = 1420070399999;
+var wbPrefix = "/web/";
+var wbCurrentUrl = "http:\/\/rastertek.com\/dx11tut02.html";
+
+var curYear = -1;
+var curMonth = -1;
+var yearCount = 18;
+var firstYear = 1996;
+var imgWidth = 475;
+var yearImgWidth = 25;
+var monthImgWidth = 2;
+var trackerVal = "none";
+var displayDay = "22";
+var displayMonth = "Jul";
+var displayYear = "2014";
+var prettyMonths = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function showTrackers(val) {
+	if(val == trackerVal) {
+		return;
+	}
+	if(val == "inline") {
+		document.getElementById("displayYearEl").style.color = "#ec008c";
+		document.getElementById("displayMonthEl").style.color = "#ec008c";
+		document.getElementById("displayDayEl").style.color = "#ec008c";		
+	} else {
+		document.getElementById("displayYearEl").innerHTML = displayYear;
+		document.getElementById("displayYearEl").style.color = "#ff0";
+		document.getElementById("displayMonthEl").innerHTML = displayMonth;
+		document.getElementById("displayMonthEl").style.color = "#ff0";
+		document.getElementById("displayDayEl").innerHTML = displayDay;
+		document.getElementById("displayDayEl").style.color = "#ff0";
+	}
+   document.getElementById("wbMouseTrackYearImg").style.display = val;
+   document.getElementById("wbMouseTrackMonthImg").style.display = val;
+   trackerVal = val;
+}
+function getElementX2(obj) {
+	var thing = jQuery(obj);
+	if((thing == undefined) 
+			|| (typeof thing == "undefined") 
+			|| (typeof thing.offset == "undefined")) {
+		return getElementX(obj);
+	}
+	return Math.round(thing.offset().left);
+}
+function trackMouseMove(event,element) {
+
+   var eventX = getEventX(event);
+   var elementX = getElementX2(element);
+   var xOff = eventX - elementX;
+	if(xOff < 0) {
+		xOff = 0;
+	} else if(xOff > imgWidth) {
+		xOff = imgWidth;
+	}
+   var monthOff = xOff % yearImgWidth;
+
+   var year = Math.floor(xOff / yearImgWidth);
+	var yearStart = year * yearImgWidth;
+   var monthOfYear = Math.floor(monthOff / monthImgWidth);
+   if(monthOfYear > 11) {
+       monthOfYear = 11;
+   }
+   // 1 extra border pixel at the left edge of the year:
+   var month = (year * 12) + monthOfYear;
+   var day = 1;
+	if(monthOff % 2 == 1) {
+		day = 15;
+	}
+	var dateString = 
+		zeroPad(year + firstYear) + 
+		zeroPad(monthOfYear+1,2) +
+		zeroPad(day,2) + "000000";
+
+	var monthString = prettyMonths[monthOfYear];
+	document.getElementById("displayYearEl").innerHTML = year + 1996;
+	document.getElementById("displayMonthEl").innerHTML = monthString;
+	// looks too jarring when it changes..
+	//document.getElementById("displayDayEl").innerHTML = zeroPad(day,2);
+
+	var url = wbPrefix + dateString + '/' +  wbCurrentUrl;
+	document.getElementById('wm-graph-anchor').href = url;
+
+   //document.getElementById("wmtbURL").value="evX("+eventX+") elX("+elementX+") xO("+xOff+") y("+year+") m("+month+") monthOff("+monthOff+") DS("+dateString+") Moy("+monthOfYear+") ms("+monthString+")";
+   if(curYear != year) {
+       var yrOff = year * yearImgWidth;
+       document.getElementById("wbMouseTrackYearImg").style.left = yrOff + "px";
+       curYear = year;
+   }
+   if(curMonth != month) {
+       var mtOff = year + (month * monthImgWidth) + 1;
+       document.getElementById("wbMouseTrackMonthImg").style.left = mtOff + "px";
+       curMonth = month;
+   }
+}
+//]]>
+</SCRIPT>
+
+<STYLE type=text/css>BODY {
+	MIN-WIDTH: 800px !important; PADDING-TOP: 0px !important; MARGIN-TOP: 0px !important
+}
+#wm-ipp A:hover {
+	TEXT-DECORATION: underline !important
+}
+</STYLE>
+
+<DIV lang=en id=wm-ipp class=__wb_banner_div 
+style="MIN-WIDTH: 800px; POSITION: relative; PADDING-BOTTOM: 0px; PADDING-TOP: 0px; PADDING-LEFT: 5px; MIN-HEIGHT: 70px; DISPLAY: none; PADDING-RIGHT: 5px">
+<DIV id=wm-ipp-inside class=__wb_banner_div 
+style='FONT-SIZE: 11px !important; BORDER-TOP: medium none; FONT-FAMILY: "Lucida Grande","Arial",sans-serif !important; BORDER-RIGHT: 5px solid; WIDTH: 97%; BACKGROUND-IMAGE: url(/static/images/toolbar/wm_tb_bk_trns.png); MIN-WIDTH: 780px; BORDER-BOTTOM: 5px solid; POSITION: fixed; PADDING-BOTTOM: 0px !important; TEXT-ALIGN: center; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; MARGIN: 0px; BORDER-LEFT: 5px solid; PADDING-RIGHT: 0px !important; border-image: none; box-shadow: 1px 1px 3px #333; -moz-box-shadow: 1px 1px 3px #333; -webkit-box-shadow: 1px 1px 3px #333'>
+<TABLE 
+style="WIDTH: 100%; BORDER-COLLAPSE: collapse; PADDING-BOTTOM: 0px; PADDING-TOP: 0px; PADDING-LEFT: 0px; MARGIN: 0px; PADDING-RIGHT: 0px">
+  <TBODY>
+  <TR>
+    <TD 
+    style="VERTICAL-ALIGN: top; MIN-WIDTH: 110px; PADDING-BOTTOM: 10px; PADDING-TOP: 10px; PADDING-LEFT: 10px; PADDING-RIGHT: 10px"><A 
+      title="Wayback Machine home page" 
+      style="BACKGROUND-COLOR: transparent; border-image: none" 
+      href="http://web.archive.org/web/"><IMG border=0 alt="Wayback Machine" 
+      src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht33C1(1).tmp" 
+      width=110 height=39></A> </TD>
+    <TD 
+    style="WIDTH: 100%; VERTICAL-ALIGN: top; PADDING-BOTTOM: 0px !important; TEXT-ALIGN: center; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important">
+      <TABLE 
+      style="WIDTH: 570px; BORDER-COLLAPSE: collapse; PADDING-BOTTOM: 0px; PADDING-TOP: 0px; PADDING-LEFT: 0px; MARGIN: 0px auto; PADDING-RIGHT: 0px">
+        <TBODY>
+        <TR>
+          <TD 
+          style="PADDING-BOTTOM: 3px; PADDING-TOP: 3px; PADDING-LEFT: 0px; PADDING-RIGHT: 0px" 
+          colSpan=2>
+            <FORM id=wmtb 
+            style="PADDING-BOTTOM: 0px !important; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; MARGIN: 0px; PADDING-RIGHT: 0px !important" 
+            method=get name=wmtb action=/web/form-submit.jsp target=_top><INPUT 
+            onfocus=javascript:this.focus();this.select(); id=wmtbURL 
+            style='FONT-SIZE: 11px; FONT-FAMILY: "Lucida Grande","Arial",sans-serif; WIDTH: 400px' 
+            value=http://rastertek.com/dx11tut02.html name=url><INPUT 
+            type=hidden value=replay name=type><INPUT type=hidden 
+            value=20140722085139 name=date><INPUT style='FONT-SIZE: 11px; FONT-FAMILY: "Lucida Grande","Arial",sans-serif; MARGIN-LEFT: 5px' type=submit value=Go><SPAN 
+            id=wm_tb_options style="DISPLAY: block"></SPAN></FORM></TD>
+          <TD 
+          style="VERTICAL-ALIGN: bottom; PADDING-BOTTOM: 0px !important; PADDING-TOP: 5px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important" 
+          rowSpan=2>
+            <TABLE 
+            style='FONT-FAMILY: "Helvetica","Lucida Grande","Arial",sans-serif; WIDTH: 110px; BORDER-COLLAPSE: collapse; COLOR: rgb(153,153,170)'>
+              <TBODY><!-- NEXT/PREV MONTH NAV AND MONTH INDICATOR -->
+              <TR 
+style="FONT-SIZE: 10px !important; HEIGHT: 16px; WIDTH: 110px">
+                <TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; TEXT-TRANSFORM: uppercase; FONT-WEIGHT: bold; TEXT-ALIGN: right; PADDING-RIGHT: 9px" 
+                noWrap><A title="24 Mar 2014" 
+                  style="TEXT-DECORATION: none; FONT-WEIGHT: bold; COLOR: rgb(51,51,255); BACKGROUND-COLOR: transparent; border-image: none" 
+                  href="http://web.archive.org/web/20140324201224/http://www.rastertek.com/dx11tut02.html"><STRONG>MAR</STRONG></A> 
+                </TD>
+                <TD id=displayMonthEl title="You are here: 8:51:39 Jul 22, 2014" 
+                style="FONT-SIZE: 11px !important; HEIGHT: 15px; WIDTH: 34px; BACKGROUND: rgb(0,0,0); TEXT-TRANSFORM: uppercase; FONT-WEIGHT: bold; COLOR: rgb(255,255,0); TEXT-ALIGN: center; PADDING-TOP: 1px">JUL</TD>
+                <TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; TEXT-TRANSFORM: uppercase; FONT-WEIGHT: bold; PADDING-LEFT: 9px" 
+                noWrap>Aug </TD></TR><!-- NEXT/PREV CAPTURE NAV AND DAY OF MONTH INDICATOR -->
+              <TR>
+                <TD 
+                style="OVERFLOW: visible; VERTICAL-ALIGN: middle !important; WHITE-SPACE: nowrap; TEXT-ALIGN: right !important; PADDING-RIGHT: 9px" 
+                noWrap><A title="20:12:24 Mar 24, 2014" 
+                  style="BACKGROUND-COLOR: transparent; border-image: none" 
+                  href="http://web.archive.org/web/20140324201224/http://www.rastertek.com/dx11tut02.html"><IMG 
+                  border=0 alt="Previous capture" 
+                  src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht33D4(1).tmp" 
+                  width=14 height=16></A> </TD>
+                <TD id=displayDayEl title="You are here: 8:51:39 Jul 22, 2014" 
+                style="FONT-SIZE: 24px; HEIGHT: 24px; WIDTH: 34px; BACKGROUND: rgb(0,0,0); FONT-WEIGHT: bold; COLOR: rgb(255,255,0); PADDING-BOTTOM: 0px; TEXT-ALIGN: center; PADDING-TOP: 2px; PADDING-LEFT: 0px; PADDING-RIGHT: 0px">22</TD>
+                <TD 
+                style="OVERFLOW: visible; VERTICAL-ALIGN: middle !important; WHITE-SPACE: nowrap; TEXT-ALIGN: left !important; PADDING-LEFT: 9px" 
+                noWrap><IMG border=0 alt="Next capture" 
+                  src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht33E6(1).tmp" 
+                  width=14 height=16> </TD></TR><!-- NEXT/PREV YEAR NAV AND YEAR INDICATOR -->
+              <TR 
+                style="FONT-SIZE: 9px !important; HEIGHT: 13px; WIDTH: 110px"><TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; FONT-WEIGHT: bold; TEXT-ALIGN: right; PADDING-RIGHT: 9px" 
+                noWrap><A title="28 May 2013" 
+                  style="TEXT-DECORATION: none; FONT-WEIGHT: bold; COLOR: rgb(51,51,255); BACKGROUND-COLOR: transparent; border-image: none" 
+                  href="http://web.archive.org/web/20130528123545/http://rastertek.com/dx11tut02.html"><STRONG>2013</STRONG></A> 
+                </TD>
+                <TD id=displayYearEl title="You are here: 8:51:39 Jul 22, 2014" 
+                style="FONT-SIZE: 11px !important; HEIGHT: 13px; WIDTH: 34px; BACKGROUND: rgb(0,0,0); FONT-WEIGHT: bold; COLOR: rgb(255,255,0); TEXT-ALIGN: center; PADDING-TOP: 1px">2014</TD>
+                <TD 
+                style="OVERFLOW: visible; FONT-SIZE: 11px !important; WHITE-SPACE: nowrap; FONT-WEIGHT: bold; PADDING-LEFT: 9px" 
+                noWrap>2015 </TD></TR></TBODY></TABLE></TD></TR>
+        <TR>
+          <TD 
+          style="VERTICAL-ALIGN: middle; PADDING-BOTTOM: 0px !important; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important"><A 
+            title="See a list of every capture for this URL" 
+            style="FONT-SIZE: 11px; FONT-WEIGHT: bold; COLOR: rgb(51,51,255); BACKGROUND-COLOR: transparent; border-image: none" 
+            href="http://web.archive.org/web/20140722085139*/http://rastertek.com/dx11tut02.html"><STRONG>14 
+            captures</STRONG></A> 
+            <DIV title="Timespan for captures of this URL" class=__wb_banner_div 
+            style="FONT-SIZE: 9px; WHITE-SPACE: nowrap; COLOR: rgb(102,102,102); PADDING-BOTTOM: 0px !important; PADDING-TOP: 2px !important; PADDING-LEFT: 0px !important; MARGIN: 0px; PADDING-RIGHT: 0px !important">3 
+            Apr 11 - 22 Jul 14</DIV></TD>
+          <TD 
+          style="PADDING-BOTTOM: 0px !important; PADDING-TOP: 0px !important; PADDING-LEFT: 0px !important; PADDING-RIGHT: 0px !important"><A 
+            id=wm-graph-anchor 
+            style="HEIGHT: 27px; WIDTH: 475px; WHITE-SPACE: nowrap; POSITION: relative" 
+            href="http://web.archive.org/web/20140722085139/http://rastertek.com/">
+            <DIV id=wm-ipp-sparkline title="Explore captures for this URL" 
+            class=__wb_banner_div 
+            style="CURSOR: pointer; HEIGHT: 27px; BORDER-RIGHT: rgb(204,204,204) 1px solid; WIDTH: 475px; WHITE-SPACE: nowrap; POSITION: relative; BACKGROUND-COLOR: rgb(255,255,255)"><IMG 
+            onmouseover="showTrackers('inline');" 
+            onmousemove=trackMouseMove(event,this) 
+            onmouseout="showTrackers('none');" id=sparklineImgId 
+            style="POSITION: absolute; LEFT: 0px; Z-INDEX: 9012; TOP: 0px" 
+            border=0 alt=sparklines 
+            src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht33F9(1).tmp" 
+            width=475 height=27> <IMG id=wbMouseTrackYearImg 
+            style="POSITION: absolute; Z-INDEX: 9010; DISPLAY: none" border=0 
+            src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht33FC(1).tmp" 
+            width=25 height=27> <IMG id=wbMouseTrackMonthImg 
+            style="POSITION: absolute; Z-INDEX: 9011; DISPLAY: none" border=0 
+            src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht33FF(1).tmp" 
+            width=2 height=27> </DIV></A></TD></TR></TBODY></TABLE></TD>
+    <TD 
+    style="FONT-SIZE: 11px !important; WIDTH: 65px; PADDING-BOTTOM: 5px; TEXT-ALIGN: right; PADDING-TOP: 5px; PADDING-LEFT: 5px; PADDING-RIGHT: 5px"><A 
+      onclick="document.getElementById('wm-ipp').style.display='none';" 
+      title="Close the toolbar" 
+      style='MARGIN-BOTTOM: 23px; FONT-FAMILY: "Lucida Grande","Arial",sans-serif; BACKGROUND: url(/static/images/toolbar/wm_tb_close.png) no-repeat 100% 0px; COLOR: rgb(51,51,255); DISPLAY: block; PADDING-RIGHT: 18px; border-image: none' 
+      href="javascript:;">Close</A><A 
+      title="Get some help using the Wayback Machine" 
+      style='FONT-FAMILY: "Lucida Grande","Arial",sans-serif; BACKGROUND: url(/static/images/toolbar/wm_tb_help.png) no-repeat 100% 0px; COLOR: rgb(51,51,255); DISPLAY: block; PADDING-RIGHT: 18px; border-image: none' 
+      href="http://faq.web.archive.org/">Help</A></TD></TR></TBODY></TABLE></DIV></DIV>
+<SCRIPT type=text/javascript>
+ var wmDisclaimBanner = document.getElementById("wm-ipp");
+ if(wmDisclaimBanner != null) {
+   disclaimElement(wmDisclaimBanner);
+ }
+</SCRIPT>
+<!-- END WAYBACK TOOLBAR INSERT -->
+<P align=left><FONT color=#ffffff size=4 face=Arial><B>Tutorial 2: Creating a 
+Framework and Window </B></FONT></P>
+<P align=left><IMG border=0 
+src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht3412(1).tmp" 
+width=800 height=1></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Before starting to code with 
+DirectX 11 I recommend building a simple code framework. This framework will 
+handle the basic windows functionality and provide an easy way to expand the 
+code in an organized and readable manner. As the intention of these tutorials is 
+just to try different features of DirectX 11 we will purposely keep the 
+framework as thin as possible. </FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>The 
+Framework</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The frame work will begin 
+with four items. It will have a WinMain function to handle the entry point of 
+the application. It will also have a system class that encapsulates the entire 
+application that will be called from within the WinMain function. Inside the 
+system class we will have a input class for handling user input and a graphics 
+class for handling the DirectX graphics code. Here is a diagram of the framework 
+setup: </FONT></P>
+<P align=left><IMG border=0 
+src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht3415(1).tmp" 
+width=193 height=119></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Now that we see how the 
+framework will be setup lets start by looking at the WinMain function inside the 
+main.cpp file. </FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>WinMain</U></FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>////////////////////////////////////////////////////////////////////////////////
+// Filename: main.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "systemclass.h"
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow)
+{
+	SystemClass* System;
+	bool result;
+	
+	
+	// Create the system object.
+	System = new SystemClass;
+	if(!System)
+	{
+		return 0;
+	}
+
+	// Initialize and run the system object.
+	result = System-&gt;Initialize();
+	if(result)
+	{
+		System-&gt;Run();
+	}
+
+	// Shutdown and release the system object.
+	System-&gt;Shutdown();
+	delete System;
+	System = 0;
+
+	return 0;
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>As you can see we kept the 
+WinMain function fairly simple. We create the system class and then initialize 
+it. If it initializes with no problems then we call the system class Run 
+function. The Run function will run its own loop and do all the application code 
+until it completes. After the Run function finishes we then shut down the system 
+object and do the clean up of the system object. So we have kept it very simple 
+and encapsulated the entire application inside the system class. Now lets take a 
+look at the system class header file. </FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 
+face=Arial><U>Systemclass.h</U></FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SYSTEMCLASS_H_
+#define _SYSTEMCLASS_H_
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Here we define 
+WIN32_LEAN_AND_MEAN. We do this to speed up the build process, it reduces the 
+size of the Win32 header files by excluding some of the less used APIs. 
+</FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>///////////////////////////////
+// PRE-PROCESSING DIRECTIVES //
+///////////////////////////////
+#define WIN32_LEAN_AND_MEAN
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Windows.h is included so 
+that we can call the functions to create/destroy windows and be able to use the 
+other useful win32 functions. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>//////////////
+// INCLUDES //
+//////////////
+#include &lt;windows.h&gt;
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>We have included the headers 
+to the other two classes in the frame work at this point so we can use them in 
+the system class. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "graphicsclass.h"
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The definition of the class 
+is fairly simple. We see the Initialize, Shutdown, and Run function that was 
+called in WinMain defined here. There are also some private functions that will 
+be called inside those functions. We have also put a MessageHandler function in 
+the class to handle the windows system messages that will get sent to the 
+application while it is running. And finally we have some private variables 
+m_Input and m_Graphics which will be pointers to the two objects that will 
+handle graphics and input. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>////////////////////////////////////////////////////////////////////////////////
+// Class name: SystemClass
+////////////////////////////////////////////////////////////////////////////////
+class SystemClass
+{
+public:
+	SystemClass();
+	SystemClass(const SystemClass&amp;);
+	~SystemClass();
+
+	bool Initialize();
+	void Shutdown();
+	void Run();
+
+	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
+
+private:
+	bool Frame();
+	void InitializeWindows(int&amp;, int&amp;);
+	void ShutdownWindows();
+
+private:
+	LPCWSTR m_applicationName;
+	HINSTANCE m_hinstance;
+	HWND m_hwnd;
+
+	InputClass* m_Input;
+	GraphicsClass* m_Graphics;
+};
+
+
+/////////////////////////
+// FUNCTION PROTOTYPES //
+/////////////////////////
+static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+
+/////////////
+// GLOBALS //
+/////////////
+static SystemClass* ApplicationHandle = 0;
+
+#endif
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The WndProc function and 
+ApplicationHandle pointer are also included in this class file so we can 
+re-direct the windows system messaging into our MessageHandler function inside 
+the system class. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Now lets take a look at the 
+system class source file: </FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 
+face=Arial><U>Systemclass.cpp</U></FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "systemclass.h"
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>In the class constructor I 
+initialize the object pointers to null. This is important because if the 
+initialization of these objects fail then the Shutdown function further on will 
+attempt to clean up those objects. If the objects are not null then it assumes 
+they were valid created objects and that they need to be cleaned up. It is also 
+good practice to initialize all pointers and variables to null in your 
+applications. Some release builds will fail if you do not do so. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>SystemClass::SystemClass()
+{
+	m_Input = 0;
+	m_Graphics = 0;
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Here I create an empty copy 
+constructor and empty class destructor. In this class I don't have need of them 
+but if not defined some compilers will generate them for you, and in which case 
+I'd rather they be empty. </FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>You will also notice I don't 
+do any object clean up in the class destructor. I instead do all my object clean 
+up in the Shutdown function you will see further down. The reason being is that 
+I don't trust it to be called. Certain windows functions like ExitThread() are 
+known for not calling your class destructors resulting in memory leaks. You can 
+of course call safer versions of these functions now but I'm just being careful 
+when programming on windows. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>SystemClass::SystemClass(const SystemClass&amp; other)
+{
+}
+
+
+SystemClass::~SystemClass()
+{
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The following Initialize 
+function does all the setup for the application. It first calls 
+InitializeWindows which will create the window for our application to use. It 
+also creates and initializes both the input and graphics objects that the 
+application will use for handling user input and rendering graphics to the 
+screen. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>bool SystemClass::Initialize()
+{
+	int screenWidth, screenHeight;
+	bool result;
+
+
+	// Initialize the width and height of the screen to zero before sending the variables into the function.
+	screenWidth = 0;
+	screenHeight = 0;
+
+	// Initialize the windows api.
+	InitializeWindows(screenWidth, screenHeight);
+
+	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
+	m_Input = new InputClass;
+	if(!m_Input)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	m_Input-&gt;Initialize();
+
+	// Create the graphics object.  This object will handle rendering all the graphics for this application.
+	m_Graphics = new GraphicsClass;
+	if(!m_Graphics)
+	{
+		return false;
+	}
+
+	// Initialize the graphics object.
+	result = m_Graphics-&gt;Initialize(screenWidth, screenHeight, m_hwnd);
+	if(!result)
+	{
+		return false;
+	}
+	
+	return true;
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The Shutdown function does 
+the clean up. It shuts down and releases everything associated with the graphics 
+and input object. As well it also shuts down the window and cleans up the 
+handles associated with it. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>void SystemClass::Shutdown()
+{
+	// Release the graphics object.
+	if(m_Graphics)
+	{
+		m_Graphics-&gt;Shutdown();
+		delete m_Graphics;
+		m_Graphics = 0;
+	}
+
+	// Release the input object.
+	if(m_Input)
+	{
+		delete m_Input;
+		m_Input = 0;
+	}
+
+	// Shutdown the window.
+	ShutdownWindows();
+	
+	return;
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The Run function is where 
+our application will loop and do all the application processing until we decide 
+to quit. The application processing is done in the Frame function which is 
+called each loop. This is an important concept to understand as now the rest of 
+our application must be written with this in mind. The pseudo code looks like 
+the following: </FONT></P><PRE><FONT color=#ffffff size=2 face=Arial>while not done
+    check for windows system messages
+    process system messages
+    process application loop
+    check if user wanted to quit during the frame processing
+</FONT></PRE><PRE><FONT color=#aaffaa size=2 face=arial>void SystemClass::Run()
+{
+	MSG msg;
+	bool done, result;
+
+
+	// Initialize the message structure.
+	ZeroMemory(&amp;msg, sizeof(MSG));
+	
+	// Loop until there is a quit message from the window or the user.
+	done = false;
+	while(!done)
+	{
+		// Handle the windows messages.
+		if(PeekMessage(&amp;msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&amp;msg);
+			DispatchMessage(&amp;msg);
+		}
+
+		// If windows signals to end the application then exit out.
+		if(msg.message == WM_QUIT)
+		{
+			done = true;
+		}
+		else
+		{
+			// Otherwise do the frame processing.
+			result = Frame();
+			if(!result)
+			{
+				done = true;
+			}
+		}
+
+	}
+
+	return;
+
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The following Frame function 
+is where all the processing for our application is done. So far it is fairly 
+simple, we check the input object to see if the user has pressed escape and 
+wants to quit. If they don't want to quit then we call the graphics object to do 
+its frame processing which will render the graphics for that frame. As the 
+application grows we'll place more code inside here. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>bool SystemClass::Frame()
+{
+	bool result;
+
+
+	// Check if the user pressed escape and wants to exit the application.
+	if(m_Input-&gt;IsKeyDown(VK_ESCAPE))
+	{
+		return false;
+	}
+
+	// Do the frame processing for the graphics object.
+	result = m_Graphics-&gt;Frame();
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The MessageHandler function 
+is where we direct the windows system messages into. This way we can listen for 
+certain information that we are interested in. Currently we will just read if a 
+key is pressed or if a key is released and pass that information on to the input 
+object. All other information we will pass back to the windows default message 
+handler. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
+{
+	switch(umsg)
+	{
+		// Check if a key has been pressed on the keyboard.
+		case WM_KEYDOWN:
+		{
+			// If a key is pressed send it to the input object so it can record that state.
+			m_Input-&gt;KeyDown((unsigned int)wparam);
+			return 0;
+		}
+
+		// Check if a key has been released on the keyboard.
+		case WM_KEYUP:
+		{
+			// If a key is released then send it to the input object so it can unset the state for that key.
+			m_Input-&gt;KeyUp((unsigned int)wparam);
+			return 0;
+		}
+
+		// Any other messages send to the default message handler as our application won't make use of them.
+		default:
+		{
+			return DefWindowProc(hwnd, umsg, wparam, lparam);
+		}
+	}
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The InitializeWindows 
+function is where we put the code to build the window we will use to render to. 
+It returns screenWidth and screenHeight back to the calling function so we can 
+make use of them throughout the application. We create the window using some 
+default settings to initialize a plain black window with no borders. The 
+function will make either a small window or make a full screen window depending 
+on a global variable called FULL_SCREEN. If this is set to true then we make the 
+screen cover the entire users desktop window. If it is set to false we just make 
+a 800x600 window in the middle of the screen. I placed the FULL_SCREEN global 
+variable at the top of the graphicsclass.h file in case you want to modify it. 
+It will make sense later why I placed the global in that file instead of the 
+header for this file. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>void SystemClass::InitializeWindows(int&amp; screenWidth, int&amp; screenHeight)
+{
+	WNDCLASSEX wc;
+	DEVMODE dmScreenSettings;
+	int posX, posY;
+
+
+	// Get an external pointer to this object.
+	ApplicationHandle = this;
+
+	// Get the instance of this application.
+	m_hinstance = GetModuleHandle(NULL);
+
+	// Give the application a name.
+	m_applicationName = L"Engine";
+
+	// Setup the windows class with default settings.
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc = WndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = m_hinstance;
+	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hIconSm = wc.hIcon;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = m_applicationName;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	
+	// Register the window class.
+	RegisterClassEx(&amp;wc);
+
+	// Determine the resolution of the clients desktop screen.
+	screenWidth  = GetSystemMetrics(SM_CXSCREEN);
+	screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	// Setup the screen settings depending on whether it is running in full screen or in windowed mode.
+	if(FULL_SCREEN)
+	{
+		// If full screen set the screen to maximum size of the users desktop and 32bit.
+		memset(&amp;dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize       = sizeof(dmScreenSettings);
+		dmScreenSettings.dmPelsWidth  = (unsigned long)screenWidth;
+		dmScreenSettings.dmPelsHeight = (unsigned long)screenHeight;
+		dmScreenSettings.dmBitsPerPel = 32;			
+		dmScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		// Change the display settings to full screen.
+		ChangeDisplaySettings(&amp;dmScreenSettings, CDS_FULLSCREEN);
+
+		// Set the position of the window to the top left corner.
+		posX = posY = 0;
+	}
+	else
+	{
+		// If windowed then set it to 800x600 resolution.
+		screenWidth  = 800;
+		screenHeight = 600;
+
+		// Place the window in the middle of the screen.
+		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth)  / 2;
+		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+	}
+
+	// Create the window with the screen settings and get the handle to it.
+	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName, 
+				WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+				posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, NULL);
+
+	// Bring the window up on the screen and set it as main focus.
+	ShowWindow(m_hwnd, SW_SHOW);
+	SetForegroundWindow(m_hwnd);
+	SetFocus(m_hwnd);
+
+	// Hide the mouse cursor.
+	ShowCursor(false);
+
+	return;
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>ShutdownWindows does just 
+that. It returns the screen settings back to normal and releases the window and 
+the handles associated with it. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>void SystemClass::ShutdownWindows()
+{
+	// Show the mouse cursor.
+	ShowCursor(true);
+
+	// Fix the display settings if leaving full screen mode.
+	if(FULL_SCREEN)
+	{
+		ChangeDisplaySettings(NULL, 0);
+	}
+
+	// Remove the window.
+	DestroyWindow(m_hwnd);
+	m_hwnd = NULL;
+
+	// Remove the application instance.
+	UnregisterClass(m_applicationName, m_hinstance);
+	m_hinstance = NULL;
+
+	// Release the pointer to this class.
+	ApplicationHandle = NULL;
+
+	return;
+}
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The WndProc function is 
+where windows sends its messages to. You'll notice we tell windows the name of 
+it when we initialize the window class with wc.lpfnWndProc = WndProc in the 
+InitializeWindows function above. I included it in this class file since we tie 
+it directly into the system class by having it send all the messages to the 
+MessageHandler function defined inside SystemClass. This allows us to hook the 
+messaging functionality straight into our class and keep the code clean. 
+</FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
+{
+	switch(umessage)
+	{
+		// Check if the window is being destroyed.
+		case WM_DESTROY:
+		{
+			PostQuitMessage(0);
+			return 0;
+		}
+
+		// Check if the window is being closed.
+		case WM_CLOSE:
+		{
+			PostQuitMessage(0);		
+			return 0;
+		}
+
+		// All other messages pass to the message handler in the system class.
+		default:
+		{
+			return ApplicationHandle-&gt;MessageHandler(hwnd, umessage, wparam, lparam);
+		}
+	}
+}
+</FONT></PRE><BR>
+<P align=left><FONT color=#ffffff size=3 
+face=Arial><U>Inputclass.h</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>To keep the tutorials simple 
+I used the windows input for the time being until I do a tutorial on DirectInput 
+(which is far superior). The input class handles the user input from the 
+keyboard. This class is given input from the SystemClass::MessageHandler 
+function. The input object will store the state of each key in a keyboard array. 
+When queried it will tell the calling functions if a certain key is pressed. 
+Here is the header: </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>
+////////////////////////////////////////////////////////////////////////////////
+// Filename: inputclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _INPUTCLASS_H_
+#define _INPUTCLASS_H_
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: InputClass
+////////////////////////////////////////////////////////////////////////////////
+class InputClass
+{
+public:
+	InputClass();
+	InputClass(const InputClass&amp;);
+	~InputClass();
+
+	void Initialize();
+
+	void KeyDown(unsigned int);
+	void KeyUp(unsigned int);
+
+	bool IsKeyDown(unsigned int);
+
+private:
+	bool m_keys[256];
+};
+
+#endif
+</FONT></PRE><BR>
+<P align=left><FONT color=#ffffff size=3 
+face=Arial><U>Inputclass.cpp</U></FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>////////////////////////////////////////////////////////////////////////////////
+// Filename: inputclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "inputclass.h"
+
+
+InputClass::InputClass()
+{
+}
+
+
+InputClass::InputClass(const InputClass&amp; other)
+{
+}
+
+
+InputClass::~InputClass()
+{
+}
+
+
+void InputClass::Initialize()
+{
+	int i;
+	
+
+	// Initialize all the keys to being released and not pressed.
+	for(i=0; i&lt;256; i++)
+	{
+		m_keys[i] = false;
+	}
+
+	return;
+}
+
+
+void InputClass::KeyDown(unsigned int input)
+{
+	// If a key is pressed then save that state in the key array.
+	m_keys[input] = true;
+	return;
+}
+
+
+void InputClass::KeyUp(unsigned int input)
+{
+	// If a key is released then clear that state in the key array.
+	m_keys[input] = false;
+	return;
+}
+
+
+bool InputClass::IsKeyDown(unsigned int key)
+{
+	// Return what state the key is in (pressed/not pressed).
+	return m_keys[key];
+}
+</FONT></PRE><BR>
+<P align=left><FONT color=#ffffff size=3 
+face=Arial><U>Graphicsclass.h</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>The graphics class is the 
+other object that is created by the system class. All the graphics functionality 
+in this application will be encapsulated in this class. I will also use the 
+header in this file for all the graphics related global settings that we may 
+want to change such as full screen or windowed mode. Currently this class will 
+be empty but in future tutorials will contain all the graphics objects. 
+</FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>
+////////////////////////////////////////////////////////////////////////////////
+// Filename: graphicsclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _GRAPHICSCLASS_H_
+#define _GRAPHICSCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;windows.h&gt;
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_NEAR = 0.1f;
+</FONT></PRE>
+<P align=left><FONT color=#ffffff size=2 face=Arial>We'll need these four 
+globals to start with. </FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>////////////////////////////////////////////////////////////////////////////////
+// Class name: GraphicsClass
+////////////////////////////////////////////////////////////////////////////////
+class GraphicsClass
+{
+public:
+	GraphicsClass();
+	GraphicsClass(const GraphicsClass&amp;);
+	~GraphicsClass();
+
+	bool Initialize(int, int, HWND);
+	void Shutdown();
+	bool Frame();
+
+private:
+	bool Render();
+
+private:
+
+};
+
+#endif
+</FONT></PRE><BR>
+<P align=left><FONT color=#ffffff size=3 
+face=Arial><U>Graphicsclass.cpp</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>I have kept this class 
+entirely empty for now as we are just building the framework for this tutorial. 
+</FONT></P><PRE><FONT color=#aaffaa size=2 face=arial>////////////////////////////////////////////////////////////////////////////////
+// Filename: graphicsclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "graphicsclass.h"
+
+
+GraphicsClass::GraphicsClass()
+{
+}
+
+
+GraphicsClass::GraphicsClass(const GraphicsClass&amp; other)
+{
+}
+
+
+GraphicsClass::~GraphicsClass()
+{
+}
+
+
+bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
+{
+
+	return true;
+}
+
+
+void GraphicsClass::Shutdown()
+{
+
+	return;
+}
+
+
+bool GraphicsClass::Frame()
+{
+
+	return true;
+}
+
+
+bool GraphicsClass::Render()
+{
+
+	return true;
+}
+</FONT></PRE><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>Summary</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>So now we have a framework 
+and a window that will pop up on the screen. This frame work will now be the 
+base for all future tutorials so understanding this frame work is fairly 
+important. Please try the To Do exercise to make sure the code compiles and is 
+working for you before moving on to the next tutorial. If you don't understand 
+this frame work you should still be fine to move onto the other tutorials and 
+they may make more sense to you later once the frame work is filled out more. 
+</FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>To Do 
+Exercises</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>1. Change the FULL_SCREEN 
+parameter to true in the graphicsclass.h header then recompile and run the 
+program. Press the escape key to quit after the window displays. </FONT></P><BR>
+<P align=left><FONT color=#ffffff size=3 face=Arial><U>Source 
+Code</U></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Visual Studio 2010 Project: 
+<A 
+href="http://web.archive.org/web/20140722085139/http://rastertek.com/dx11tut02.zip">dx11tut02.zip</A></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Source Only: <A 
+href="http://web.archive.org/web/20140722085139/http://rastertek.com/dx11src02.zip">dx11src02.zip</A></FONT></P>
+<P align=left><FONT color=#ffffff size=2 face=Arial>Executable Only: <A 
+href="http://web.archive.org/web/20140722085139/http://rastertek.com/dx11exe02.zip">dx11exe02.zip</A></FONT></P>
+<P align=left><IMG border=0 
+src="Tutorial%202%20Creating%20a%20Framework%20and%20Window_files/mht3418(1).tmp" 
+width=800 height=1></P>
+<P align=left><FONT color=#cccccc size=2 face="Arial, Helvetica, sans-serif"><A 
+href="http://web.archive.org/web/20140722085139/http://rastertek.com/tutindex.html">Back 
+to Tutorial Index</A></FONT></P><!--
+     FILE ARCHIVED ON 8:51:39 Jul 22, 2014 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 12:15:55 Aug 7, 2014.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+--></BODY></HTML>

@@ -1,0 +1,14 @@
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\Tutorial8.exe
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\Tutorial8.pdb
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\SharpDX.Direct3D11.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\SharpDX.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\SharpDX.DXGI.dll
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\SharpDX.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\SharpDX.Direct3D11.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\bin\Release\SharpDX.DXGI.xml
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\obj\x86\Release\Tutorial8.FormMain.resources
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\obj\x86\Release\Tutorial8.Properties.Resources.resources
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\obj\x86\Release\Tutorial8.csproj.GenerateResource.Cache
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\obj\x86\Release\Tutorial8.exe
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\obj\x86\Release\Tutorial8.pdb
+D:\Projects\DirectX Projects\Rastertek\RastertekDX\Dev\Tutorial8\obj\x86\Release\Tutorial8.csprojResolveAssemblyReference.cache
