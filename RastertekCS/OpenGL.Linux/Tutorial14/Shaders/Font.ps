@@ -1,0 +1,22 @@
+#version 400
+
+in vec2 texCoord;
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+uniform vec4 pixelColor;
+
+void main(void)
+{
+    vec4 color = texture(shaderTexture, texCoord);
+    if (color.r == 0.0f && color.g == 0.0f && color.b == 0.0f)
+    {
+        color.a = 0.0f;
+    }
+    else
+    {
+        color.a = 1.0f;
+        color = color * pixelColor;
+    }
+    outputColor = color;
+}

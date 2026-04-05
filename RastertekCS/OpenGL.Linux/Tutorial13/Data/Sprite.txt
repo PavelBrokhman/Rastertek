@@ -1,0 +1,7 @@
+TextureCount: 4
+CycleTime: 500
+BitmapSize: 128 128
+Textures/Sprite01.tga
+Textures/Sprite02.tga
+Textures/Sprite03.tga
+Textures/Sprite04.tga
