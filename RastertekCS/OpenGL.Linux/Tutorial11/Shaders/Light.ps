@@ -1,0 +1,38 @@
+#version 400
+
+#define NUM_LIGHTS 4
+
+in vec2 texCoord;
+in vec3 normal;
+in vec3 lightPos[NUM_LIGHTS];
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+uniform vec4 diffuseColor[NUM_LIGHTS];
+
+void main(void)
+{
+    vec4 textureColor;
+    float lightIntensity[NUM_LIGHTS];
+    vec4 colorArray[NUM_LIGHTS];
+    vec4 colorSum;
+
+    textureColor = texture(shaderTexture, texCoord);
+
+    for (int i = 0; i < NUM_LIGHTS; i++)
+    {
+        lightIntensity[i] = clamp(dot(normal, lightPos[i]), 0.0f, 1.0f);
+        colorArray[i] = diffuseColor[i] * lightIntensity[i];
+    }
+
+    colorSum = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    for (int i = 0; i < NUM_LIGHTS; i++)
+    {
+        colorSum.r += colorArray[i].r;
+        colorSum.g += colorArray[i].g;
+        colorSum.b += colorArray[i].b;
+    }
+
+    outputColor = clamp(colorSum, 0.0f, 1.0f) * textureColor;
+}
