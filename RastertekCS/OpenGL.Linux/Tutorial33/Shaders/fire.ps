@@ -1,0 +1,35 @@
+#version 400
+in vec2 texCoord;
+in vec2 texCoords1;
+in vec2 texCoords2;
+in vec2 texCoords3;
+out vec4 outputColor;
+uniform sampler2D fireTexture;
+uniform sampler2D noiseTexture;
+uniform sampler2D alphaTexture;
+uniform vec2 distortion1;
+uniform vec2 distortion2;
+uniform vec2 distortion3;
+uniform float distortionScale;
+uniform float distortionBias;
+void main(void) {
+    vec4 noise1 = texture(noiseTexture, texCoords1);
+    vec4 noise2 = texture(noiseTexture, texCoords2);
+    vec4 noise3 = texture(noiseTexture, texCoords3);
+    noise1 = (noise1 - 0.5f) * 2.0f;
+    noise2 = (noise2 - 0.5f) * 2.0f;
+    noise3 = (noise3 - 0.5f) * 2.0f;
+    noise1.xy = noise1.xy * distortion1.xy;
+    noise2.xy = noise2.xy * distortion2.xy;
+    noise3.xy = noise3.xy * distortion3.xy;
+    vec4 finalNoise = noise1 + noise2 + noise3;
+    float perturb = ((texCoord.y) * distortionScale) + distortionBias;
+    vec2 noiseCoords;
+    noiseCoords.x = (finalNoise.x * perturb) + texCoord.x;
+    noiseCoords.y = (finalNoise.y * perturb) + (1.0f - texCoord.y);
+    noiseCoords.y = 1.0 - noiseCoords.y;
+    vec4 fireColor = texture(fireTexture, noiseCoords);
+    vec4 alphaColor = texture(alphaTexture, noiseCoords.xy);
+    fireColor.a = alphaColor.r;
+    outputColor = fireColor;
+}
