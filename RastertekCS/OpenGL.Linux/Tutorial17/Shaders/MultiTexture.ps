@@ -1,0 +1,15 @@
+#version 400
+
+in vec2 texCoord;
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture1;
+uniform sampler2D shaderTexture2;
+
+void main(void)
+{
+    vec4 color1 = texture(shaderTexture1, texCoord);
+    vec4 color2 = texture(shaderTexture2, texCoord);
+    vec4 blendColor = color1 * color2 * 2.0;
+    outputColor = clamp(blendColor, 0.0, 1.0);
+}
