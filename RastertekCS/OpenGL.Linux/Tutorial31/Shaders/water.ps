@@ -1,0 +1,38 @@
+#version 400
+
+in vec2 texCoord;
+in vec4 reflectionPosition;
+in vec4 refractionPosition;
+
+out vec4 outputColor;
+
+uniform sampler2D normalTexture;
+uniform sampler2D refractionTexture;
+uniform sampler2D reflectionTexture;
+uniform float waterTranslation;
+uniform float reflectRefractScale;
+
+void main(void)
+{
+    vec2 tex = texCoord;
+    tex.y += waterTranslation;
+
+    vec2 reflectTexCoord;
+    reflectTexCoord.x = reflectionPosition.x / reflectionPosition.w / 2.0f + 0.5f;
+    reflectTexCoord.y = reflectionPosition.y / reflectionPosition.w / 2.0f + 0.5f;
+
+    vec2 refractTexCoord;
+    refractTexCoord.x = refractionPosition.x / refractionPosition.w / 2.0f + 0.5f;
+    refractTexCoord.y = refractionPosition.y / refractionPosition.w / 2.0f + 0.5f;
+
+    vec4 normalMap = texture(normalTexture, tex);
+    vec3 normal = (normalMap.xyz * 2.0f) - 1.0f;
+
+    reflectTexCoord = reflectTexCoord + (normal.xy * reflectRefractScale);
+    refractTexCoord = refractTexCoord + (normal.xy * reflectRefractScale);
+
+    vec4 reflectionColor = texture(reflectionTexture, reflectTexCoord);
+    vec4 refractionColor = texture(refractionTexture, refractTexCoord);
+
+    outputColor = mix(reflectionColor, refractionColor, 0.6f);
+}
