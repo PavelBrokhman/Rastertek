@@ -21,7 +21,8 @@ public class GraphicsFramework
         m_Model = new Model();
         if (!m_Model.Initialize(OpenGL, "Data/square.txt",
             "Data/stone01.tga", TEXTURE_UNIT_1,
-            "Data/dirt01.tga", TEXTURE_UNIT_2)) return false;
+            "Data/dirt01.tga", TEXTURE_UNIT_2))
+        return false;
 
         m_MultiTextureShader = new MultiTextureShader();
         if (!m_MultiTextureShader.Initialize(OpenGL)) return false;

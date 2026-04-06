@@ -61,6 +61,7 @@ public class SystemFramework
         m_window.Render += OnRender;
         m_window.Closing += OnClosing;
         m_window.Initialize();
+        m_window.Title = "Tutorial23";
         sw = m_window.Size.X; sh = m_window.Size.Y;
         return true;
     }

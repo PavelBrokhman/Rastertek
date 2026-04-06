@@ -1,0 +1,34 @@
+#version 400
+
+in vec2 texCoord;
+in vec3 normal;
+in vec3 tangent;
+in vec3 binormal;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture1;
+uniform sampler2D shaderTexture2;
+uniform vec3 lightDirection;
+uniform vec4 diffuseLightColor;
+
+void main(void)
+{
+    vec4 textureColor = texture(shaderTexture1, texCoord);
+
+    vec4 bumpMap = texture(shaderTexture2, texCoord);
+
+    bumpMap = (bumpMap * 2.0) - 1.0;
+
+    vec3 bumpNormal = (bumpMap.x * tangent) + (bumpMap.y * binormal) + (bumpMap.z * normal);
+
+    bumpNormal = normalize(bumpNormal);
+
+    vec3 lightDir = -lightDirection;
+
+    float lightIntensity = clamp(dot(bumpNormal, lightDir), 0.0, 1.0);
+
+    outputColor = clamp((diffuseLightColor * lightIntensity), 0.0, 1.0);
+
+    outputColor = outputColor * textureColor;
+}
