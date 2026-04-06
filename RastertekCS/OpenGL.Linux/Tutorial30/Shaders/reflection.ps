@@ -1,0 +1,22 @@
+#version 400
+
+in vec2 texCoord;
+in vec4 reflectionPosition;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+uniform sampler2D reflectionTexture;
+
+void main(void)
+{
+    vec4 textureColor = texture(shaderTexture, texCoord);
+
+    vec2 reflectTexCoord;
+    reflectTexCoord.x = reflectionPosition.x / reflectionPosition.w / 2.0f + 0.5f;
+    reflectTexCoord.y = reflectionPosition.y / reflectionPosition.w / 2.0f + 0.5f;
+
+    vec4 reflectionColor = texture(reflectionTexture, reflectTexCoord);
+
+    outputColor = mix(textureColor, reflectionColor, 0.15f);
+}
