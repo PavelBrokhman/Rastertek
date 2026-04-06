@@ -1,0 +1,23 @@
+#version 400
+
+in vec2 texCoord;
+in float fogFactor;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+
+void main(void)
+{
+    vec4 textureColor;
+    vec4 fogColor;
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Set the color of the fog to grey.
+    fogColor = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+
+    // Calculate the final color using the fog effect equation.
+    outputColor = fogFactor * textureColor + (1.0 - fogFactor) * fogColor;
+}
