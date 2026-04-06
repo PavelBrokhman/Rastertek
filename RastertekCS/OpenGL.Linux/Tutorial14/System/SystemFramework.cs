@@ -79,5 +79,10 @@ public class SystemFramework
         if (!m_Graphics.Frame()) { m_done = true; m_window.Close(); }
     }
 
-    private void OnClosing() => m_done = true;
+    private void OnClosing()
+    {
+        m_done = true;
+        m_Graphics?.Shutdown(); m_Graphics = null;
+        m_OpenGL?.Shutdown(); m_OpenGL = null;
+    }
 }

@@ -21,10 +21,11 @@ public class GraphicsFramework
         m_screenHeight = screenHeight;
 
         m_Camera = new Camera();
-        m_Camera.SetPosition(0, 0, -1);
+        m_Camera.SetPosition(0, 0, -10);
+        m_Camera.Render();
 
         m_Font = new Font();
-        if (!m_Font.Initialize(OpenGL, "Data/Font.txt", "Textures/Font.tga", TEXTURE_UNIT)) return false;
+        if (!m_Font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT)) return false;
 
         m_FontShader = new FontShader();
         if (!m_FontShader.Initialize(OpenGL)) return false;
@@ -59,14 +60,16 @@ public class GraphicsFramework
     private bool Render()
     {
         m_OpenGL.BeginScene(0, 0, 0, 1);
-        m_Camera.Render();
+
         var world = m_OpenGL.GetWorldMatrix();
         var view = m_Camera.GetViewMatrix();
         var ortho = m_OpenGL.GetOrthoMatrix();
 
         m_OpenGL.TurnZBufferOff();
+
         m_OpenGL.Gl.Enable(EnableCap.Blend);
-        m_OpenGL.Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        m_OpenGL.Gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha,
+                                       BlendingFactor.One, BlendingFactor.Zero);
 
         m_FontShader.SetShader(m_OpenGL);
         m_Font.SetTexture(m_OpenGL, TEXTURE_UNIT);

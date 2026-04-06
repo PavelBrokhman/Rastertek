@@ -6,7 +6,7 @@ public class Font
 {
     private struct FontType
     {
-        public float Left, Right;
+        public float Left, Right, Top, Bottom;
         public int Size;
     }
 
@@ -64,8 +64,8 @@ public class Font
                 float bottom = drawY - m_fontHeight;
                 float tl = m_Font[letter].Left;
                 float tr = m_Font[letter].Right;
-                float tt = 0.0f;
-                float tb = 1.0f;
+                float tt = m_Font[letter].Top;
+                float tb = m_Font[letter].Bottom;
 
                 // Tri 1
                 vertices[idx++] = left;  vertices[idx++] = top;    vertices[idx++] = 0;
@@ -91,18 +91,22 @@ public class Font
     {
         var lines = File.ReadAllLines(filename);
         m_Font = new FontType[95]; // ASCII 32-126
-        m_fontHeight = 16.0f;
+        m_fontHeight = 32.0f;
 
         foreach (var line in lines)
         {
             var t = line.Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (t.Length < 5) continue;
+            if (t.Length < 4) continue;
             int ascii = int.Parse(t[0], CultureInfo.InvariantCulture);
             int idx = ascii - 32;
             if (idx < 0 || idx >= 95) continue;
-            m_Font[idx].Left = float.Parse(t[2], CultureInfo.InvariantCulture);
-            m_Font[idx].Right = float.Parse(t[3], CultureInfo.InvariantCulture);
-            m_Font[idx].Size = int.Parse(t[4], CultureInfo.InvariantCulture);
+            // Format: "ascii char left right size" or "ascii left right size" (for space)
+            int off = t.Length >= 5 ? 2 : 1;
+            m_Font[idx].Left = float.Parse(t[off], CultureInfo.InvariantCulture);
+            m_Font[idx].Right = float.Parse(t[off + 1], CultureInfo.InvariantCulture);
+            m_Font[idx].Size = int.Parse(t[off + 2], CultureInfo.InvariantCulture);
+            m_Font[idx].Top = 0.0f;
+            m_Font[idx].Bottom = 1.0f;
         }
         return true;
     }
