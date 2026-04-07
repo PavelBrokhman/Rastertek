@@ -1,0 +1,50 @@
+#version 400
+
+in vec2 texCoord;
+in vec3 normal;
+in vec3 tangent;
+in vec3 binormal;
+in vec3 viewDirection;
+
+out vec4 outputColor;
+
+uniform sampler2D diffuseTexture;
+uniform sampler2D normalMap;
+uniform sampler2D rmTexture;
+uniform vec3 lightDirection;
+
+void main(void)
+{
+    vec3 lightDir = -lightDirection;
+    vec3 albedo = texture(diffuseTexture, texCoord).rgb;
+    vec3 rmColor = texture(rmTexture, texCoord).rgb;
+    vec3 bumpMap = texture(normalMap, texCoord).rgb;
+    bumpMap = (bumpMap * 2.0f) - 1.0f;
+    vec3 bumpNormal = (bumpMap.x * tangent) + (bumpMap.y * binormal) + (bumpMap.z * normal);
+    bumpNormal = normalize(bumpNormal);
+    float roughness = rmColor.r;
+    float metallic = rmColor.b;
+    vec3 F0 = vec3(0.04f);
+    F0 = mix(F0, albedo, metallic);
+    vec3 halfDirection = normalize(viewDirection + lightDir);
+    float NdotH = max(0.0f, dot(bumpNormal, halfDirection));
+    float NdotV = max(0.0f, dot(bumpNormal, viewDirection));
+    float NdotL = max(0.0f, dot(bumpNormal, lightDir));
+    float HdotV = max(0.0f, dot(halfDirection, viewDirection));
+    float roughnessSqr = roughness * roughness;
+    float roughSqr2 = roughnessSqr * roughnessSqr;
+    float NdotHSqr = NdotH * NdotH;
+    float denominator = (NdotHSqr * (roughSqr2 - 1.0f) + 1.0f);
+    denominator = 3.14159265359f * (denominator * denominator);
+    float normalDistribution = roughSqr2 / denominator;
+    float smithL = NdotL / (NdotL * (1.0f - roughnessSqr) + roughnessSqr);
+    float smithV = NdotV / (NdotV * (1.0f - roughnessSqr) + roughnessSqr);
+    float geometricShadow = smithL * smithV;
+    vec3 fresnel = F0 + (1.0f - F0) * pow(1.0f - HdotV, 5.0f);
+    vec3 specularity = (normalDistribution * fresnel * geometricShadow) / ((4.0f * (NdotL * NdotV)) + 0.00001f);
+    vec4 color;
+    color.rgb = albedo + specularity;
+    color.rgb = color.rgb * NdotL;
+    color = vec4(color.rgb, 1.0f);
+    outputColor = color;
+}

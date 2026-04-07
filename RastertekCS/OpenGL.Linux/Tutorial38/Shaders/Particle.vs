@@ -1,0 +1,19 @@
+#version 400
+
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+in vec4 inputColor;
+
+out vec2 texCoord;
+out vec4 pixColor;
+
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+void main(void)
+{
+    gl_Position = projectionMatrix * viewMatrix * worldMatrix * vec4(inputPosition, 1.0f);
+    texCoord = inputTexCoord;
+    pixColor = inputColor;
+}

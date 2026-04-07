@@ -1,0 +1,20 @@
+#version 400
+
+in vec2 texCoord;
+in vec3 normal;
+in vec4 viewPosition;
+
+layout(location = 0) out vec4 outputPosition;
+layout(location = 1) out vec4 outputNormal;
+layout(location = 2) out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+
+void main(void)
+{
+    vec3 inputNormal;
+    outputPosition = vec4(viewPosition.x, viewPosition.y, viewPosition.z, 1.0f);
+    inputNormal = normalize(normal);
+    outputNormal = vec4(inputNormal.x, inputNormal.y, inputNormal.z, 1.0f);
+    outputColor = texture(shaderTexture, texCoord);
+}

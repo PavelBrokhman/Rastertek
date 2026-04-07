@@ -1,0 +1,38 @@
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
+
+namespace RastertekCS.OpenGL.Tutorial53.Graphics;
+
+public class GL4
+{
+    private GL m_gl;
+    private Matrix4X4<float> m_worldMatrix, m_projectionMatrix, m_orthoMatrix;
+    private int m_screenWidth, m_screenHeight;
+
+    public GL Gl => m_gl;
+
+    public bool Initialize(IWindow window, int sw, int sh, float sd, float sn, bool vsync)
+    {
+        m_gl = GL.GetApi(window);
+        m_screenWidth = sw; m_screenHeight = sh;
+        m_gl.ClearDepth(1.0f); m_gl.Enable(EnableCap.DepthTest);
+        m_gl.FrontFace(FrontFaceDirection.Ccw); m_gl.Enable(EnableCap.CullFace); m_gl.CullFace(TriangleFace.Back);
+        m_gl.Viewport(0, 0, (uint)sw, (uint)sh);
+        m_worldMatrix = Matrix4X4<float>.Identity;
+        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
+        m_orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-sw / 2f, sw / 2f, -sh / 2f, sh / 2f, sn, sd);
+        return true;
+    }
+
+    public void Shutdown() { m_gl?.Dispose(); m_gl = null; }
+    public void BeginScene(float r, float g, float b, float a) { m_gl.ClearColor(r, g, b, a); m_gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit)); }
+    public void EndScene() { }
+    public void TurnZBufferOn() => m_gl.Enable(EnableCap.DepthTest);
+    public void TurnZBufferOff() => m_gl.Disable(EnableCap.DepthTest);
+    public void SetBackBufferRenderTarget() => m_gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+    public void ResetViewport() => m_gl.Viewport(0, 0, (uint)m_screenWidth, (uint)m_screenHeight);
+    public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+    public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+    public Matrix4X4<float> GetOrthoMatrix() => m_orthoMatrix;
+}

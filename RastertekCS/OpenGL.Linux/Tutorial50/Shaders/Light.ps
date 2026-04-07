@@ -1,0 +1,18 @@
+#version 400
+
+in vec2 texCoord;
+
+out vec4 outputColor;
+
+uniform sampler2D colorTexture;
+uniform sampler2D normalTexture;
+uniform vec3 lightDirection;
+
+void main(void)
+{
+    vec4 colors = texture(colorTexture, texCoord);
+    vec4 normals = texture(normalTexture, texCoord);
+    vec3 lightDir = -lightDirection;
+    float lightIntensity = clamp(dot(normals.xyz, lightDir), 0.0f, 1.0f);
+    outputColor = clamp(colors * lightIntensity, 0.0f, 1.0f);
+}

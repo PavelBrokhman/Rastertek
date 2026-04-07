@@ -1,0 +1,27 @@
+#version 400
+
+in vec2 texCoord;
+in vec3 lightDir;
+
+out vec4 outputColor;
+
+uniform sampler2D normalTexture;
+uniform sampler2D ssaoTexture;
+uniform sampler2D colorTexture;
+
+void main(void)
+{
+    vec4 textureColor = texture(colorTexture, texCoord);
+    float ambientOcclusion = texture(ssaoTexture, texCoord).r;
+    vec4 ambientColor = vec4(ambientOcclusion, ambientOcclusion, ambientOcclusion, 1.0f);
+    vec4 color = 1.0f - ambientColor;
+    vec3 normal = texture(normalTexture, texCoord).xyz;
+    float lightIntensity = clamp(dot(normal, lightDir), 0.0f, 1.0f);
+    if(lightIntensity > 0.0f)
+    {
+        color += vec4(1.0f, 1.0f, 1.0f, 1.0f) * lightIntensity;
+    }
+    color = clamp(color, 0.0f, 1.0f);
+    color = color * textureColor;
+    outputColor = color;
+}

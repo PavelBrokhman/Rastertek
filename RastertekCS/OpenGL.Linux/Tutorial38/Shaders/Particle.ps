@@ -1,0 +1,14 @@
+#version 400
+
+in vec2 texCoord;
+in vec4 pixColor;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+
+void main(void)
+{
+    vec4 textureColor = texture(shaderTexture, texCoord);
+    outputColor = textureColor * pixColor;
+}

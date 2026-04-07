@@ -74,7 +74,7 @@ public class SystemFramework
         screenHeight = SystemConfiguration.FullScreen ? 1080 : 600;
 
         var options = WindowOptions.Default;
-        options.Title = "Engine";
+        options.Title = "Tutorial05";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
@@ -87,6 +87,7 @@ public class SystemFramework
         m_window.Render += OnRender;
         m_window.Closing += OnClosing;
         m_window.Initialize();
+        m_window.Title = "Tutorial05";
 
         screenWidth = m_window.Size.X;
         screenHeight = m_window.Size.Y;

@@ -1,0 +1,62 @@
+#version 400
+
+in vec2 texCoord;
+
+out float colorSum;
+
+uniform sampler2D ssaoTexture;
+uniform sampler2D normalDepthTexture;
+uniform float screenWidth;
+uniform float screenHeight;
+uniform float blurType;
+
+void main(void)
+{
+    float texelSize;
+    vec2 texOffset;
+
+    if(blurType < 0.1f)
+    {
+        texelSize = 1.0f / screenWidth;
+        texOffset = vec2(texelSize, 0.0f);
+    }
+    else
+    {
+        texelSize = 1.0f / screenHeight;
+        texOffset = vec2(0.0f, texelSize);
+    }
+
+    int radius = 5;
+    float weightArray[11];
+    weightArray[0]  = 0.05f;
+    weightArray[1]  = 0.05f;
+    weightArray[2]  = 0.1f;
+    weightArray[3]  = 0.1f;
+    weightArray[4]  = 0.1f;
+    weightArray[5]  = 0.2f;
+    weightArray[6]  = 0.1f;
+    weightArray[7]  = 0.1f;
+    weightArray[8]  = 0.1f;
+    weightArray[9]  = 0.05f;
+    weightArray[10] = 0.05f;
+
+    colorSum = weightArray[radius] * textureLod(ssaoTexture, texCoord, 0).r;
+    float weightSum = weightArray[radius];
+    vec4 centerDepth = textureLod(normalDepthTexture, texCoord, 0);
+
+    for(int i = -radius; i <= radius; i++)
+    {
+        if(i == 0) continue;
+        vec2 tex = texCoord + (i * texOffset);
+        vec4 neighborDepth = textureLod(normalDepthTexture, tex, 0);
+        if(dot(neighborDepth.xyz, centerDepth.xyz) >= 0.8f)
+        {
+            float ssaoValue = textureLod(ssaoTexture, tex, 0).r;
+            float weight = weightArray[i + radius];
+            colorSum += (ssaoValue * weight);
+            weightSum += weight;
+        }
+    }
+
+    colorSum = colorSum / weightSum;
+}

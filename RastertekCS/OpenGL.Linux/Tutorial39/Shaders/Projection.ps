@@ -1,0 +1,25 @@
+#version 400
+
+in vec2 texCoord;
+in vec4 viewPosition;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+uniform sampler2D projectionTexture;
+
+void main(void)
+{
+    vec2 projectTexCoord;
+    projectTexCoord.x = viewPosition.x / viewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = viewPosition.y / viewPosition.w / 2.0f + 0.5f;
+
+    if((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) && (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))
+    {
+        outputColor = texture(projectionTexture, projectTexCoord);
+    }
+    else
+    {
+        outputColor = texture(shaderTexture, texCoord);
+    }
+}

@@ -23,7 +23,7 @@ public class GraphicsFramework
       float angle = MathF.Atan2(modelPos[0] - camPos[0], modelPos[2] - camPos[2]);
       var rotMat = Matrix4X4.CreateRotationY<float>(angle);
       var transMat = Matrix4X4.CreateTranslation<float>(modelPos[0], modelPos[1], modelPos[2]);
-      w = rotMat * transMat;
+      w = transMat * rotMat;
       m_texShader.SetShaderParameters(m_gl, w, v, p); m_billboard.SetTexture(m_gl, 0); m_billboard.Render(m_gl);
       m_gl.EndScene(); return true; }
 }
