@@ -1,10 +1,10 @@
-using RastertekCS.Windows.Tutorial14.Graphics;
-using RastertekCS.Windows.Tutorial14.Inputs;
+using RastertekCS.Windows.Tutorial15.Graphics;
+using RastertekCS.Windows.Tutorial15.Inputs;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
-namespace RastertekCS.Windows.Tutorial14.System;
+namespace RastertekCS.Windows.Tutorial15.System;
 
 public class SystemFramework
 {
@@ -64,7 +64,7 @@ public class SystemFramework
         screenHeight = SystemConfiguration.FullScreen ? 1080 : 600;
 
         var options = WindowOptions.Default;
-        options.Title = "Tutorial14 - Font/Text Rendering (DirectX 11)";
+        options.Title = "Tutorial15 - FPS Counter (DirectX 11)";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;

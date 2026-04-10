@@ -64,7 +64,7 @@ public class SystemFramework
         screenHeight = SystemConfiguration.FullScreen ? 1080 : 600;
 
         var options = WindowOptions.Default;
-        options.Title = "Tutorial12 - Diffuse Lighting";
+        options.Title = "Tutorial12 - 2D Bitmap Rendering (DirectX 11)";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;

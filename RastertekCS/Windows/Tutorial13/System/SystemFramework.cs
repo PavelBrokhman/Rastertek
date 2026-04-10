@@ -69,7 +69,7 @@ public class SystemFramework
         screenHeight = SystemConfiguration.FullScreen ? 1080 : 600;
 
         var options = WindowOptions.Default;
-        options.Title = "Tutorial13 - Diffuse Lighting";
+        options.Title = "Tutorial13 - Sprite Animation (DirectX 11)";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;

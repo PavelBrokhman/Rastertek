@@ -51,7 +51,7 @@ public class SystemFramework
         sw = SystemConfiguration.FullScreen ? 1920 : 800;
         sh = SystemConfiguration.FullScreen ? 1080 : 600;
         var options = WindowOptions.Default;
-        options.Title = "Tutorial09";
+        options.Title = "Tutorial09 - Ambient Lighting (OpenGL)";
         options.Size = new Vector2D<int>(sw, sh);
         options.WindowBorder = WindowBorder.Fixed;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
@@ -63,7 +63,7 @@ public class SystemFramework
         m_window.Render += OnRender;
         m_window.Closing += OnClosing;
         m_window.Initialize();
-        m_window.Title = "Tutorial09";
+        m_window.Title = "Tutorial09 - Ambient Lighting (OpenGL)";
         sw = m_window.Size.X; sh = m_window.Size.Y;
         return true;
     }

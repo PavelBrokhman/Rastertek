@@ -44,7 +44,7 @@ public class SystemFramework
         sw = SystemConfiguration.FullScreen ? 1920 : 800;
         sh = SystemConfiguration.FullScreen ? 1080 : 600;
         var options = WindowOptions.Default;
-        options.Title = "Tutorial14";
+        options.Title = "Tutorial14 - Font/Text Rendering (OpenGL)";
         options.Size = new Vector2D<int>(sw, sh);
         options.WindowBorder = WindowBorder.Fixed;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
@@ -56,7 +56,7 @@ public class SystemFramework
         m_window.Render += OnRender;
         m_window.Closing += OnClosing;
         m_window.Initialize();
-        m_window.Title = "Tutorial14";
+        m_window.Title = "Tutorial14 - Font/Text Rendering (OpenGL)";
         sw = m_window.Size.X; sh = m_window.Size.Y;
         return true;
     }
