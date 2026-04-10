@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial04 - 2026-04-09 22:45:57.63 
+Tutorial04 - 2026-04-09 22:53:56.77 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,27 +8,27 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  All projects are up-to-date for restore.
+  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj (in 3.06 sec).
 --- BUILD --- 
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(54,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreateVertexShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreateVertexShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11VertexShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(87,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(110,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreatePixelShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreatePixelShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11PixelShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(204,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(205,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(64,27): error CS1503: Argument 10: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(64,36): error CS1503: Argument 11: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(86,27): error CS1503: Argument 10: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(86,36): error CS1503: Argument 11: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(184,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(185,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
 
 Build FAILED.
 
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(204,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(205,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(54,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreateVertexShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreateVertexShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11VertexShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(87,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(110,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreatePixelShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreatePixelShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11PixelShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(184,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(185,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(64,27): error CS1503: Argument 10: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(64,36): error CS1503: Argument 11: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(86,27): error CS1503: Argument 10: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(86,36): error CS1503: Argument 11: cannot convert from 'Silk.NET.Core.Native.ComPtr<Silk.NET.Core.Native.ID3D10Blob>*' to 'Silk.NET.Core.Native.ID3D10Blob**' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
     2 Warning(s)
     4 Error(s)
 
-Time Elapsed 00:00:01.18
+Time Elapsed 00:00:02.90
 ============================================================ 
-Finished: 2026-04-09 22:46:00.13 
+Finished: 2026-04-09 22:54:03.91 
 ============================================================ 
