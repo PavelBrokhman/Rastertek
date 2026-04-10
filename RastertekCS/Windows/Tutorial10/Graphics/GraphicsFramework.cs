@@ -19,7 +19,7 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/Stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/sphere.txt", "Data/Stone01.tga", true)) return false;
 
         m_LightShader = new LightShader();
         if (!m_LightShader.Initialize(DirectX)) return false;
