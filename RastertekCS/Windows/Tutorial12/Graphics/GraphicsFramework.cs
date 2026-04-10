@@ -4,6 +4,8 @@ namespace RastertekCS.Windows.Tutorial12.Graphics;
 
 public class GraphicsFramework
 {
+    private const int BITMAP_SIZE = 256;
+
     private DX11 m_DirectX;
     private Camera m_Camera;
     private TextureShader m_TextureShader;
@@ -21,7 +23,9 @@ public class GraphicsFramework
         if (!m_TextureShader.Initialize(DirectX)) return false;
 
         m_Bitmap = new Bitmap();
-        if (!m_Bitmap.Initialize(DirectX, screenWidth, screenHeight, "Data/Stone01.tga", 50, 50)) return false;
+        if (!m_Bitmap.Initialize(DirectX, screenWidth, screenHeight, "Data/Stone01.tga",
+                                  BITMAP_SIZE, BITMAP_SIZE)) return false;
+        m_Bitmap.SetRenderLocation(50, 50);
 
         return true;
     }

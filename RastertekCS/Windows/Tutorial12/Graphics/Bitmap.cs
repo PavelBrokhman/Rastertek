@@ -24,12 +24,14 @@ public unsafe class Bitmap
     private int m_prevPosX = -1, m_prevPosY = -1;
 
     public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight,
-                           string textureFilename, int renderX, int renderY)
+                           string textureFilename, int bitmapWidth, int bitmapHeight)
     {
         m_screenWidth = screenWidth;
         m_screenHeight = screenHeight;
-        m_renderX = renderX;
-        m_renderY = renderY;
+        m_bitmapWidth = bitmapWidth;
+        m_bitmapHeight = bitmapHeight;
+        m_renderX = 0;
+        m_renderY = 0;
 
         if (!InitializeBuffers(DirectX)) return false;
         if (!LoadTexture(DirectX, textureFilename)) return false;
@@ -160,9 +162,6 @@ public unsafe class Bitmap
     private bool LoadTexture(DX11 DirectX, string filename)
     {
         m_Texture = new Texture();
-        if (!m_Texture.Initialize(DirectX, filename, false)) return false;
-        m_bitmapWidth = m_Texture.GetWidth();
-        m_bitmapHeight = m_Texture.GetHeight();
-        return true;
+        return m_Texture.Initialize(DirectX, filename, false);
     }
 }
