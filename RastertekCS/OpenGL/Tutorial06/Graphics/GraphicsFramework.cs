@@ -15,7 +15,7 @@ public class GraphicsFramework
         m_OpenGL = OpenGL;
 
         m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
+        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
 
         m_Model = new Model();
         if (!m_Model.Initialize(OpenGL, "Data/Stone01.tga", TEXTURE_UNIT, true)) return false;
