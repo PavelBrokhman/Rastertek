@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial03 - 2026-04-09 22:27:31.84 
+Tutorial03 - 2026-04-09 22:34:17.42 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,8 +8,29 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj : error NU1101: Unable to find package Silk.NET.Direct3D. No packages exist with this id in source(s): C:\Program Files\dotnet\library-packs, nuget.org
-  Failed to restore D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj (in 537 ms).
+  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj (in 279 ms).
+--- BUILD --- 
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(36,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(37,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(48,17): error CS1501: No overload for method 'GetAdapter' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(52,110): error CS0117: 'NativeStringEncoding' does not contain a definition for 'UTF16' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(89,21): error CS1615: Argument 9 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(90,21): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(92,21): error CS1615: Argument 12 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+
+Build FAILED.
+
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(36,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(37,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(48,17): error CS1501: No overload for method 'GetAdapter' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(52,110): error CS0117: 'NativeStringEncoding' does not contain a definition for 'UTF16' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(89,21): error CS1615: Argument 9 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(90,21): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(92,21): error CS1615: Argument 12 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+    2 Warning(s)
+    5 Error(s)
+
+Time Elapsed 00:00:03.44
 ============================================================ 
-Finished: 2026-04-09 22:27:33.44 
+Finished: 2026-04-09 22:34:22.38 
 ============================================================ 
