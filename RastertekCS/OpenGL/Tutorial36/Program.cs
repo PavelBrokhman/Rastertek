@@ -13,7 +13,7 @@ internal static class Program
                 system.Run();
             else
                 Console.WriteLine("ERROR: Initialize failed");
-            system.Shutdown();
+            Environment.Exit(0);
         }
         catch (Exception ex)
         {

@@ -17,7 +17,7 @@ internal static class Program
         }
 
         // Завершаем работу и освобождаем системный объект.
-        system.Shutdown();
+        Environment.Exit(0);
 
         return 0;
     }

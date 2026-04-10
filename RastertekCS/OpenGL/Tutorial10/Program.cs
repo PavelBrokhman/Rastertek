@@ -8,7 +8,7 @@ internal static class Program
     {
         var system = new SystemFramework();
         if (system.Initialize()) system.Run();
-        system.Shutdown();
+        Environment.Exit(0);
         return 0;
     }
 }
