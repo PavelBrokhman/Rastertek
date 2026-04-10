@@ -1,3 +1,5 @@
+using Silk.NET.Maths;
+
 namespace RastertekCS.Windows.Tutorial06.Graphics;
 
 public class GraphicsFramework
@@ -7,13 +9,14 @@ public class GraphicsFramework
     private Model m_Model;
     private LightShader m_LightShader;
     private Light m_Light;
+    private float m_rotation;
 
     public bool Initialize(DX11 DirectX)
     {
         m_DirectX = DirectX;
 
         m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
+        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
 
         m_Model = new Model();
         if (!m_Model.Initialize(DirectX, "Data/Stone01.tga", true)) return false;
@@ -39,7 +42,12 @@ public class GraphicsFramework
         m_DirectX = null;
     }
 
-    public bool Frame() => Render();
+    public bool Frame()
+    {
+        m_rotation -= 0.0174532925f * 2.0f;
+        if (m_rotation < 0.0f) m_rotation += 360.0f;
+        return Render();
+    }
 
     private bool Render()
     {
@@ -47,7 +55,7 @@ public class GraphicsFramework
 
         m_Camera.Render();
 
-        var world = m_DirectX.GetWorldMatrix();
+        var world = Matrix4X4.CreateRotationY(m_rotation);
         var view = m_Camera.GetViewMatrix();
         var projection = m_DirectX.GetProjectionMatrix();
 

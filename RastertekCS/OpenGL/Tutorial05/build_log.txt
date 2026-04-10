@@ -1,5 +1,5 @@
 ============================================================
-Tutorial05 - Fri 10 Apr 2026 12:11:52 AM EDT
+Tutorial05 - Fri 10 Apr 2026 12:15:29 AM EDT
 dotnet version:
 8.0.125
 OS:
@@ -16,9 +16,9 @@ Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:00.85
+Time Elapsed 00:00:03.13
 --- RUN ---
 EXIT CODE: 0
 ============================================================
-Finished: Fri 10 Apr 2026 12:12:31 AM EDT
+Finished: Fri 10 Apr 2026 12:15:48 AM EDT
 ============================================================

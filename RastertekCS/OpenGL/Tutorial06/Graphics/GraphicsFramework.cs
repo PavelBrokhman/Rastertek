@@ -1,3 +1,5 @@
+using Silk.NET.Maths;
+
 namespace RastertekCS.OpenGL.Tutorial06.Graphics;
 
 public class GraphicsFramework
@@ -9,6 +11,7 @@ public class GraphicsFramework
     private Model m_Model;
     private LightShader m_LightShader;
     private Light m_Light;
+    private float m_rotation;
 
     public bool Initialize(GL4 OpenGL)
     {
@@ -43,7 +46,12 @@ public class GraphicsFramework
         m_OpenGL = null;
     }
 
-    public bool Frame() => Render();
+    public bool Frame()
+    {
+        m_rotation -= 0.0174532925f * 2.0f;
+        if (m_rotation < 0.0f) m_rotation += 360.0f;
+        return Render();
+    }
 
     private bool Render()
     {
@@ -51,7 +59,7 @@ public class GraphicsFramework
 
         m_Camera.Render();
 
-        var world = m_OpenGL.GetWorldMatrix();
+        var world = Matrix4X4.CreateRotationY(m_rotation);
         var view = m_Camera.GetViewMatrix();
         var projection = m_OpenGL.GetProjectionMatrix();
 
