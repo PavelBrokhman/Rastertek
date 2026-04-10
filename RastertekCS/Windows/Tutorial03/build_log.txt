@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial03 - 2026-04-09 22:16:45.46 
+Tutorial03 - 2026-04-09 22:24:02.24 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,13 +8,7 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  Retrying 'FindPackagesByIdAsyncCore' for source 'https://packages.xenko.com/nuget/FindPackagesById()?id='Silk.NET.Direct3D11'&semVerLevel=2.0.0'.
-  The SSL connection could not be established, see inner exception.
-    The remote certificate is invalid according to the validation procedure: RemoteCertificateNameMismatch
-  Retrying 'FindPackagesByIdAsyncCore' for source 'https://packages.xenko.com/nuget/FindPackagesById()?id='Silk.NET.DXGI'&semVerLevel=2.0.0'.
-  The SSL connection could not be established, see inner exception.
-    The remote certificate is invalid according to the validation procedure: RemoteCertificateNameMismatch
-  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj (in 1.59 sec).
+  All projects are up-to-date for restore.
 --- BUILD --- 
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(6,16): error CS0234: The type or namespace name 'Direct3D' does not exist in the namespace 'Silk.NET' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
 
@@ -24,7 +18,7 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(6,16): erro
     0 Warning(s)
     1 Error(s)
 
-Time Elapsed 00:00:00.98
+Time Elapsed 00:00:00.78
 ============================================================ 
-Finished: 2026-04-09 22:16:49.33 
+Finished: 2026-04-09 22:24:04.42 
 ============================================================ 
