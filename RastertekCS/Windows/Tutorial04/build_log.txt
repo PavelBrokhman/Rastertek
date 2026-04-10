@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial04 - 2026-04-09 23:12:52.34 
+Tutorial04 - 2026-04-09 23:14:36.79 
 dotnet version: 
 10.0.201
 OS: 
@@ -25,9 +25,13 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(187
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.20
+Time Elapsed 00:00:01.27
 --- RUN --- 
-EXIT CODE: -1073741819 
+Shutting down Graphics...
+Shutting down DirectX...
+DX11 shutdown complete.
+Shutting down Windows...
+EXIT CODE: -1073740940 
 ============================================================ 
-Finished: 2026-04-09 23:12:59.77 
+Finished: 2026-04-09 23:14:44.82 
 ============================================================ 
