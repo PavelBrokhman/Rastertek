@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
@@ -51,7 +52,7 @@ public unsafe class ColorShader
         ComPtr<ID3D10Blob> errorBlob = default;
 
         var vsSource = File.ReadAllText(vsFilename);
-        var vsBytes = System.Text.Encoding.ASCII.GetBytes(vsSource);
+        var vsBytes = global::System.Text.Encoding.ASCII.GetBytes(vsSource);
         var pFilename = (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi);
         var pVsEntry = (byte*)SilkMarshal.StringToPtr("ColorVertexShader", NativeStringEncoding.Ansi);
         var pVsTarget = (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi);
@@ -73,18 +74,19 @@ public unsafe class ColorShader
         SilkMarshal.Free((nint)pVsEntry);
         SilkMarshal.Free((nint)pVsTarget);
 
-        ID3D11VertexShader* pVS = null;
+        // Reinterpret as ID3D11Device1 — extensions only exist on Device1 in Silk.NET 2.22.
+        ref var device1 = ref Unsafe.As<ComPtr<ID3D11Device>, ComPtr<ID3D11Device1>>(ref device);
         SilkMarshal.ThrowHResult(
-            device.GetPinnableReference().CreateVertexShader(
+            device1.CreateVertexShader(
                 vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(),
-                (ID3D11ClassLinkage*)null, &pVS));
-        m_vertexShader = pVS;
+                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref m_vertexShader));
 
         // Compile pixel shader.
         ComPtr<ID3D10Blob> psBlob = default;
 
         var psSource = File.ReadAllText(psFilename);
-        var psBytes = System.Text.Encoding.ASCII.GetBytes(psSource);
+        var psBytes = global::System.Text.Encoding.ASCII.GetBytes(psSource);
         var pPsFilename = (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi);
         var pPsEntry = (byte*)SilkMarshal.StringToPtr("ColorPixelShader", NativeStringEncoding.Ansi);
         var pPsTarget = (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi);
@@ -105,12 +107,11 @@ public unsafe class ColorShader
         SilkMarshal.Free((nint)pPsEntry);
         SilkMarshal.Free((nint)pPsTarget);
 
-        ID3D11PixelShader* pPS = null;
         SilkMarshal.ThrowHResult(
-            device.GetPinnableReference().CreatePixelShader(
+            device1.CreatePixelShader(
                 psBlob.GetBufferPointer(), psBlob.GetBufferSize(),
-                (ID3D11ClassLinkage*)null, &pPS));
-        m_pixelShader = pPS;
+                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref m_pixelShader));
 
         // Create the input layout.
         var posName = SilkMarshal.StringToPtr("POSITION", NativeStringEncoding.Ansi);
