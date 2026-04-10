@@ -55,7 +55,7 @@ public class GraphicsFramework
 
         m_Camera.Render();
 
-        var world = DXMath.RotationYLH(m_rotation);
+        var world = Matrix4X4.CreateRotationY(m_rotation);
         var view = m_Camera.GetViewMatrix();
         var projection = m_DirectX.GetProjectionMatrix();
 
