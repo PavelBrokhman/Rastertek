@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>RastertekCS.Windows.Tutorial13</RootNamespace>
+    <AssemblyName>Tutorial13</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.DXGI" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.23.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\Sprite.txt" Link="Data\Sprite.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\Sprite01.tga" Link="Textures\Sprite01.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\Sprite02.tga" Link="Textures\Sprite02.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\Sprite03.tga" Link="Textures\Sprite03.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\Sprite04.tga" Link="Textures\Sprite04.tga" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
