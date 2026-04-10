@@ -48,8 +48,8 @@ public unsafe class TextureShader
         var compiler = D3DCompiler.GetApi();
 
         // Compile vertex shader.
-        ComPtr<ID3D10Blob> vsBlob = default;
-        ComPtr<ID3D10Blob> errorBlob = default;
+        ID3D10Blob* pVsBlob = null;
+        ID3D10Blob* pErrorBlob = null;
 
         var vsSource = File.ReadAllBytes(vsFilename);
         fixed (byte* pVsSource = vsSource)
@@ -61,8 +61,9 @@ public unsafe class TextureShader
                     null, (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("TextureVertexShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &vsBlob, &errorBlob));
+                    0, 0, &pVsBlob, &pErrorBlob));
         }
+        ComPtr<ID3D10Blob> vsBlob = pVsBlob;
 
         SilkMarshal.ThrowHResult(
             device.CreateVertexShader(
@@ -71,7 +72,7 @@ public unsafe class TextureShader
                 ref m_vertexShader));
 
         // Compile pixel shader.
-        ComPtr<ID3D10Blob> psBlob = default;
+        ID3D10Blob* pPsBlob = null;
 
         var psSource = File.ReadAllBytes(psFilename);
         fixed (byte* pPsSource = psSource)
@@ -83,8 +84,9 @@ public unsafe class TextureShader
                     null, (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("TexturePixelShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &psBlob, &errorBlob));
+                    0, 0, &pPsBlob, &pErrorBlob));
         }
+        ComPtr<ID3D10Blob> psBlob = pPsBlob;
 
         SilkMarshal.ThrowHResult(
             device.CreatePixelShader(
