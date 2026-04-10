@@ -20,7 +20,7 @@
   <ItemGroup>
     <None Update="Shaders\Light.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Light.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Data\Stone01.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Data\Stone01.tga" Link="Data\Stone01.tga" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Models\Cube.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
