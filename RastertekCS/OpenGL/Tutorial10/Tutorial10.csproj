@@ -21,7 +21,7 @@
     <None Update="Shaders\Light.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Light.ps" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\Assets\Data\Stone01.tga" Link="Data\Stone01.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Models\Cube.txt" Link="Models\Cube.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Models\sphere.txt" Link="Models\sphere.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
