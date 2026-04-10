@@ -48,12 +48,16 @@ public class SystemFramework
 
     public void Shutdown()
     {
+        Console.WriteLine("Shutting down Graphics...");
         m_Graphics?.Shutdown();
         m_Graphics = null;
         m_Input = null;
+        Console.WriteLine("Shutting down DirectX...");
         m_DirectX?.Shutdown();
         m_DirectX = null;
+        Console.WriteLine("Shutting down Windows...");
         ShutdownWindows();
+        Console.WriteLine("Shutdown complete.");
     }
 
     public void Run()
