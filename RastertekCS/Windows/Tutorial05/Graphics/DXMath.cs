@@ -1,6 +1,6 @@
 using Silk.NET.Maths;
 
-namespace RastertekCS.Windows.Tutorial03;
+namespace RastertekCS.Windows.Tutorial05.Graphics;
 
 /// <summary>
 /// Left-handed matrix helpers matching DirectXMath (XMMatrixLookAtLH, XMMatrixPerspectiveFovLH).

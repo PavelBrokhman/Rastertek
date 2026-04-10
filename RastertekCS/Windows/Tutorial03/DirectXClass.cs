@@ -33,8 +33,8 @@ public unsafe class DirectXClass
                            float screenDepth, float screenNear, bool vsync)
     {
         m_vsyncEnabled = vsync;
-        m_d3d11 = D3D11.GetApi(window);
-        m_dxgi = DXGI.GetApi(window);
+        m_d3d11 = D3D11.GetApi();
+        m_dxgi = DXGI.GetApi();
 
         // Get the native window handle.
         nint hwnd = window.Native!.Win32!.Value.Hwnd;
