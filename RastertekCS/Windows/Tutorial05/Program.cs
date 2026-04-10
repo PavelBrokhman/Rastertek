@@ -11,7 +11,6 @@ internal static class Program
         {
             system.Run();
         }
-        system.Shutdown();
         Environment.Exit(0);
         return 0;
     }
