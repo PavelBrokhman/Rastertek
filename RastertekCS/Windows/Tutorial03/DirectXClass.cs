@@ -196,7 +196,7 @@ public unsafe class DirectXClass
 
         float fov = MathF.PI / 4.0f;
         float aspect = (float)screenWidth / screenHeight;
-        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, screenNear, screenDepth);
+        m_projectionMatrix = DXMath.PerspectiveFovLH(fov, aspect, screenNear, screenDepth);
 
         return true;
     }

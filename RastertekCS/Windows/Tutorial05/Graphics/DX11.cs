@@ -153,7 +153,7 @@ public unsafe class DX11
         m_worldMatrix = Matrix4X4<float>.Identity;
         float fov = MathF.PI / 4.0f;
         float aspect = (float)screenWidth / screenHeight;
-        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, screenNear, screenDepth);
+        m_projectionMatrix = DXMath.PerspectiveFovLH(fov, aspect, screenNear, screenDepth);
 
         return true;
     }
