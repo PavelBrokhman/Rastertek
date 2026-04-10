@@ -36,8 +36,11 @@ cd "$TUTDIR"
     if [ $? -ne 0 ]; then exit 1; fi
 
     echo "--- RUN ---"
-    dotnet run --no-build 2>&1
+    BINDIR="$TUTDIR/bin/Debug/net8.0"
+    cd "$BINDIR"
+    dotnet "Tutorial$1.dll" 2>&1
     echo "EXIT CODE: $?"
+    cd "$TUTDIR"
 
     echo "============================================================"
     echo "Finished: $(date)"

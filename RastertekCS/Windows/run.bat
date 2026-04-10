@@ -34,8 +34,10 @@ dotnet build --no-restore 2>&1 >> "%LOGFILE%"
 if %errorlevel% neq 0 goto :done
 
 echo --- RUN --- >> "%LOGFILE%"
-dotnet run --no-build 2>&1 >> "%LOGFILE%"
+pushd bin\Debug\net8.0
+dotnet Tutorial%~1.dll 2>&1 >> "%LOGFILE%"
 echo EXIT CODE: %errorlevel% >> "%LOGFILE%"
+popd
 
 :done
 echo ============================================================ >> "%LOGFILE%"
