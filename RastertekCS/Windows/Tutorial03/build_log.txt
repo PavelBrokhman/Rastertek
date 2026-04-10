@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial03 - 2026-04-09 23:03:03.19 
+Tutorial03 - 2026-04-09 23:07:37.64 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,17 +8,22 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj (in 254 ms).
+  All projects are up-to-date for restore.
 --- BUILD --- 
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(36,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(37,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
   Tutorial03 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\bin\Debug\net8.0\Tutorial03.dll
 
 Build succeeded.
-    0 Warning(s)
+
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(36,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\DirectXClass.cs(37,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj]
+    2 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.11
+Time Elapsed 00:00:01.01
 --- RUN --- 
 EXIT CODE: -1073741819 
 ============================================================ 
-Finished: 2026-04-09 23:03:15.43 
+Finished: 2026-04-09 23:07:46.38 
 ============================================================ 
