@@ -32,8 +32,8 @@ public unsafe class DX11
                            float screenDepth, float screenNear, bool vsync)
     {
         m_vsyncEnabled = vsync;
-        m_d3d11 = D3D11.GetApi();
-        m_dxgi = DXGI.GetApi();
+        m_d3d11 = D3D11.GetApi(window);
+        m_dxgi = DXGI.GetApi(window);
 
         nint hwnd = window.Native!.Win32!.Value.Hwnd;
 
@@ -41,12 +41,13 @@ public unsafe class DX11
         ComPtr<IDXGIFactory> factory = default;
         m_dxgi.CreateDXGIFactory(SilkMarshal.GuidPtrOf<IDXGIFactory>(), (void**)&factory);
 
-        ComPtr<IDXGIAdapter> adapter = default;
-        factory.GetAdapter(0, ref adapter);
+        IDXGIAdapter* pAdapter = null;
+        factory.EnumAdapters(0, &pAdapter);
+        ComPtr<IDXGIAdapter> adapter = pAdapter;
 
         AdapterDesc adapterDesc;
         adapter.GetDesc(&adapterDesc);
-        m_videoCardDescription = SilkMarshal.PtrToString((nint)adapterDesc.Description, NativeStringEncoding.UTF16) ?? "";
+        m_videoCardDescription = new string((char*)adapterDesc.Description);
 
         adapter.Release();
         factory.Release();
@@ -73,11 +74,17 @@ public unsafe class DX11
         };
 
         var featureLevel = D3DFeatureLevel.Level110;
+        IDXGISwapChain* pSwapChain = null;
+        ID3D11Device* pDevice = null;
+        ID3D11DeviceContext* pDeviceContext = null;
         SilkMarshal.ThrowHResult(
             m_d3d11.CreateDeviceAndSwapChain(
                 (IDXGIAdapter*)null, D3DDriverType.Hardware, 0, 0,
                 &featureLevel, 1, D3D11.SdkVersion,
-                &swapChainDesc, ref m_swapChain, ref m_device, null, ref m_deviceContext));
+                &swapChainDesc, &pSwapChain, &pDevice, null, &pDeviceContext));
+        m_swapChain = pSwapChain;
+        m_device = pDevice;
+        m_deviceContext = pDeviceContext;
 
         // Create render target view from back buffer.
         ComPtr<ID3D11Texture2D> backBuffer = default;

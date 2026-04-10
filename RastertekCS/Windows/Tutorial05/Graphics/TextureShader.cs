@@ -51,33 +51,66 @@ public unsafe class TextureShader
         ComPtr<ID3D10Blob> errorBlob = default;
 
         var vsSource = File.ReadAllText(vsFilename);
-        SilkMarshal.ThrowHResult(
-            compiler.Compile(
-                (void*)SilkMarshal.StringToPtr(vsSource, NativeStringEncoding.Ansi),
-                (nuint)vsSource.Length,
-                vsFilename, null, null,
-                "TextureVertexShader", "vs_5_0",
-                0, 0, ref vsBlob, ref errorBlob));
+        var vsBytes = System.Text.Encoding.ASCII.GetBytes(vsSource);
+        var pFilename = (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi);
+        var pVsEntry = (byte*)SilkMarshal.StringToPtr("TextureVertexShader", NativeStringEncoding.Ansi);
+        var pVsTarget = (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi);
 
+        fixed (byte* pVsSource = vsBytes)
+        {
+            ID3D10Blob* pVsBlob = null;
+            ID3D10Blob* pErrorBlob = null;
+            SilkMarshal.ThrowHResult(
+                compiler.Compile(pVsSource, (nuint)vsBytes.Length,
+                    pFilename, null, (ID3DInclude*)null,
+                    pVsEntry, pVsTarget,
+                    0, 0, &pVsBlob, &pErrorBlob));
+            vsBlob = pVsBlob;
+            errorBlob = pErrorBlob;
+        }
+
+        SilkMarshal.Free((nint)pFilename);
+        SilkMarshal.Free((nint)pVsEntry);
+        SilkMarshal.Free((nint)pVsTarget);
+
+        ID3D11VertexShader* pVS = null;
         SilkMarshal.ThrowHResult(
-            device.CreateVertexShader(vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(),
-                (ID3D11ClassLinkage*)null, ref m_vertexShader));
+            device.GetPinnableReference().CreateVertexShader(
+                vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(),
+                (ID3D11ClassLinkage*)null, &pVS));
+        m_vertexShader = pVS;
 
         // Compile pixel shader.
         ComPtr<ID3D10Blob> psBlob = default;
 
         var psSource = File.ReadAllText(psFilename);
-        SilkMarshal.ThrowHResult(
-            compiler.Compile(
-                (void*)SilkMarshal.StringToPtr(psSource, NativeStringEncoding.Ansi),
-                (nuint)psSource.Length,
-                psFilename, null, null,
-                "TexturePixelShader", "ps_5_0",
-                0, 0, ref psBlob, ref errorBlob));
+        var psBytes = System.Text.Encoding.ASCII.GetBytes(psSource);
+        var pPsFilename = (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi);
+        var pPsEntry = (byte*)SilkMarshal.StringToPtr("TexturePixelShader", NativeStringEncoding.Ansi);
+        var pPsTarget = (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi);
 
+        fixed (byte* pPsSource = psBytes)
+        {
+            ID3D10Blob* pPsBlob = null;
+            ID3D10Blob* pErrBlob = null;
+            SilkMarshal.ThrowHResult(
+                compiler.Compile(pPsSource, (nuint)psBytes.Length,
+                    pPsFilename, null, (ID3DInclude*)null,
+                    pPsEntry, pPsTarget,
+                    0, 0, &pPsBlob, &pErrBlob));
+            psBlob = pPsBlob;
+        }
+
+        SilkMarshal.Free((nint)pPsFilename);
+        SilkMarshal.Free((nint)pPsEntry);
+        SilkMarshal.Free((nint)pPsTarget);
+
+        ID3D11PixelShader* pPS = null;
         SilkMarshal.ThrowHResult(
-            device.CreatePixelShader(psBlob.GetBufferPointer(), psBlob.GetBufferSize(),
-                (ID3D11ClassLinkage*)null, ref m_pixelShader));
+            device.GetPinnableReference().CreatePixelShader(
+                psBlob.GetBufferPointer(), psBlob.GetBufferSize(),
+                (ID3D11ClassLinkage*)null, &pPS));
+        m_pixelShader = pPS;
 
         // Create input layout.
         var posName = SilkMarshal.StringToPtr("POSITION", NativeStringEncoding.Ansi);
@@ -134,9 +167,9 @@ public unsafe class TextureShader
         var context = DirectX.DeviceContext;
 
         // Transpose matrices for DirectX.
-        Matrix4X4.Transpose(worldMatrix, out worldMatrix);
-        Matrix4X4.Transpose(viewMatrix, out viewMatrix);
-        Matrix4X4.Transpose(projectionMatrix, out projectionMatrix);
+        worldMatrix = Matrix4X4.Transpose(worldMatrix);
+        viewMatrix = Matrix4X4.Transpose(viewMatrix);
+        projectionMatrix = Matrix4X4.Transpose(projectionMatrix);
 
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
