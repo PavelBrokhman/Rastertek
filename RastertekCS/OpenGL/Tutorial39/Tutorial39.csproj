@@ -16,6 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="Shaders\**" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\Data\**" LinkBase="Data" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Assets\Data\**" LinkBase="Data" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

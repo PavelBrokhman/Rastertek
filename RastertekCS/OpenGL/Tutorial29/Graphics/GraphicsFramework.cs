@@ -21,12 +21,12 @@ public class GraphicsFramework
 
         // First model uses dirt texture.
         m_Model1 = new Model();
-        if (!m_Model1.Initialize(OpenGL, "Data/square.txt", "Data/dirt01.tga", 0))
+        if (!m_Model1.Initialize(OpenGL, "Models/square.txt", "Data/dirt01.tga", 0))
             return false;
 
         // Second model uses stone texture.
         m_Model2 = new Model();
-        if (!m_Model2.Initialize(OpenGL, "Data/square.txt", "Data/stone01.tga", 0))
+        if (!m_Model2.Initialize(OpenGL, "Models/square.txt", "Data/stone01.tga", 0))
             return false;
 
         m_TextureShader = new TextureShader();

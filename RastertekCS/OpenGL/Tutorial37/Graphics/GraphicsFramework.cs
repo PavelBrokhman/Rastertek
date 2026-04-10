@@ -32,7 +32,7 @@ public class GraphicsFramework
         if (!m_TextureShader.Initialize(OpenGL)) return false;
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/cube.txt", "Data/stone01.tga")) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/cube.txt", "Data/stone01.tga")) return false;
 
         m_RenderTexture = new RenderTexture();
         if (!m_RenderTexture.Initialize(OpenGL, sw, sh, SystemConfiguration.ScreenNear, SystemConfiguration.ScreenDepth)) return false;

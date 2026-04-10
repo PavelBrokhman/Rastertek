@@ -7,8 +7,8 @@ public class GraphicsFramework
     public bool Initialize(GL4 gl, int sw, int sh)
     { m_gl = gl; m_cam = new Camera(); m_cam.SetPosition(0, 0, -10); m_cam.Render();
       m_texShader = new TextureShader(); if (!m_texShader.Initialize(gl)) return false;
-      m_floor = new Model(); if (!m_floor.Initialize(gl, "Data/floor.txt", "Data/grid01.tga", false)) return false;
-      m_billboard = new Model(); if (!m_billboard.Initialize(gl, "Data/square.txt", "Data/stone01.tga", false)) return false;
+      m_floor = new Model(); if (!m_floor.Initialize(gl, "Models/floor.txt", "Data/grid01.tga", false)) return false;
+      m_billboard = new Model(); if (!m_billboard.Initialize(gl, "Models/square.txt", "Data/stone01.tga", false)) return false;
       m_pos = new Position(); m_pos.SetPosition(0, 1.5f, -11);
       m_timer = new Timer(); m_timer.Initialize(); return true; }
     public void Shutdown() { m_texShader?.Shutdown(m_gl); m_floor?.Shutdown(m_gl); m_billboard?.Shutdown(m_gl); m_gl = null; }

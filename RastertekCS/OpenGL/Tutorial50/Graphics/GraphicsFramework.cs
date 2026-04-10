@@ -28,7 +28,7 @@ public class GraphicsFramework
         m_Light.SetDirection(0, 0, 1);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/cube.txt", "Data/stone01.tga", 0)) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/cube.txt", "Data/stone01.tga", 0)) return false;
 
         m_FullScreenWindow = new OrthoWindow();
         if (!m_FullScreenWindow.Initialize(OpenGL, screenWidth, screenHeight)) return false;

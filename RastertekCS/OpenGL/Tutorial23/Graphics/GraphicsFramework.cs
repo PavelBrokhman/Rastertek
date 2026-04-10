@@ -38,7 +38,7 @@ public class GraphicsFramework
 
         // Create and initialize the model.
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/sphere.txt", "Data/stone01.tga", TEXTURE_UNIT)) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/sphere.txt", "Data/stone01.tga", TEXTURE_UNIT)) return false;
 
         // Create and initialize the light.
         m_Light = new Light();

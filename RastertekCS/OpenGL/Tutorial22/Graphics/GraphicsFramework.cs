@@ -24,7 +24,7 @@ public class GraphicsFramework
 
         // Create and initialize the model with color and normal map textures.
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/sphere.txt",
+        if (!m_Model.Initialize(OpenGL, "Models/sphere.txt",
             "Data/stone01.tga", true,
             "Data/normal01.tga", true)) return false;
 

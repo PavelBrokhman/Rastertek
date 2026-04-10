@@ -21,10 +21,10 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_CubeModel = new Model();
-        if (!m_CubeModel.Initialize(OpenGL, "Data/cube.txt", "Data/stone01.tga", true)) return false;
+        if (!m_CubeModel.Initialize(OpenGL, "Models/cube.txt", "Data/stone01.tga", true)) return false;
 
         m_FloorModel = new Model();
-        if (!m_FloorModel.Initialize(OpenGL, "Data/floor.txt", "Data/blue01.tga", true)) return false;
+        if (!m_FloorModel.Initialize(OpenGL, "Models/floor.txt", "Data/blue01.tga", true)) return false;
 
         m_TextureShader = new TextureShader();
         if (!m_TextureShader.Initialize(OpenGL)) return false;

@@ -9,7 +9,7 @@ public class GraphicsFramework
         if (!m_depthShader.Initialize(gl)) { Console.WriteLine("ERROR: DepthShader init failed"); return false; }
         Console.WriteLine("DepthShader OK");
         m_model = new Model();
-        if (!m_model.Initialize(gl, "Data/floor.txt")) { Console.WriteLine("ERROR: Model init failed"); return false; }
+        if (!m_model.Initialize(gl, "Models/floor.txt")) { Console.WriteLine("ERROR: Model init failed"); return false; }
         Console.WriteLine("Model OK");
         return true;
     }

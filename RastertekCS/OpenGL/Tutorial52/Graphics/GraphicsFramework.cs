@@ -22,7 +22,7 @@ public class GraphicsFramework
         m_Light.SetDirection(0.5f, 0.5f, 0.5f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/sphere.txt", "Data/pbr_albedo.tga", "Data/pbr_normal.tga", "Data/pbr_roughmetal.tga")) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/sphere.txt", "Data/pbr_albedo.tga", "Data/pbr_normal.tga", "Data/pbr_roughmetal.tga")) return false;
 
         m_PbrShader = new PbrShader();
         if (!m_PbrShader.Initialize(OpenGL)) return false;

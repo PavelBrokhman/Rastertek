@@ -20,7 +20,7 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/square.txt",
+        if (!m_Model.Initialize(OpenGL, "Models/square.txt",
             "Data/stone01.tga", TEXTURE_UNIT_1,
             "Data/dirt01.tga", TEXTURE_UNIT_2,
             "Data/alpha01.tga", TEXTURE_UNIT_3)) return false;

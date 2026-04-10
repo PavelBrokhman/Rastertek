@@ -36,10 +36,10 @@ public class GraphicsFramework
         m_Light.SetDirection(1, -0.5f, 0);
 
         m_SphereModel = new Model();
-        if (!m_SphereModel.Initialize(OpenGL, "Data/sphere.txt", "Data/ice.tga", 0)) return false;
+        if (!m_SphereModel.Initialize(OpenGL, "Models/sphere.txt", "Data/ice.tga", 0)) return false;
 
         m_GroundModel = new Model();
-        if (!m_GroundModel.Initialize(OpenGL, "Data/plane01.txt", "Data/metal001.tga", 0)) return false;
+        if (!m_GroundModel.Initialize(OpenGL, "Models/plane01.txt", "Data/metal001.tga", 0)) return false;
 
         m_DeferredBuffers = new DeferredBuffers();
         if (!m_DeferredBuffers.Initialize(OpenGL, screenWidth, screenHeight, 0.3f, 1000.0f)) return false;

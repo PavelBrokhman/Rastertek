@@ -20,10 +20,10 @@ public class GraphicsFramework
         m_OpenGL = OpenGL;
         m_Camera = new Camera(); m_Camera.SetPosition(-10, 6, -10); m_Camera.SetRotation(0, 45, 0); m_Camera.Render();
 
-        m_GroundModel = new Model(); if (!m_GroundModel.Initialize(OpenGL, "Data/ground.txt", "Data/ground01.tga", true)) return false;
-        m_WallModel = new Model(); if (!m_WallModel.Initialize(OpenGL, "Data/wall.txt", "Data/wall01.tga", true)) return false;
-        m_BathModel = new Model(); if (!m_BathModel.Initialize(OpenGL, "Data/bath.txt", "Data/marble01.tga", true)) return false;
-        m_WaterModel = new Model(); if (!m_WaterModel.Initialize(OpenGL, "Data/water.txt", "Data/water01.tga", true)) return false;
+        m_GroundModel = new Model(); if (!m_GroundModel.Initialize(OpenGL, "Models/ground.txt", "Data/ground01.tga", true)) return false;
+        m_WallModel = new Model(); if (!m_WallModel.Initialize(OpenGL, "Models/wall.txt", "Data/wall01.tga", true)) return false;
+        m_BathModel = new Model(); if (!m_BathModel.Initialize(OpenGL, "Models/bath.txt", "Data/marble01.tga", true)) return false;
+        m_WaterModel = new Model(); if (!m_WaterModel.Initialize(OpenGL, "Models/water.txt", "Data/water01.tga", true)) return false;
 
         m_Light = new Light();
         m_Light.SetAmbientLight(0.15f, 0.15f, 0.15f, 1); m_Light.SetDiffuseColor(1, 1, 1, 1); m_Light.SetDirection(0, -1, 0.5f);

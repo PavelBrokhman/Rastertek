@@ -5,7 +5,7 @@ public class GraphicsFramework
     private GL4 m_gl; private Camera m_cam; private Model m_model; private FireShader m_fireShader; private float m_frameTime;
     public bool Initialize(GL4 gl, int sw, int sh)
     { m_gl = gl; m_cam = new Camera(); m_cam.SetPosition(0, 0, -5); m_cam.Render();
-      m_model = new Model(); if (!m_model.Initialize(gl, "Data/square.txt", "Data/fire01.tga", false, "Data/noise01.tga", true, "Data/alpha01.tga", false)) return false;
+      m_model = new Model(); if (!m_model.Initialize(gl, "Models/square.txt", "Data/fire01.tga", false, "Data/noise01.tga", true, "Data/alpha01.tga", false)) return false;
       m_fireShader = new FireShader(); if (!m_fireShader.Initialize(gl)) return false; return true; }
     public void Shutdown() { m_fireShader?.Shutdown(m_gl); m_model?.Shutdown(m_gl); m_gl = null; }
     public bool Frame() { m_frameTime += 0.01f; if (m_frameTime > 1000f) m_frameTime = 0f; return Render(); }

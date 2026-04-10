@@ -17,7 +17,7 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/square.txt", "Data/stone01.tga", 0, true))
+        if (!m_Model.Initialize(OpenGL, "Models/square.txt", "Data/stone01.tga", 0, true))
             return false;
 
         m_TranslateShader = new TranslateShader();
