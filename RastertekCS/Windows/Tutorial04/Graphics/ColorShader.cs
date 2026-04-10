@@ -51,33 +51,21 @@ public unsafe class ColorShader
         ComPtr<ID3D10Blob> vsBlob = default;
         ComPtr<ID3D10Blob> errorBlob = default;
 
-        var vsSource = File.ReadAllText(vsFilename);
-        var vsBytes = global::System.Text.Encoding.ASCII.GetBytes(vsSource);
-        var pFilename = (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi);
-        var pVsEntry = (byte*)SilkMarshal.StringToPtr("ColorVertexShader", NativeStringEncoding.Ansi);
-        var pVsTarget = (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi);
-
-        fixed (byte* pVsSource = vsBytes)
+        var vsSource = File.ReadAllBytes(vsFilename);
+        fixed (byte* pVsSource = vsSource)
         {
-            ID3D10Blob* pVsBlob = null;
-            ID3D10Blob* pErrorBlob = null;
             SilkMarshal.ThrowHResult(
-                compiler.Compile(pVsSource, (nuint)vsBytes.Length,
-                    pFilename, null, (ID3DInclude*)null,
-                    pVsEntry, pVsTarget,
-                    0, 0, &pVsBlob, &pErrorBlob));
-            vsBlob = pVsBlob;
-            errorBlob = pErrorBlob;
+                compiler.Compile(
+                    pVsSource, (nuint)vsSource.Length,
+                    (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi),
+                    null, (ID3DInclude*)null,
+                    (byte*)SilkMarshal.StringToPtr("ColorVertexShader", NativeStringEncoding.Ansi),
+                    (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi),
+                    0, 0, &vsBlob, &errorBlob));
         }
 
-        SilkMarshal.Free((nint)pFilename);
-        SilkMarshal.Free((nint)pVsEntry);
-        SilkMarshal.Free((nint)pVsTarget);
-
-        // Reinterpret as ID3D11Device1 — extensions only exist on Device1 in Silk.NET 2.22.
-        ref var device1 = ref Unsafe.As<ComPtr<ID3D11Device>, ComPtr<ID3D11Device1>>(ref device);
         SilkMarshal.ThrowHResult(
-            device1.CreateVertexShader(
+            device.CreateVertexShader(
                 vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
                 ref m_vertexShader));
@@ -85,30 +73,21 @@ public unsafe class ColorShader
         // Compile pixel shader.
         ComPtr<ID3D10Blob> psBlob = default;
 
-        var psSource = File.ReadAllText(psFilename);
-        var psBytes = global::System.Text.Encoding.ASCII.GetBytes(psSource);
-        var pPsFilename = (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi);
-        var pPsEntry = (byte*)SilkMarshal.StringToPtr("ColorPixelShader", NativeStringEncoding.Ansi);
-        var pPsTarget = (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi);
-
-        fixed (byte* pPsSource = psBytes)
+        var psSource = File.ReadAllBytes(psFilename);
+        fixed (byte* pPsSource = psSource)
         {
-            ID3D10Blob* pPsBlob = null;
-            ID3D10Blob* pErrBlob = null;
             SilkMarshal.ThrowHResult(
-                compiler.Compile(pPsSource, (nuint)psBytes.Length,
-                    pPsFilename, null, (ID3DInclude*)null,
-                    pPsEntry, pPsTarget,
-                    0, 0, &pPsBlob, &pErrBlob));
-            psBlob = pPsBlob;
+                compiler.Compile(
+                    pPsSource, (nuint)psSource.Length,
+                    (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi),
+                    null, (ID3DInclude*)null,
+                    (byte*)SilkMarshal.StringToPtr("ColorPixelShader", NativeStringEncoding.Ansi),
+                    (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi),
+                    0, 0, &psBlob, &errorBlob));
         }
 
-        SilkMarshal.Free((nint)pPsFilename);
-        SilkMarshal.Free((nint)pPsEntry);
-        SilkMarshal.Free((nint)pPsTarget);
-
         SilkMarshal.ThrowHResult(
-            device1.CreatePixelShader(
+            device.CreatePixelShader(
                 psBlob.GetBufferPointer(), psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
                 ref m_pixelShader));
