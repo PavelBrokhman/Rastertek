@@ -123,7 +123,5 @@ public class SystemFramework
     private void OnClosing()
     {
         m_done = true;
-        m_Graphics?.Shutdown(); m_Graphics = null;
-        m_DirectX?.Shutdown(); m_DirectX = null;
     }
 }
