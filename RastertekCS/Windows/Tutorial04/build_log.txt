@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial04 - 2026-04-09 22:34:22.44 
+Tutorial04 - 2026-04-09 22:45:57.63 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,63 +8,27 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj (in 1.49 sec).
+  All projects are up-to-date for restore.
 --- BUILD --- 
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(35,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(36,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(45,17): error CS1501: No overload for method 'GetAdapter' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(49,110): error CS0117: 'NativeStringEncoding' does not contain a definition for 'UTF16' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(80,37): error CS1615: Argument 9 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(80,54): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(80,74): error CS1615: Argument 12 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(58,17): error CS1503: Argument 3: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(60,17): error CS1503: Argument 6: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(60,38): error CS1503: Argument 7: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(62,21): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(62,33): error CS1615: Argument 11 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(65,13): error CS1929: 'ComPtr<ID3D11Device>' does not contain a definition for 'CreateVertexShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreateVertexShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11VertexShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(76,17): error CS1503: Argument 3: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,17): error CS1503: Argument 6: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,37): error CS1503: Argument 7: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(80,21): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(80,33): error CS1615: Argument 11 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(83,13): error CS1929: 'ComPtr<ID3D11Device>' does not contain a definition for 'CreatePixelShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreatePixelShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11PixelShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(147,19): error CS1501: No overload for method 'Transpose' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(148,19): error CS1501: No overload for method 'Transpose' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(149,19): error CS1501: No overload for method 'Transpose' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(175,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(176,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(54,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreateVertexShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreateVertexShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11VertexShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(87,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(110,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreatePixelShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreatePixelShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11PixelShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(204,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(205,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
 
 Build FAILED.
 
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(35,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(36,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(175,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(176,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(45,17): error CS1501: No overload for method 'GetAdapter' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(49,110): error CS0117: 'NativeStringEncoding' does not contain a definition for 'UTF16' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(80,37): error CS1615: Argument 9 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(80,54): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\DX11.cs(80,74): error CS1615: Argument 12 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(58,17): error CS1503: Argument 3: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(60,17): error CS1503: Argument 6: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(60,38): error CS1503: Argument 7: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(62,21): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(62,33): error CS1615: Argument 11 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(65,13): error CS1929: 'ComPtr<ID3D11Device>' does not contain a definition for 'CreateVertexShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreateVertexShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11VertexShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(76,17): error CS1503: Argument 3: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,17): error CS1503: Argument 6: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,37): error CS1503: Argument 7: cannot convert from 'string' to 'byte*' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(80,21): error CS1615: Argument 10 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(80,33): error CS1615: Argument 11 may not be passed with the 'ref' keyword [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(83,13): error CS1929: 'ComPtr<ID3D11Device>' does not contain a definition for 'CreatePixelShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreatePixelShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11PixelShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(147,19): error CS1501: No overload for method 'Transpose' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(148,19): error CS1501: No overload for method 'Transpose' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(149,19): error CS1501: No overload for method 'Transpose' takes 2 arguments [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
-    4 Warning(s)
-    20 Error(s)
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(204,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(205,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(54,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(78,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreateVertexShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreateVertexShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11VertexShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(87,23): error CS0234: The type or namespace name 'Text' does not exist in the namespace 'RastertekCS.Windows.Tutorial04.System' (are you missing an assembly reference?) [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(110,13): error CS1929: 'ID3D11Device*' does not contain a definition for 'CreatePixelShader' and the best extension method overload 'D3D11Device1VtblExtensions.CreatePixelShader(ComPtr<ID3D11Device1>, void*, nuint, ID3D11ClassLinkage*, ID3D11PixelShader**)' requires a receiver of type 'Silk.NET.Core.Native.ComPtr<Silk.NET.Direct3D11.ID3D11Device1>' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+    2 Warning(s)
+    4 Error(s)
 
-Time Elapsed 00:00:02.41
+Time Elapsed 00:00:01.18
 ============================================================ 
-Finished: 2026-04-09 22:34:27.56 
+Finished: 2026-04-09 22:46:00.13 
 ============================================================ 
