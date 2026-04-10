@@ -48,16 +48,12 @@ public class SystemFramework
 
     public void Shutdown()
     {
-        Console.WriteLine("Shutting down Graphics...");
         m_Graphics?.Shutdown();
         m_Graphics = null;
         m_Input = null;
-        Console.WriteLine("Shutting down DirectX...");
         m_DirectX?.Shutdown();
         m_DirectX = null;
-        Console.WriteLine("Shutting down Windows...");
         ShutdownWindows();
-        Console.WriteLine("Shutdown complete.");
     }
 
     public void Run()
@@ -116,8 +112,8 @@ public class SystemFramework
 
     private void OnRender(double deltaTime)
     {
-        if (!m_graphicsInitialized) return;
-        if (m_done || !Frame())
+        if (!m_graphicsInitialized || m_done) return;
+        if (!Frame())
         {
             m_done = true;
             m_window.Close();

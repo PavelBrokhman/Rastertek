@@ -174,17 +174,17 @@ public unsafe class DX11
 
     public void Shutdown()
     {
-        try { m_rasterState.Release(); } catch (Exception e) { Console.WriteLine($"rasterState: {e.Message}"); }
-        try { m_depthStencilView.Release(); } catch (Exception e) { Console.WriteLine($"depthStencilView: {e.Message}"); }
-        try { m_depthStencilState.Release(); } catch (Exception e) { Console.WriteLine($"depthStencilState: {e.Message}"); }
-        try { m_depthStencilBuffer.Release(); } catch (Exception e) { Console.WriteLine($"depthStencilBuffer: {e.Message}"); }
-        try { m_renderTargetView.Release(); } catch (Exception e) { Console.WriteLine($"renderTargetView: {e.Message}"); }
-        try { m_swapChain.Release(); } catch (Exception e) { Console.WriteLine($"swapChain: {e.Message}"); }
-        try { m_deviceContext.Release(); } catch (Exception e) { Console.WriteLine($"deviceContext: {e.Message}"); }
-        try { m_device.Release(); } catch (Exception e) { Console.WriteLine($"device: {e.Message}"); }
-        try { m_dxgi?.Dispose(); } catch (Exception e) { Console.WriteLine($"dxgi: {e.Message}"); }
-        try { m_d3d11?.Dispose(); } catch (Exception e) { Console.WriteLine($"d3d11: {e.Message}"); }
-        Console.WriteLine("DX11 shutdown complete.");
+        m_deviceContext.ClearState();
+        m_rasterState.Release();
+        m_depthStencilView.Release();
+        m_depthStencilState.Release();
+        m_depthStencilBuffer.Release();
+        m_renderTargetView.Release();
+        m_swapChain.Release();
+        m_deviceContext.Release();
+        m_device.Release();
+        m_dxgi?.Dispose();
+        m_d3d11?.Dispose();
     }
 
     public void BeginScene(float red, float green, float blue, float alpha)

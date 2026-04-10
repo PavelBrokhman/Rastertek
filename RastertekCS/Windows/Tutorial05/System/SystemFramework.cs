@@ -112,8 +112,8 @@ public class SystemFramework
 
     private void OnRender(double deltaTime)
     {
-        if (!m_graphicsInitialized) return;
-        if (m_done || !Frame())
+        if (!m_graphicsInitialized || m_done) return;
+        if (!Frame())
         {
             m_done = true;
             m_window.Close();

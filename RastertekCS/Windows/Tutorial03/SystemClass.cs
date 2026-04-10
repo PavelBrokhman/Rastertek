@@ -141,7 +141,8 @@ public class SystemClass
 
     private void OnUpdate(double deltaTime)
     {
-        if (m_done || !Frame())
+        if (m_done) return;
+        if (!Frame())
         {
             m_done = true;
             m_window.Close();
@@ -150,6 +151,7 @@ public class SystemClass
 
     private void OnRender(double deltaTime)
     {
+        if (m_done) return;
         m_Graphics?.Frame();
     }
 

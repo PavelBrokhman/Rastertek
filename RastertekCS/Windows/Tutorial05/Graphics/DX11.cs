@@ -160,6 +160,7 @@ public unsafe class DX11
 
     public void Shutdown()
     {
+        m_deviceContext.ClearState();
         m_rasterState.Release();
         m_depthStencilView.Release();
         m_depthStencilState.Release();

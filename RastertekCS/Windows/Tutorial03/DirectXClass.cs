@@ -203,6 +203,7 @@ public unsafe class DirectXClass
 
     public void Shutdown()
     {
+        m_deviceContext.ClearState();
         m_rasterState.Release();
         m_depthStencilView.Release();
         m_depthStencilState.Release();
