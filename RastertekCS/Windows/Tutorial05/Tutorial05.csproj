@@ -22,7 +22,7 @@
   <ItemGroup>
     <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Textures\Stone01.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\Stone01.tga" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

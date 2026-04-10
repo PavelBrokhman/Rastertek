@@ -20,7 +20,7 @@
   <ItemGroup>
     <None Update="Shaders\**" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data\**" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Textures\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

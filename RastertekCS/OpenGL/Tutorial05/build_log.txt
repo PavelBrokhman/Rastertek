@@ -1,0 +1,24 @@
+============================================================
+Tutorial05 - Thu 09 Apr 2026 11:40:31 PM EDT
+dotnet version:
+8.0.125
+OS:
+Linux pavel-ubuntu 6.8.0-107-generic #107~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Mar 18 23:40:43 UTC  x86_64 x86_64 x86_64 GNU/Linux
+============================================================
+--- RESTORE ---
+  Determining projects to restore...
+  Restored /home/pbrokhman/works/Rastertek/RastertekCS/OpenGL/Tutorial05/Tutorial05.csproj (in 1.32 sec).
+--- BUILD ---
+MSBuild version 17.8.49+7806cbf7b for .NET
+  Tutorial05 -> /home/pbrokhman/works/Rastertek/RastertekCS/OpenGL/Tutorial05/bin/Debug/net8.0/Tutorial05.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:06.23
+--- RUN ---
+EXIT CODE: 0
+============================================================
+Finished: Thu 09 Apr 2026 11:40:48 PM EDT
+============================================================

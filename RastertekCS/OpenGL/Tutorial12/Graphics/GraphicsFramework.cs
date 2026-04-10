@@ -24,7 +24,7 @@ public class GraphicsFramework
         if (!m_TextureShader.Initialize(OpenGL)) return false;
 
         m_Bitmap = new Bitmap();
-        if (!m_Bitmap.Initialize(OpenGL, screenWidth, screenHeight, "Textures/Stone01.tga",
+        if (!m_Bitmap.Initialize(OpenGL, screenWidth, screenHeight, "Data/Stone01.tga",
                                   TEXTURE_UNIT, BITMAP_SIZE, BITMAP_SIZE)) return false;
         m_Bitmap.SetRenderLocation(100, 100);
 

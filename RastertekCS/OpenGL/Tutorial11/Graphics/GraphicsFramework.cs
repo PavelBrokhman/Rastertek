@@ -19,7 +19,7 @@ public class GraphicsFramework
         m_Camera.SetRotation(15.0f, 0.0f, 0.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/Plane.txt", "Textures/Stone01.tga", TEXTURE_UNIT, true)) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/Plane.txt", "Data/Stone01.tga", TEXTURE_UNIT, true)) return false;
 
         m_LightShader = new LightShader();
         if (!m_LightShader.Initialize(OpenGL)) return false;

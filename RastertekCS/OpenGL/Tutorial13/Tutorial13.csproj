@@ -20,7 +20,7 @@
   <ItemGroup>
     <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Textures\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Data\**" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data\Sprite.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
