@@ -1,6 +1,6 @@
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
-using Silk.NET.Direct3D;
+using Silk.NET.Direct3D.Compilers;
 using Silk.NET.Maths;
 
 namespace RastertekCS.Windows.Tutorial04.Graphics;
@@ -44,7 +44,7 @@ public unsafe class ColorShader
     private bool InitializeShader(DX11 DirectX, string vsFilename, string psFilename)
     {
         var device = DirectX.Device;
-        var compiler = Silk.NET.D3DCompiler.D3DCompiler.GetApi();
+        var compiler = D3DCompiler.GetApi();
 
         // Compile vertex shader.
         ComPtr<ID3D10Blob> vsBlob = default;

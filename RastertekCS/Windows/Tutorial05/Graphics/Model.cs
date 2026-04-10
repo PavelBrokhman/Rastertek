@@ -85,7 +85,7 @@ public unsafe class Model
         var vb = m_vertexBuffer.GetPinnableReference();
         context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
         context.IASetIndexBuffer(m_indexBuffer, Format.FormatR32Uint, 0);
-        context.IASetPrimitiveTopology(Silk.NET.Direct3D.D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
+        context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
     }
 
     public void SetTexture(DX11 DirectX, uint slot)

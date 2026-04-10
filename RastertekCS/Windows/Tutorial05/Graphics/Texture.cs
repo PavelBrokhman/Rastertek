@@ -59,7 +59,7 @@ public unsafe class Texture
         var srvDesc = new ShaderResourceViewDesc
         {
             Format = Format.FormatR8G8B8A8Unorm,
-            ViewDimension = Silk.NET.Direct3D.D3DSrvDimension.D3DSrvDimensionTexture2D,
+            ViewDimension = D3DSrvDimension.D3DSrvDimensionTexture2D,
             Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = 1 }
         };
         SilkMarshal.ThrowHResult(
