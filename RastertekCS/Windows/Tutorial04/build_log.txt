@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial04 - 2026-04-09 22:57:22.34 
+Tutorial04 - 2026-04-09 23:03:19.76 
 dotnet version: 
 10.0.201
 OS: 
@@ -10,15 +10,20 @@ Microsoft Windows [Version 10.0.22631.6199]
   Determining projects to restore...
   All projects are up-to-date for restore.
 --- BUILD --- 
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(186,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(187,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
   Tutorial04 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\bin\Debug\net8.0\Tutorial04.dll
 
 Build succeeded.
-    0 Warning(s)
+
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(186,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Graphics\ColorShader.cs(187,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial04\Tutorial04.csproj]
+    2 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:00.63
+Time Elapsed 00:00:01.23
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-09 22:57:28.93 
+Finished: 2026-04-09 23:03:26.65 
 ============================================================ 

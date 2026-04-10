@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial05 - 2026-04-09 22:57:31.89 
+Tutorial05 - 2026-04-09 23:03:29.96 
 dotnet version: 
 10.0.201
 OS: 
@@ -10,15 +10,21 @@ Microsoft Windows [Version 10.0.22631.6199]
   Determining projects to restore...
   All projects are up-to-date for restore.
 --- BUILD --- 
-  Tutorial05 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\bin\Debug\net8.0\Tutorial05.dll
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\Camera.cs(37,24): error CS0103: The name 'DXMath' does not exist in the current context [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\DX11.cs(156,30): error CS0103: The name 'DXMath' does not exist in the current context [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\TextureShader.cs(178,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\TextureShader.cs(179,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
 
-Build succeeded.
-    0 Warning(s)
-    0 Error(s)
+Build FAILED.
 
-Time Elapsed 00:00:00.70
---- RUN --- 
-EXIT CODE: -1073741819 
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\TextureShader.cs(178,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\TextureShader.cs(179,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\Camera.cs(37,24): error CS0103: The name 'DXMath' does not exist in the current context [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\DX11.cs(156,30): error CS0103: The name 'DXMath' does not exist in the current context [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj]
+    2 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:00.88
 ============================================================ 
-Finished: 2026-04-09 22:57:40.38 
+Finished: 2026-04-09 23:03:32.12 
 ============================================================ 

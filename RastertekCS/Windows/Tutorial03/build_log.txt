@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial03 - 2026-04-09 22:45:41.53 
+Tutorial03 - 2026-04-09 23:03:03.19 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,7 +8,7 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  All projects are up-to-date for restore.
+  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\Tutorial03.csproj (in 254 ms).
 --- BUILD --- 
   Tutorial03 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial03\bin\Debug\net8.0\Tutorial03.dll
 
@@ -16,9 +16,9 @@ Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:02.90
+Time Elapsed 00:00:01.11
 --- RUN --- 
-EXIT CODE: 0 
+EXIT CODE: -1073741819 
 ============================================================ 
-Finished: 2026-04-09 22:45:57.50 
+Finished: 2026-04-09 23:03:15.43 
 ============================================================ 
