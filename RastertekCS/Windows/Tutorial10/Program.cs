@@ -1,13 +1,16 @@
-using RastertekCS.OpenGL.Tutorial08.System;
+using RastertekCS.Windows.Tutorial10.System;
 
-namespace RastertekCS.OpenGL.Tutorial08;
+namespace RastertekCS.Windows.Tutorial10;
 
 internal static class Program
 {
     private static int Main()
     {
         var system = new SystemFramework();
-        if (system.Initialize()) system.Run();
+        if (system.Initialize())
+        {
+            system.Run();
+        }
         Environment.Exit(0);
         return 0;
     }

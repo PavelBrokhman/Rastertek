@@ -6,15 +6,17 @@
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RootNamespace>RastertekCS.OpenGL.Tutorial08</RootNamespace>
-    <AssemblyName>Tutorial08</AssemblyName>
+    <RootNamespace>RastertekCS.Windows.Tutorial10</RootNamespace>
+    <AssemblyName>Tutorial10</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0" />
-    <PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
-    <PackageReference Include="Silk.NET.Input" Version="2.22.0" />
-    <PackageReference Include="Silk.NET.Maths" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.DXGI" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.23.0" />
   </ItemGroup>
 
   <ItemGroup>
