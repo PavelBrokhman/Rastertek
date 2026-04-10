@@ -147,7 +147,7 @@ public unsafe class DX11
         {
             AntialiasedLineEnable = false, CullMode = CullMode.Back,
             DepthBias = 0, DepthBiasClamp = 0.0f, DepthClipEnable = true,
-            FillMode = FillMode.Solid, FrontCounterClockwise = true,
+            FillMode = FillMode.Solid, FrontCounterClockwise = false,
             MultisampleEnable = false, ScissorEnable = false, SlopeScaledDepthBias = 0.0f
         };
         SilkMarshal.ThrowHResult(

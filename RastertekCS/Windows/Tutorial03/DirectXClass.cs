@@ -170,7 +170,7 @@ public unsafe class DirectXClass
             DepthBiasClamp = 0.0f,
             DepthClipEnable = true,
             FillMode = FillMode.Solid,
-            FrontCounterClockwise = true,
+            FrontCounterClockwise = false,
             MultisampleEnable = false,
             ScissorEnable = false,
             SlopeScaledDepthBias = 0.0f
