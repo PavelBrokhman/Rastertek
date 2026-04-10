@@ -21,6 +21,17 @@ public static class DXMath
             -Vector3D.Dot(xAxis, eye), -Vector3D.Dot(yAxis, eye), -Vector3D.Dot(zAxis, eye), 1);
     }
 
+    public static Matrix4X4<float> RotationYLH(float angle)
+    {
+        float c = MathF.Cos(angle);
+        float s = MathF.Sin(angle);
+        return new Matrix4X4<float>(
+            c,  0, -s, 0,
+            0,  1,  0, 0,
+            s,  0,  c, 0,
+            0,  0,  0, 1);
+    }
+
     public static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);

@@ -44,8 +44,8 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        m_rotation -= 0.01f;
-        if (m_rotation < 0.0f) m_rotation += MathF.Tau;
+        m_rotation += 0.01f;
+        if (m_rotation > MathF.Tau) m_rotation -= MathF.Tau;
         return Render();
     }
 
@@ -55,7 +55,7 @@ public class GraphicsFramework
 
         m_Camera.Render();
 
-        var world = Matrix4X4.CreateRotationY(m_rotation);
+        var world = DXMath.RotationYLH(m_rotation);
         var view = m_Camera.GetViewMatrix();
         var projection = m_DirectX.GetProjectionMatrix();
 
