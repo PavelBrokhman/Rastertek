@@ -1,0 +1,33 @@
+============================================================ 
+Tutorial09 - 2026-04-10 19:16:19.98 
+dotnet version: 
+10.0.201
+OS: 
+
+Microsoft Windows [Version 10.0.22631.6199]
+============================================================ 
+--- RESTORE --- 
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+--- BUILD --- 
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\DX11.cs(35,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\DX11.cs(36,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\LightShader.cs(231,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\LightShader.cs(232,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+  Tutorial09 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\bin\Debug\net8.0\Tutorial09.dll
+
+Build succeeded.
+
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\DX11.cs(35,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\DX11.cs(36,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\LightShader.cs(231,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Graphics\LightShader.cs(232,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial09\Tutorial09.csproj]
+    4 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.02
+--- RUN --- 
+EXIT CODE: 0 
+============================================================ 
+Finished: 2026-04-10 19:16:29.00 
+============================================================ 
