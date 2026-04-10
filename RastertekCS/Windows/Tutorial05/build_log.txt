@@ -1,0 +1,23 @@
+============================================================ 
+Tutorial02 - 2026-04-09 22:17:05.31 
+dotnet version: 
+10.0.201
+OS: 
+
+Microsoft Windows [Version 10.0.22631.6199]
+============================================================ 
+--- RESTORE --- 
+  Determining projects to restore...
+  Retrying 'FindPackagesByIdAsyncCore' for source 'https://packages.xenko.com/nuget/FindPackagesById()?id='Silk.NET.D3DCompiler'&semVerLevel=2.0.0'.
+  The SSL connection could not be established, see inner exception.
+    The remote certificate is invalid according to the validation procedure: RemoteCertificateNameMismatch
+  Retrying 'FindPackagesByIdAsyncCore' for source 'https://packages.xenko.com/nuget/FindPackagesById()?id='Silk.NET.D3DCompiler'&semVerLevel=2.0.0'.
+  The SSL connection could not be established, see inner exception.
+    The remote certificate is invalid according to the validation procedure: RemoteCertificateNameMismatch
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj : error NU1301: Failed to retrieve information about 'Silk.NET.D3DCompiler' from remote source 'https://packages.xenko.com/nuget/FindPackagesById()?id='Silk.NET.D3DCompiler'&semVerLevel=2.0.0'.
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj : error NU1301:   The SSL connection could not be established, see inner exception.
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj : error NU1301:   The remote certificate is invalid according to the validation procedure: RemoteCertificateNameMismatch
+  Failed to restore D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Tutorial05.csproj (in 3.21 sec).
+============================================================ 
+Finished: 2026-04-09 22:17:09.57 
+============================================================ 
