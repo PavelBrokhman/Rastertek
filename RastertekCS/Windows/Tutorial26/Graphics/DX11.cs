@@ -135,7 +135,7 @@ public unsafe class DX11
         {
             AntialiasedLineEnable = false, CullMode = CullMode.Back,
             DepthBias = 0, DepthBiasClamp = 0.0f, DepthClipEnable = true,
-            FillMode = FillMode.Solid, FrontCounterClockwise = false,
+            FillMode = FillMode.Solid, FrontCounterClockwise = true,
             MultisampleEnable = false, ScissorEnable = false, SlopeScaledDepthBias = 0.0f
         };
         SilkMarshal.ThrowHResult(
@@ -153,7 +153,7 @@ public unsafe class DX11
         m_worldMatrix = Matrix4X4<float>.Identity;
         float fov = MathF.PI / 4.0f;
         float aspect = (float)screenWidth / screenHeight;
-        m_projectionMatrix = DXMath.PerspectiveFovLH(fov, aspect, screenNear, screenDepth);
+        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, screenNear, screenDepth);
 
         return true;
     }

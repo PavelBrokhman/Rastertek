@@ -34,7 +34,7 @@ public class Camera
 
         lookAt = position + lookAt;
 
-        m_viewMatrix = DXMath.LookAtLH(position, lookAt, up);
+        m_viewMatrix = Matrix4X4.CreateLookAt(position, lookAt, up);
     }
 
     public Matrix4X4<float> GetViewMatrix() => m_viewMatrix;
