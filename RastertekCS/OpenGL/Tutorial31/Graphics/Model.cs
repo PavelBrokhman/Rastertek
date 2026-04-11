@@ -33,7 +33,7 @@ public class Model
         if (vc == 0 || ds < 0) return false;
         m_vertexCount = vc; m_indexCount = vc; m_modelData = new float[vc * 8]; int vi = 0;
         for (int i = ds; i < lines.Length && vi < vc; i++) { var l = lines[i].Trim(); if (string.IsNullOrEmpty(l)) continue; var p = l.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries); if (p.Length < 8) continue; int o = vi * 8;
-            m_modelData[o] = float.Parse(p[0]); m_modelData[o + 1] = float.Parse(p[1]); m_modelData[o + 2] = float.Parse(p[2]); m_modelData[o + 3] = float.Parse(p[3]); m_modelData[o + 4] = 1.0f - float.Parse(p[4]); m_modelData[o + 5] = float.Parse(p[5]); m_modelData[o + 6] = float.Parse(p[6]); m_modelData[o + 7] = float.Parse(p[7]); vi++; }
+            m_modelData[o] = float.Parse(p[0]); m_modelData[o + 1] = float.Parse(p[1]); m_modelData[o + 2] = float.Parse(p[2]); m_modelData[o + 3] = float.Parse(p[3]); m_modelData[o + 4] = float.Parse(p[4]); m_modelData[o + 5] = float.Parse(p[5]); m_modelData[o + 6] = float.Parse(p[6]); m_modelData[o + 7] = float.Parse(p[7]); vi++; }
         return vi == vc;
     }
 
