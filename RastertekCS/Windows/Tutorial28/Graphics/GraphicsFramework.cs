@@ -19,7 +19,7 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", true)) return false;
 
         m_TranslateShader = new TranslateShader();
         if (!m_TranslateShader.Initialize(DirectX)) return false;

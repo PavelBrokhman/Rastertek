@@ -16,7 +16,7 @@ public class GraphicsFramework
     private ReflectionShader m_ReflectionShader;
     private float m_rotation = MathF.Tau;
 
-    public bool Initialize(DX11 DirectX)
+    public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
         m_DirectX = DirectX;
 
@@ -31,7 +31,7 @@ public class GraphicsFramework
         if (!m_FloorModel.Initialize(DirectX, "Models/floor.txt", "Data/blue01.tga", true)) return false;
 
         m_RenderTexture = new RenderTexture();
-        if (!m_RenderTexture.Initialize(DirectX, 800, 600, SCREEN_DEPTH, SCREEN_NEAR)) return false;
+        if (!m_RenderTexture.Initialize(DirectX, screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) return false;
 
         m_TextureShader = new TextureShader();
         if (!m_TextureShader.Initialize(DirectX)) return false;

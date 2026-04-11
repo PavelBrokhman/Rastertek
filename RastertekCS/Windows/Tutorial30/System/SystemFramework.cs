@@ -40,7 +40,7 @@ public class SystemFramework
         m_Input.Initialize();
 
         m_Graphics = new GraphicsFramework();
-        if (!m_Graphics.Initialize(m_DirectX)) return false;
+        if (!m_Graphics.Initialize(m_DirectX, screenWidth, screenHeight)) return false;
         m_graphicsInitialized = true;
 
         return true;

@@ -15,7 +15,7 @@ public class GraphicsFramework
         m_DirectX = DirectX;
 
         m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
+        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
         m_Camera.Render();
 
         m_Model = new Model();
