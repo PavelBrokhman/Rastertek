@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial31 - 2026-04-11 17:36:22.66 
+Tutorial31 - 2026-04-11 17:39:25.86 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,16 +8,16 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj (in 266 ms).
+  All projects are up-to-date for restore.
 --- BUILD --- 
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\DX11.cs(36,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\DX11.cs(37,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\LightShader.cs(188,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\LightShader.cs(189,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(214,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(215,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\WaterShader.cs(216,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(214,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\WaterShader.cs(217,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(215,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
   Tutorial31 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\bin\Debug\net8.0\Tutorial31.dll
 
 Build succeeded.
@@ -26,16 +26,16 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\DX11.cs(36,19): wa
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\DX11.cs(37,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\LightShader.cs(188,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\LightShader.cs(189,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(214,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
-D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(215,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\WaterShader.cs(216,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(214,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\WaterShader.cs(217,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Graphics\RefractionShader.cs(215,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial31\Tutorial31.csproj]
     8 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:04.24
+Time Elapsed 00:00:01.47
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 17:37:10.62 
+Finished: 2026-04-11 17:39:37.38 
 ============================================================ 
