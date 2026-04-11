@@ -9,4 +9,8 @@
     <AssemblyName>Tutorial24</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="..\..\Assets\ExternalModels\cube_maya.obj" Link="ExternalModels\cube_maya.obj" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

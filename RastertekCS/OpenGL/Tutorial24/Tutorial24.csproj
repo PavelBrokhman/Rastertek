@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,4 +8,9 @@
     <RootNamespace>RastertekCS.OpenGL.Tutorial24</RootNamespace>
     <AssemblyName>Tutorial24</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Assets\ExternalModels\cube_blender.obj" Link="ExternalModels\cube_blender.obj" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
