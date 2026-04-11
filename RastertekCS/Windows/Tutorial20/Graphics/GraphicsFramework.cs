@@ -9,6 +9,7 @@ public class GraphicsFramework
     private Model m_Model;
     private NormalMapShader m_NormalMapShader;
     private Light m_Light;
+    private float m_rotation = MathF.Tau;
 
     public bool Initialize(DX11 DirectX)
     {
@@ -43,13 +44,18 @@ public class GraphicsFramework
         m_DirectX = null;
     }
 
-    public bool Frame() => Render();
+    public bool Frame()
+    {
+        m_rotation -= 0.0174532925f * 0.25f;
+        if (m_rotation <= 0.0f) m_rotation += MathF.Tau;
+        return Render();
+    }
 
     private bool Render()
     {
         m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = m_DirectX.GetWorldMatrix();
+        var world = Matrix4X4.CreateRotationY(m_rotation);
         var view = m_Camera.GetViewMatrix();
         var projection = m_DirectX.GetProjectionMatrix();
 
