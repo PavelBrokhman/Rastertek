@@ -29,7 +29,7 @@ public class GraphicsFramework
 
         // Create and initialize the model with color texture and normal map.
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/cubeGL.txt",
+        if (!m_Model.Initialize(OpenGL, "Models/Cube.txt",
             "Data/stone01.tga", TEXTURE_UNIT_COLOR,
             "Data/normal01.tga", TEXTURE_UNIT_NORMAL)) return false;
 
