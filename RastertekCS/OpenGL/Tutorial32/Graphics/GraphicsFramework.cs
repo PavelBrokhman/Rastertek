@@ -10,7 +10,7 @@ public class GraphicsFramework
     public bool Initialize(GL4 gl, int sw, int sh)
     {
         m_gl = gl; m_cam = new Camera(); m_cam.SetPosition(0, 0, -5); m_cam.Render();
-        m_model = new Model(); if (!m_model.Initialize(gl, "Models/cube.txt", "Data/stone01.tga", false, "Data/normal03.tga", false)) return false;
+        m_model = new Model(); if (!m_model.Initialize(gl, "Models/cubeGL.txt", "Data/stone01.tga", false, "Data/normal03.tga", false)) return false;
         m_winModel = new Model(); if (!m_winModel.Initialize(gl, "Models/square.txt", "Data/glass01.tga", false, "Data/normal03.tga", false)) return false;
         m_rt = new RenderTexture(); if (!m_rt.Initialize(gl, sw, sh, SystemConfiguration.ScreenNear, SystemConfiguration.ScreenDepth)) return false;
         m_texShader = new TextureShader(); if (!m_texShader.Initialize(gl)) return false;

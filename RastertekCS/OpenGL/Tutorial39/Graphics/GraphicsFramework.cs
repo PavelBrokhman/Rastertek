@@ -10,7 +10,7 @@ public class GraphicsFramework
         m_OpenGL = gl4;
         m_Camera = new Camera(); m_Camera.SetPosition(0, 7, -10); m_Camera.SetRotation(35, 0, 0); m_Camera.Render();
         m_GroundModel = new Model(); if (!m_GroundModel.Initialize(gl4, "Models/plane01.txt", "Data/metal001.tga")) return false;
-        m_CubeModel = new Model(); if (!m_CubeModel.Initialize(gl4, "Models/cube.txt", "Data/stone01.tga")) return false;
+        m_CubeModel = new Model(); if (!m_CubeModel.Initialize(gl4, "Models/cubeGL.txt", "Data/stone01.tga")) return false;
         m_ProjectionShader = new ProjectionShader(); if (!m_ProjectionShader.Initialize(gl4)) return false;
         m_ProjectionTexture = new Texture(); if (!m_ProjectionTexture.Initialize(gl4, "Data/opengl_logo.tga", 1, false)) return false;
         m_ViewPoint = new ViewPoint();
