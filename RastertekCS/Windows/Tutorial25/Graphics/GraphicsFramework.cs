@@ -54,7 +54,7 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 0.25f;
+        m_rotation -= 0.0174532925f * 1.0f;
         if (m_rotation < 0.0f) m_rotation += MathF.Tau;
         if (!RenderSceneToTexture()) return false;
         return Render();

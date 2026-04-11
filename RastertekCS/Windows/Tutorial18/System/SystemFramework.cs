@@ -77,8 +77,8 @@ public class SystemFramework
         m_window.Closing += OnClosing;
         m_window.Initialize();
 
-        screenWidth = m_window.Size.X;
-        screenHeight = m_window.Size.Y;
+        screenWidth = m_window.FramebufferSize.X;
+        screenHeight = m_window.FramebufferSize.Y;
         return true;
     }
 
