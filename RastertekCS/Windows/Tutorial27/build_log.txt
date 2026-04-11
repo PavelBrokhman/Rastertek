@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial27 - 2026-04-11 16:02:23.14 
+Tutorial27 - 2026-04-11 16:45:50.31 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,7 +8,7 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  Restored D:\Projects\Rastertek\RastertekCS\Windows\Tutorial27\Tutorial27.csproj (in 319 ms).
+  All projects are up-to-date for restore.
 --- BUILD --- 
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial27\Graphics\DX11.cs(35,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial27\Tutorial27.csproj]
 D:\Projects\Rastertek\RastertekCS\Windows\Tutorial27\Graphics\DX11.cs(36,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial27\Tutorial27.csproj]
@@ -25,9 +25,9 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial27\Graphics\ClipPlaneShader.cs
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.24
+Time Elapsed 00:00:01.48
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 16:02:32.00 
+Finished: 2026-04-11 16:46:04.63 
 ============================================================ 

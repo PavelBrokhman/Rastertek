@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial29 - 2026-04-11 16:03:33.46 
+Tutorial29 - 2026-04-11 16:46:23.32 
 dotnet version: 
 10.0.201
 OS: 
@@ -8,7 +8,7 @@ Microsoft Windows [Version 10.0.22631.6199]
 ============================================================ 
 --- RESTORE --- 
   Determining projects to restore...
-  Restored D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial29\Tutorial29.csproj (in 294 ms).
+  All projects are up-to-date for restore.
 --- BUILD --- 
   Tutorial29 -> D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial29\bin\Debug\net8.0\Tutorial29.dll
 
@@ -16,9 +16,9 @@ Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.32
+Time Elapsed 00:00:00.92
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 16:03:48.67 
+Finished: 2026-04-11 16:46:29.45 
 ============================================================ 

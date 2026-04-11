@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial19 - 2026-04-11 15:53:58.07 
+Tutorial19 - 2026-04-11 16:43:49.68 
 dotnet version: 
 10.0.201
 OS: 
@@ -25,9 +25,9 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\AlphaMapShader.cs(
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.08
+Time Elapsed 00:00:01.07
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 15:54:07.61 
+Finished: 2026-04-11 16:43:56.25 
 ============================================================ 
