@@ -1,0 +1,12 @@
+============================================================
+Tutorial26 - Sat 11 Apr 2026 03:05:22 PM EDT
+dotnet version:
+8.0.125
+OS:
+Linux pavel-ubuntu 6.8.0-107-generic #107~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Mar 18 23:40:43 UTC  x86_64 x86_64 x86_64 GNU/Linux
+============================================================
+--- RESTORE ---
+  Determining projects to restore...
+  Restored /home/pbrokhman/works/Rastertek/RastertekCS/OpenGL/Tutorial26/Tutorial26.csproj (in 413 ms).
+--- BUILD ---
+MSBuild version 17.8.49+7806cbf7b for .NET
