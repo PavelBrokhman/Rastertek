@@ -5,30 +5,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>RastertekCS.Windows.Tutorial24</RootNamespace>
     <AssemblyName>Tutorial24</AssemblyName>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Silk.NET.Direct3D11" Version="2.23.0" />
-    <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.23.0" />
-    <PackageReference Include="Silk.NET.DXGI" Version="2.23.0" />
-    <PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
-    <PackageReference Include="Silk.NET.Input" Version="2.23.0" />
-    <PackageReference Include="Silk.NET.Maths" Version="2.23.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Shaders\NormalMap.vs" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Shaders\NormalMap.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Shaders\Light.vs" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Shaders\Light.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Stone01.tga" Link="Data\stone01.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\normal01.tga" Link="Data\normal01.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Models\sphere.txt" Link="Models\sphere.txt" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 
 </Project>
