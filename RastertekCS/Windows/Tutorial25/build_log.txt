@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial23 - 2026-04-11 16:01:00.31 
+Tutorial25 - 2026-04-11 16:04:44.92 
 dotnet version: 
 10.0.201
 OS: 
@@ -10,15 +10,15 @@ Microsoft Windows [Version 10.0.22631.6199]
   Determining projects to restore...
   All projects are up-to-date for restore.
 --- BUILD --- 
-  Tutorial23 -> D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial23\bin\Debug\net8.0\Tutorial23.dll
+  Tutorial25 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial25\bin\Debug\net8.0\Tutorial25.dll
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.00
+Time Elapsed 00:00:00.78
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 16:01:05.23 
+Finished: 2026-04-11 16:04:56.08 
 ============================================================ 

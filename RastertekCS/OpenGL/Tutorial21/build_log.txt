@@ -1,12 +1,24 @@
-============================================================
-Tutorial21 - Sat 11 Apr 2026 03:05:02 PM EDT
-dotnet version:
-8.0.125
-OS:
-Linux pavel-ubuntu 6.8.0-107-generic #107~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Mar 18 23:40:43 UTC  x86_64 x86_64 x86_64 GNU/Linux
-============================================================
---- RESTORE ---
+============================================================ 
+Tutorial21 - 2026-04-11 15:55:05.02 
+dotnet version: 
+10.0.201
+OS: 
+
+Microsoft Windows [Version 10.0.22631.6199]
+============================================================ 
+--- RESTORE --- 
   Determining projects to restore...
-  Restored /home/pbrokhman/works/Rastertek/RastertekCS/OpenGL/Tutorial21/Tutorial21.csproj (in 359 ms).
---- BUILD ---
-MSBuild version 17.8.49+7806cbf7b for .NET
+  All projects are up-to-date for restore.
+--- BUILD --- 
+  Tutorial21 -> D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial21\bin\Debug\net8.0\Tutorial21.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.19
+--- RUN --- 
+EXIT CODE: 0 
+============================================================ 
+Finished: 2026-04-11 15:55:16.20 
+============================================================ 

@@ -1,0 +1,33 @@
+============================================================ 
+Tutorial19 - 2026-04-11 15:53:58.07 
+dotnet version: 
+10.0.201
+OS: 
+
+Microsoft Windows [Version 10.0.22631.6199]
+============================================================ 
+--- RESTORE --- 
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+--- BUILD --- 
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\DX11.cs(35,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\DX11.cs(36,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\AlphaMapShader.cs(166,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\AlphaMapShader.cs(167,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+  Tutorial19 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\bin\Debug\net8.0\Tutorial19.dll
+
+Build succeeded.
+
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\DX11.cs(35,19): warning CS0618: 'D3D11.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\DX11.cs(36,18): warning CS0618: 'DXGI.GetApi(DXSwapchainProvider, bool)' is obsolete: 'Use the GetApi(INativeWindow window, bool forceDxvk = false) overload!' [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\AlphaMapShader.cs(166,45): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Graphics\AlphaMapShader.cs(167,44): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter [D:\Projects\Rastertek\RastertekCS\Windows\Tutorial19\Tutorial19.csproj]
+    4 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.08
+--- RUN --- 
+EXIT CODE: 0 
+============================================================ 
+Finished: 2026-04-11 15:54:07.61 
+============================================================ 
