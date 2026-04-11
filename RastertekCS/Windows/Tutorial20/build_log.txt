@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial20 - 2026-04-11 16:52:39.81 
+Tutorial20 - 2026-04-11 17:12:34.03 
 dotnet version: 
 10.0.201
 OS: 
@@ -25,9 +25,9 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial20\Graphics\NormalMapShader.cs
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.37
+Time Elapsed 00:00:01.36
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 16:52:55.74 
+Finished: 2026-04-11 17:12:47.61 
 ============================================================ 

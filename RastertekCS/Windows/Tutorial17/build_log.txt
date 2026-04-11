@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial17 - 2026-04-11 17:05:20.65 
+Tutorial17 - 2026-04-11 17:12:22.56 
 dotnet version: 
 10.0.201
 OS: 
@@ -25,9 +25,9 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial17\Graphics\MultiTextureShader
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.37
+Time Elapsed 00:00:01.47
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 17:05:29.32 
+Finished: 2026-04-11 17:13:09.95 
 ============================================================ 
