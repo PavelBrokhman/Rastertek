@@ -19,7 +19,7 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/cube.txt", "Data/stone01.tga", 0))
+        if (!m_Model.Initialize(OpenGL, "Models/cubeGL.txt", "Data/stone01.tga", 0))
             return false;
 
         m_FogShader = new FogShader();

@@ -24,7 +24,7 @@ public class GraphicsFramework
         if (!m_SpecMapShader.Initialize(OpenGL)) return false;
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/cube.txt",
+        if (!m_Model.Initialize(OpenGL, "Models/cubeGL.txt",
             "Data/stone02.tga", true,
             "Data/normal02.tga", true,
             "Data/spec02.tga", false)) return false;
