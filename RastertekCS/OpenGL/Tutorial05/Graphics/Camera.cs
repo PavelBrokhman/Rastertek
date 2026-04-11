@@ -33,8 +33,20 @@ public class Camera
         up = Vector3D.Transform(up, rotationMatrix);
 
         lookAt = position + lookAt;
-        m_viewMatrix = Matrix4X4.CreateLookAt(position, lookAt, up);
+        m_viewMatrix = LookAtLH(position, lookAt, up);
     }
 
     public Matrix4X4<float> GetViewMatrix() => m_viewMatrix;
+
+    private static Matrix4X4<float> LookAtLH(Vector3D<float> eye, Vector3D<float> target, Vector3D<float> up)
+    {
+        var zAxis = Vector3D.Normalize(target - eye);
+        var xAxis = Vector3D.Normalize(Vector3D.Cross(up, zAxis));
+        var yAxis = Vector3D.Cross(zAxis, xAxis);
+        return new Matrix4X4<float>(
+            xAxis.X, yAxis.X, zAxis.X, 0,
+            xAxis.Y, yAxis.Y, zAxis.Y, 0,
+            xAxis.Z, yAxis.Z, zAxis.Z, 0,
+            -Vector3D.Dot(xAxis, eye), -Vector3D.Dot(yAxis, eye), -Vector3D.Dot(zAxis, eye), 1);
+    }
 }

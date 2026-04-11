@@ -19,7 +19,7 @@ public class GL4
         m_screenWidth = sw; m_screenHeight = sh;
         m_gl.ClearDepth(1.0f);
         m_gl.Enable(EnableCap.DepthTest);
-        m_gl.FrontFace(FrontFaceDirection.Ccw);
+        m_gl.FrontFace(FrontFaceDirection.CW);
         m_gl.Enable(EnableCap.CullFace);
         m_gl.CullFace(TriangleFace.Back);
         m_gl.Viewport(0, 0, (uint)sw, (uint)sh);
@@ -37,4 +37,16 @@ public class GL4
     public void ResetViewport() { m_gl.Viewport(0, 0, (uint)m_screenWidth, (uint)m_screenHeight); }
     public void EnableClipping() { m_gl.Enable(EnableCap.ClipDistance0); }
     public void DisableClipping() { m_gl.Disable(EnableCap.ClipDistance0); }
+
+    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    {
+        float h = 1.0f / MathF.Tan(fov * 0.5f);
+        float w = h / aspect;
+        float range = farZ / (farZ - nearZ);
+        return new Matrix4X4<float>(
+            w, 0, 0, 0,
+            0, h, 0, 0,
+            0, 0, range, 1,
+            0, 0, -range * nearZ, 0);
+    }
 }

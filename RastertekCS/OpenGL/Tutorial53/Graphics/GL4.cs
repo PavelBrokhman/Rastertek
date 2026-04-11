@@ -17,10 +17,10 @@ public class GL4
         m_gl = GL.GetApi(window);
         m_screenWidth = sw; m_screenHeight = sh;
         m_gl.ClearDepth(1.0f); m_gl.Enable(EnableCap.DepthTest);
-        m_gl.FrontFace(FrontFaceDirection.Ccw); m_gl.Enable(EnableCap.CullFace); m_gl.CullFace(TriangleFace.Back);
+        m_gl.FrontFace(FrontFaceDirection.CW); m_gl.Enable(EnableCap.CullFace); m_gl.CullFace(TriangleFace.Back);
         m_gl.Viewport(0, 0, (uint)sw, (uint)sh);
         m_worldMatrix = Matrix4X4<float>.Identity;
-        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
+        m_projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
         m_orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-sw / 2f, sw / 2f, -sh / 2f, sh / 2f, sn, sd);
         return true;
     }
@@ -35,4 +35,16 @@ public class GL4
     public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
     public Matrix4X4<float> GetOrthoMatrix() => m_orthoMatrix;
+
+    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    {
+        float h = 1.0f / MathF.Tan(fov * 0.5f);
+        float w = h / aspect;
+        float range = farZ / (farZ - nearZ);
+        return new Matrix4X4<float>(
+            w, 0, 0, 0,
+            0, h, 0, 0,
+            0, 0, range, 1,
+            0, 0, -range * nearZ, 0);
+    }
 }
