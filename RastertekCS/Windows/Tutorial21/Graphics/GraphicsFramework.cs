@@ -1,0 +1,69 @@
+using Silk.NET.Maths;
+
+namespace RastertekCS.Windows.Tutorial21.Graphics;
+
+public class GraphicsFramework
+{
+    private DX11 m_DirectX;
+    private Camera m_Camera;
+    private Model m_Model;
+    private SpecMapShader m_SpecMapShader;
+    private Light m_Light;
+
+    public bool Initialize(DX11 DirectX)
+    {
+        m_DirectX = DirectX;
+
+        m_Camera = new Camera();
+        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
+        m_Camera.Render();
+
+        m_Model = new Model();
+        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone02.tga", "Data/normal02.tga", "Data/spec02.tga", true))
+            return false;
+
+        m_SpecMapShader = new SpecMapShader();
+        if (!m_SpecMapShader.Initialize(DirectX)) return false;
+
+        m_Light = new Light();
+        m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+        m_Light.SetDirection(0.0f, 0.0f, 1.0f);
+        m_Light.SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+        m_Light.SetSpecularPower(16.0f);
+
+        return true;
+    }
+
+    public void Shutdown()
+    {
+        m_SpecMapShader?.Shutdown();
+        m_Model?.Shutdown();
+        m_SpecMapShader = null;
+        m_Model = null;
+        m_Camera = null;
+        m_Light = null;
+        m_DirectX = null;
+    }
+
+    public bool Frame() => Render();
+
+    private bool Render()
+    {
+        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+        var world = m_DirectX.GetWorldMatrix();
+        var view = m_Camera.GetViewMatrix();
+        var projection = m_DirectX.GetProjectionMatrix();
+
+        m_Model.Render(m_DirectX);
+        m_Model.SetTextures(m_DirectX);
+
+        if (!m_SpecMapShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection,
+            m_Light.GetDirection(), m_Light.GetDiffuseColor(), m_Camera.GetPosition(),
+            m_Light.GetSpecularColor(), m_Light.GetSpecularPower()))
+            return false;
+
+        m_DirectX.EndScene();
+        return true;
+    }
+}
