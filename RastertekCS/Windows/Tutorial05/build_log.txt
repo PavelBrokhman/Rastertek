@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial05 - 2026-04-11 16:42:06.11 
+Tutorial05 - 2026-04-11 17:07:12.67 
 dotnet version: 
 10.0.201
 OS: 
@@ -25,9 +25,9 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial05\Graphics\TextureShader.cs(1
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:02.07
+Time Elapsed 00:00:00.97
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 16:42:41.39 
+Finished: 2026-04-11 17:07:34.79 
 ============================================================ 

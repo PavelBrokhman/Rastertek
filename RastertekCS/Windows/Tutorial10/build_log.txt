@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial10 - 2026-04-10 19:19:00.95 
+Tutorial10 - 2026-04-11 17:08:55.98 
 dotnet version: 
 10.0.201
 OS: 
@@ -25,9 +25,9 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial10\Graphics\LightShader.cs(272
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.49
+Time Elapsed 00:00:01.61
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-10 19:19:20.27 
+Finished: 2026-04-11 17:09:20.26 
 ============================================================ 

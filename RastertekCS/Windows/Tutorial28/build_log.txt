@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial28 - 2026-04-11 16:46:07.79 
+Tutorial28 - 2026-04-11 17:06:04.88 
 dotnet version: 
 10.0.201
 OS: 
@@ -25,9 +25,9 @@ D:\Projects\Rastertek\RastertekCS\Windows\Tutorial28\Graphics\TranslateShader.cs
     4 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:01.12
+Time Elapsed 00:00:00.96
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-11 16:46:18.91 
+Finished: 2026-04-11 17:06:17.91 
 ============================================================ 
