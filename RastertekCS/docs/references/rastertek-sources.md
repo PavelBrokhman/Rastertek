@@ -30,6 +30,7 @@ The shader files (`.vs`/`.ps`) in every Windows tutorial are byte-identical copi
 | 28 | dx11win10tut28 | UV translation (texture scrolling) |
 | 29 | dx11win10tut29 | Transparency via blend state + per-pixel alpha override |
 | 30 | dx11win10tut30 | Planar reflection via render-to-texture + reflection view matrix |
+| 31 | dx11win10tut31 | Water: refraction (clip plane) + reflection (mirrored view) + normal-map ripple |
 
 ## Shader integrity check
 
