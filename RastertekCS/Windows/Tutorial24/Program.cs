@@ -18,11 +18,28 @@ internal static class Program
         public int N1, N2, N3;
     }
 
-    private static int Main()
+    private static int Main(string[] args)
     {
-        Console.Write("Enter model filename: ");
-        string filename = Console.ReadLine()?.Trim();
-        if (string.IsNullOrEmpty(filename) || !File.Exists(filename))
+        string baseDir = AppContext.BaseDirectory;
+        string filename;
+        if (args.Length > 0)
+        {
+            filename = args[0];
+        }
+        else
+        {
+            // Default to the bundled Maya cube so the converter just works.
+            filename = Path.Combine("ExternalModels", "cube_maya.obj");
+            Console.WriteLine($"No filename argument; defaulting to {filename}");
+        }
+
+        if (!Path.IsPathRooted(filename))
+        {
+            // Resolve relative to where the dll lives, not the current working dir.
+            filename = Path.Combine(baseDir, filename);
+        }
+
+        if (!File.Exists(filename))
         {
             Console.WriteLine($"File {filename} could not be opened.");
             return -1;
@@ -99,7 +116,8 @@ internal static class Program
         Console.WriteLine($"Normals:  {normals.Count}");
         Console.WriteLine($"Faces:    {faces.Count}");
 
-        using var fout = new StreamWriter("model.txt");
+        string outputPath = Path.Combine(baseDir, "model.txt");
+        using var fout = new StreamWriter(outputPath);
         fout.WriteLine($"Vertex Count: {faces.Count * 3}");
         fout.WriteLine();
         fout.WriteLine("Data:");
@@ -113,7 +131,7 @@ internal static class Program
         }
 
         Console.WriteLine();
-        Console.WriteLine("File has been converted.");
+        Console.WriteLine($"File has been converted: {outputPath}");
         return 0;
     }
 

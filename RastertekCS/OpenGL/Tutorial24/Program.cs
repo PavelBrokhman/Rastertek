@@ -12,11 +12,26 @@ internal static class Program
     struct Vector3 { public float X, Y, Z; }
     struct Face { public int V1, V2, V3, T1, T2, T3, N1, N2, N3; }
 
-    static int Main()
+    static int Main(string[] args)
     {
-        Console.Write("Enter model filename: ");
-        string filename = Console.ReadLine()?.Trim();
-        if (string.IsNullOrEmpty(filename) || !File.Exists(filename))
+        string baseDir = AppContext.BaseDirectory;
+        string filename;
+        if (args.Length > 0)
+        {
+            filename = args[0];
+        }
+        else
+        {
+            filename = Path.Combine("ExternalModels", "cube_blender.obj");
+            Console.WriteLine($"No filename argument; defaulting to {filename}");
+        }
+
+        if (!Path.IsPathRooted(filename))
+        {
+            filename = Path.Combine(baseDir, filename);
+        }
+
+        if (!File.Exists(filename))
         {
             Console.WriteLine($"File {filename} could not be opened.");
             return -1;
@@ -80,7 +95,8 @@ internal static class Program
         Console.WriteLine($"Normals:  {normals.Count}");
         Console.WriteLine($"Faces:    {faces.Count}");
 
-        using (var w = new StreamWriter("model.txt"))
+        string outputPath = Path.Combine(baseDir, "model.txt");
+        using (var w = new StreamWriter(outputPath))
         {
             w.WriteLine($"Vertex Count: {faces.Count * 3}");
             w.WriteLine();
@@ -96,7 +112,7 @@ internal static class Program
             }
         }
 
-        Console.WriteLine("\nFile has been converted.");
+        Console.WriteLine($"\nFile has been converted: {outputPath}");
         return 0;
     }
 
