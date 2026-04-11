@@ -24,7 +24,7 @@ public class RenderTexture
         gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, m_depthId);
         GLEnum[] db = { GLEnum.ColorAttachment0 }; fixed (GLEnum* p = db) gl.DrawBuffers(1, p);
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        m_projMatrix = Matrix4X4.CreatePerspectiveFieldOfView<float>(MathF.PI / 4.0f, (float)tw / th, sn, sd);
+        m_projMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)tw / th, sn, sd);
         return true;
     }
 
@@ -33,4 +33,16 @@ public class RenderTexture
     public void ClearRenderTarget(GL4 OpenGL, float r, float g, float b, float a) { OpenGL.Gl.ClearColor(r, g, b, a); OpenGL.Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit)); }
     public void SetTexture(GL4 OpenGL, uint tu) { OpenGL.Gl.ActiveTexture(TextureUnit.Texture0 + (int)tu); OpenGL.Gl.BindTexture(TextureTarget.Texture2D, m_texId); }
     public Matrix4X4<float> GetProjectionMatrix() => m_projMatrix;
+
+    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    {
+        float h = 1.0f / MathF.Tan(fov * 0.5f);
+        float w = h / aspect;
+        float range = farZ / (farZ - nearZ);
+        return new Matrix4X4<float>(
+            w, 0, 0, 0,
+            0, h, 0, 0,
+            0, 0, range, 1,
+            0, 0, -range * nearZ, 0);
+    }
 }

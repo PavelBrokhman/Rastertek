@@ -24,9 +24,9 @@ public class Model
 
         var vertices = new VertexType[]
         {
-            new() { x = -1.0f, y = -1.0f, z = 0.0f, tu = 0.0f, tv = 0.0f }, // Нижний-левый
-            new() { x =  0.0f, y =  1.0f, z = 0.0f, tu = 0.5f, tv = 1.0f }, // Верхний-средний
-            new() { x =  1.0f, y = -1.0f, z = 0.0f, tu = 1.0f, tv = 0.0f }, // Нижний-правый
+            new() { x = -1.0f, y = -1.0f, z = 0.0f, tu = 0.0f, tv = 1.0f }, // Нижний-левый
+            new() { x =  0.0f, y =  1.0f, z = 0.0f, tu = 0.5f, tv = 0.0f }, // Верхний-средний
+            new() { x =  1.0f, y = -1.0f, z = 0.0f, tu = 1.0f, tv = 1.0f }, // Нижний-правый
         };
         var indices = new uint[] { 0, 1, 2 };
 

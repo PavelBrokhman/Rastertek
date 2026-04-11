@@ -24,9 +24,9 @@ public class Model
 
         var vertices = new VertexType[]
         {
-            new() { x = -1, y = -1, z = 0, tu = 0.0f, tv = 0.0f, nx = 0, ny = 0, nz = -1 },
-            new() { x =  0, y =  1, z = 0, tu = 0.5f, tv = 1.0f, nx = 0, ny = 0, nz = -1 },
-            new() { x =  1, y = -1, z = 0, tu = 1.0f, tv = 0.0f, nx = 0, ny = 0, nz = -1 },
+            new() { x = -1, y = -1, z = 0, tu = 0.0f, tv = 1.0f, nx = 0, ny = 0, nz = -1 },
+            new() { x =  0, y =  1, z = 0, tu = 0.5f, tv = 0.0f, nx = 0, ny = 0, nz = -1 },
+            new() { x =  1, y = -1, z = 0, tu = 1.0f, tv = 1.0f, nx = 0, ny = 0, nz = -1 },
         };
         var indices = new uint[] { 0, 1, 2 };
 

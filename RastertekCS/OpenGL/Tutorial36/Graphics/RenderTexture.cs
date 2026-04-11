@@ -42,7 +42,7 @@ public class RenderTexture
 
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
-        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(MathF.PI / 4f, (float)tw / th, sn, sd);
+        m_projectionMatrix = PerspectiveFovLH(MathF.PI / 4f, (float)tw / th, sn, sd);
         m_orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-tw / 2f, tw / 2f, -th / 2f, th / 2f, sn, sd);
 
         return true;
@@ -78,4 +78,16 @@ public class RenderTexture
     public int GetTextureHeight() => m_th;
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
     public Matrix4X4<float> GetOrthoMatrix() => m_orthoMatrix;
+
+    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    {
+        float h = 1.0f / MathF.Tan(fov * 0.5f);
+        float w = h / aspect;
+        float range = farZ / (farZ - nearZ);
+        return new Matrix4X4<float>(
+            w, 0, 0, 0,
+            0, h, 0, 0,
+            0, 0, range, 1,
+            0, 0, -range * nearZ, 0);
+    }
 }

@@ -54,7 +54,7 @@ public class RenderTexture
 
         // Build the projection matrix for this render texture.
         float screenAspect = (float)textureWidth / (float)textureHeight;
-        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(MathF.PI / 4.0f, screenAspect, screenNear, screenDepth);
+        m_projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, screenAspect, screenNear, screenDepth);
 
         return true;
     }
@@ -90,4 +90,16 @@ public class RenderTexture
     }
 
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
+    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    {
+        float h = 1.0f / MathF.Tan(fov * 0.5f);
+        float w = h / aspect;
+        float range = farZ / (farZ - nearZ);
+        return new Matrix4X4<float>(
+            w, 0, 0, 0,
+            0, h, 0, 0,
+            0, 0, range, 1,
+            0, 0, -range * nearZ, 0);
+    }
 }
