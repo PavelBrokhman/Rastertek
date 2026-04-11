@@ -24,7 +24,7 @@ public class GraphicsFramework
 
         // Create and initialize the model (cube with stone texture).
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/cubeGL.txt", "Data/stone01.tga"))
+        if (!m_Model.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga"))
             return false;
 
         // Create and initialize the texture shader.

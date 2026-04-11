@@ -25,7 +25,7 @@ public class GL4
         m_gl.CullFace(TriangleFace.Back);
         m_gl.Viewport(0, 0, (uint)sw, (uint)sh);
         m_worldMatrix = Matrix4X4<float>.Identity;
-        m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView<float>(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
+        m_projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
         return true;
     }
 
