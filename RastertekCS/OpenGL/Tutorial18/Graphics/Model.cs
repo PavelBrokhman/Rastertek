@@ -99,7 +99,7 @@ public class Model
             m_modelData[off + 1] = float.Parse(parts[1]); // y
             m_modelData[off + 2] = float.Parse(parts[2]); // z
             m_modelData[off + 3] = float.Parse(parts[3]); // tu
-            m_modelData[off + 4] = 1.0f - float.Parse(parts[4]); // tv (inverted)
+            m_modelData[off + 4] = float.Parse(parts[4]); // tv
             m_modelData[off + 5] = float.Parse(parts[5]); // nx
             m_modelData[off + 6] = float.Parse(parts[6]); // ny
             m_modelData[off + 7] = float.Parse(parts[7]); // nz

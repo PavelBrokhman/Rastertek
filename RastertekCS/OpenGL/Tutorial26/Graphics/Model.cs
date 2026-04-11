@@ -86,7 +86,7 @@ public class Model
             m_modelData[off + 1] = float.Parse(parts[1]);
             m_modelData[off + 2] = float.Parse(parts[2]);
             m_modelData[off + 3] = float.Parse(parts[3]);
-            m_modelData[off + 4] = 1.0f - float.Parse(parts[4]); // invert V
+            m_modelData[off + 4] = float.Parse(parts[4]); // invert V
             m_modelData[off + 5] = float.Parse(parts[5]);
             m_modelData[off + 6] = float.Parse(parts[6]);
             m_modelData[off + 7] = float.Parse(parts[7]);

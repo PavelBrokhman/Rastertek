@@ -45,7 +45,7 @@ public class Model
             vertices[i].z = m_model[i].z;
             vertices[i].tu = m_model[i].tu;
             // Инвертируем tv — OpenGL начинает UV снизу-слева, а файл — сверху-слева.
-            vertices[i].tv = 1.0f - m_model[i].tv;
+            vertices[i].tv = m_model[i].tv;
             vertices[i].nx = m_model[i].nx;
             vertices[i].ny = m_model[i].ny;
             vertices[i].nz = m_model[i].nz;

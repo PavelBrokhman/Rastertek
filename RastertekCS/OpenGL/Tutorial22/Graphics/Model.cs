@@ -114,7 +114,7 @@ public class Model
             m_model[vi].y = float.Parse(parts[1]);
             m_model[vi].z = float.Parse(parts[2]);
             m_model[vi].tu = float.Parse(parts[3]);
-            m_model[vi].tv = 1.0f - float.Parse(parts[4]); // Invert V for OpenGL
+            m_model[vi].tv = float.Parse(parts[4]); // Invert V for OpenGL
             m_model[vi].nx = float.Parse(parts[5]);
             m_model[vi].ny = float.Parse(parts[6]);
             m_model[vi].nz = float.Parse(parts[7]);
