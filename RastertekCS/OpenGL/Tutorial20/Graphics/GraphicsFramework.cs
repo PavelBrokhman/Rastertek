@@ -52,10 +52,10 @@ public class GraphicsFramework
     public bool Frame()
     {
         // Update rotation each frame.
-        m_rotation += 0.0174532925f * 1.0f;
-        if (m_rotation > MathF.Tau)
+        m_rotation -= 0.0174532925f * 1.0f;
+        if (m_rotation < 0.0f)
         {
-            m_rotation -= MathF.Tau;
+            m_rotation += MathF.Tau;
         }
 
         return Render(m_rotation);
