@@ -33,7 +33,8 @@ Status of every tutorial in `RastertekCS/Windows/` and `RastertekCS/OpenGL/`.
 | 28 | Texture translation            | done    | done    |
 | 29 | Transparency                   | done    | done    |
 | 30 | Planar reflection              | done    | done    |
-| 31..59 | (later)                    | done    | not started |
+| 31 | Water (refraction+reflection)  | done    | done    |
+| 32..59 | (later)                    | done    | not started |
 
 "OpenGL done" reflects the pre-existing state of `RastertekCS/OpenGL/` (cloned from a separate port). "Windows done" tracks this port's progress.
 
