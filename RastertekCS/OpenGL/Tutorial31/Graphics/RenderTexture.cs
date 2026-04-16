@@ -12,11 +12,17 @@ public class RenderTexture
         _textureHeight;
     private Matrix4X4<float> _projectionMatrix;
 
-    public unsafe bool Initialize(GL4 OpenGL, int tw, int th, float sn, float sd)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        int textureWidth,
+        int textureHeight,
+        float screenNear,
+        float screenDepth
+    )
     {
         var gl = OpenGL.Gl;
-        _textureWidth = tw;
-        _textureHeight = th;
+        _textureWidth = textureWidth;
+        _textureHeight = textureHeight;
         _frameBufferId = gl.GenFramebuffer();
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
         gl.ActiveTexture(TextureUnit.Texture0);
@@ -26,8 +32,8 @@ public class RenderTexture
             TextureTarget.Texture2D,
             0,
             (int)InternalFormat.Rgba,
-            (uint)tw,
-            (uint)th,
+            (uint)textureWidth,
+            (uint)textureHeight,
             0,
             PixelFormat.Rgba,
             PixelType.UnsignedByte,
@@ -68,7 +74,12 @@ public class RenderTexture
         fixed (GLEnum* p = db)
             gl.DrawBuffers(1, p);
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)tw / th, sn, sd);
+        _projectionMatrix = PerspectiveFovLH(
+            MathF.PI / 4.0f,
+            (float)textureWidth / textureHeight,
+            screenNear,
+            screenDepth
+        );
         return true;
     }
 

@@ -13,19 +13,31 @@ public class GL4
         _screenHeight;
     public GL Gl => _gl;
 
-    public bool Initialize(IWindow w, int sw, int sh, float sd, float sn, bool vs)
+    public bool Initialize(
+        IWindow w,
+        int screenWidth,
+        int screenHeight,
+        float screenDepth,
+        float screenNear,
+        bool vs
+    )
     {
         _gl = GL.GetApi(w);
-        _screenWidth = sw;
-        _screenHeight = sh;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
         _gl.ClearDepth(1.0f);
         _gl.Enable(EnableCap.DepthTest);
         _gl.FrontFace(FrontFaceDirection.CW);
         _gl.Enable(EnableCap.CullFace);
         _gl.CullFace(TriangleFace.Back);
-        _gl.Viewport(0, 0, (uint)sw, (uint)sh);
+        _gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
         _worldMatrix = Matrix4X4<float>.Identity;
-        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4f, (float)sw / sh, sn, sd);
+        _projectionMatrix = PerspectiveFovLH(
+            MathF.PI / 4f,
+            (float)screenWidth / screenHeight,
+            screenNear,
+            screenDepth
+        );
         return true;
     }
 

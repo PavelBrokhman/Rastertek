@@ -10,7 +10,7 @@ public class GraphicsFramework
     private FireShader _fireShader;
     private float _frameTime;
 
-    public bool Initialize(GL4 gl, int sw, int sh)
+    public bool Initialize(GL4 gl, int screenWidth, int screenHeight)
     {
         _gl = gl;
         _camera = new Camera();

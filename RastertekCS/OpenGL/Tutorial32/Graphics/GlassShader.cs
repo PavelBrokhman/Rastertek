@@ -13,81 +13,81 @@ public class GlassShader
 
     public void Shutdown(GL4 gl)
     {
-        var g = gl.Gl;
-        g.DetachShader(_shaderProgram, _vertexShader);
-        g.DetachShader(_shaderProgram, _fragmentShader);
-        g.DeleteShader(_vertexShader);
-        g.DeleteShader(_fragmentShader);
-        g.DeleteProgram(_shaderProgram);
+        var glApi = gl.Gl;
+        glApi.DetachShader(_shaderProgram, _vertexShader);
+        glApi.DetachShader(_shaderProgram, _fragmentShader);
+        glApi.DeleteShader(_vertexShader);
+        glApi.DeleteShader(_fragmentShader);
+        glApi.DeleteProgram(_shaderProgram);
     }
 
     public unsafe bool SetShaderParameters(
         GL4 gl,
-        Matrix4X4<float> w,
-        Matrix4X4<float> v,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
         Matrix4X4<float> p,
-        float refrScale
+        float refractionScale
     )
     {
-        var g = gl.Gl;
-        g.UseProgram(_shaderProgram);
+        var glApi = gl.Gl;
+        glApi.UseProgram(_shaderProgram);
         int loc;
-        loc = g.GetUniformLocation(_shaderProgram, "worldMatrix");
+        loc = glApi.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc >= 0)
-            g.UniformMatrix4(loc, 1, false, (float*)&w);
-        loc = g.GetUniformLocation(_shaderProgram, "viewMatrix");
+            glApi.UniformMatrix4(loc, 1, false, (float*)&worldMatrix);
+        loc = glApi.GetUniformLocation(_shaderProgram, "viewMatrix");
         if (loc >= 0)
-            g.UniformMatrix4(loc, 1, false, (float*)&v);
-        loc = g.GetUniformLocation(_shaderProgram, "projectionMatrix");
+            glApi.UniformMatrix4(loc, 1, false, (float*)&viewMatrix);
+        loc = glApi.GetUniformLocation(_shaderProgram, "projectionMatrix");
         if (loc >= 0)
-            g.UniformMatrix4(loc, 1, false, (float*)&p);
-        loc = g.GetUniformLocation(_shaderProgram, "colorTexture");
+            glApi.UniformMatrix4(loc, 1, false, (float*)&projectionMatrix);
+        loc = glApi.GetUniformLocation(_shaderProgram, "colorTexture");
         if (loc >= 0)
-            g.Uniform1(loc, 0);
-        loc = g.GetUniformLocation(_shaderProgram, "normalTexture");
+            glApi.Uniform1(loc, 0);
+        loc = glApi.GetUniformLocation(_shaderProgram, "normalTexture");
         if (loc >= 0)
-            g.Uniform1(loc, 1);
-        loc = g.GetUniformLocation(_shaderProgram, "refractionTexture");
+            glApi.Uniform1(loc, 1);
+        loc = glApi.GetUniformLocation(_shaderProgram, "refractionTexture");
         if (loc >= 0)
-            g.Uniform1(loc, 2);
-        loc = g.GetUniformLocation(_shaderProgram, "refractionScale");
+            glApi.Uniform1(loc, 2);
+        loc = glApi.GetUniformLocation(_shaderProgram, "refractionScale");
         if (loc >= 0)
-            g.Uniform1(loc, refrScale);
+            glApi.Uniform1(loc, refractionScale);
         return true;
     }
 
-    bool Init(GL4 gl, string vsf, string psf)
+    bool Init(GL4 gl, string vertexShaderFile, string pixelShaderFile)
     {
-        var g = gl.Gl;
-        _vertexShader = g.CreateShader(ShaderType.VertexShader);
-        g.ShaderSource(_vertexShader, File.ReadAllText(vsf));
-        g.CompileShader(_vertexShader);
-        g.GetShader(_vertexShader, ShaderParameterName.CompileStatus, out int s);
+        var glApi = gl.Gl;
+        _vertexShader = glApi.CreateShader(ShaderType.VertexShader);
+        glApi.ShaderSource(_vertexShader, File.ReadAllText(vertexShaderFile));
+        glApi.CompileShader(_vertexShader);
+        glApi.GetShader(_vertexShader, ShaderParameterName.CompileStatus, out int s);
         if (s != 1)
         {
-            Console.WriteLine($"VS: {g.GetShaderInfoLog(_vertexShader)}");
+            Console.WriteLine($"VS: {glApi.GetShaderInfoLog(_vertexShader)}");
             return false;
         }
-        _fragmentShader = g.CreateShader(ShaderType.FragmentShader);
-        g.ShaderSource(_fragmentShader, File.ReadAllText(psf));
-        g.CompileShader(_fragmentShader);
-        g.GetShader(_fragmentShader, ShaderParameterName.CompileStatus, out s);
+        _fragmentShader = glApi.CreateShader(ShaderType.FragmentShader);
+        glApi.ShaderSource(_fragmentShader, File.ReadAllText(pixelShaderFile));
+        glApi.CompileShader(_fragmentShader);
+        glApi.GetShader(_fragmentShader, ShaderParameterName.CompileStatus, out s);
         if (s != 1)
         {
-            Console.WriteLine($"PS: {g.GetShaderInfoLog(_fragmentShader)}");
+            Console.WriteLine($"PS: {glApi.GetShaderInfoLog(_fragmentShader)}");
             return false;
         }
-        _shaderProgram = g.CreateProgram();
-        g.AttachShader(_shaderProgram, _vertexShader);
-        g.AttachShader(_shaderProgram, _fragmentShader);
-        g.BindAttribLocation(_shaderProgram, 0, "inputPosition");
-        g.BindAttribLocation(_shaderProgram, 1, "inputTexCoord");
-        g.BindAttribLocation(_shaderProgram, 2, "inputNormal");
-        g.LinkProgram(_shaderProgram);
-        g.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
+        _shaderProgram = glApi.CreateProgram();
+        glApi.AttachShader(_shaderProgram, _vertexShader);
+        glApi.AttachShader(_shaderProgram, _fragmentShader);
+        glApi.BindAttribLocation(_shaderProgram, 0, "inputPosition");
+        glApi.BindAttribLocation(_shaderProgram, 1, "inputTexCoord");
+        glApi.BindAttribLocation(_shaderProgram, 2, "inputNormal");
+        glApi.LinkProgram(_shaderProgram);
+        glApi.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
         if (ls != 1)
         {
-            Console.WriteLine($"Link: {g.GetProgramInfoLog(_shaderProgram)}");
+            Console.WriteLine($"Link: {glApi.GetProgramInfoLog(_shaderProgram)}");
             return false;
         }
         return true;

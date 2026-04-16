@@ -19,16 +19,16 @@ public class SystemFramework
 
     public bool Initialize()
     {
-        int sw = 0,
-            sh = 0;
+        int screenWidth = 0,
+            screenHeight = 0;
         _openGL = new GL4();
-        if (!InitializeWindows(ref sw, ref sh))
+        if (!InitializeWindows(ref screenWidth, ref screenHeight))
             return false;
         if (
             !_openGL.Initialize(
                 _window,
-                sw,
-                sh,
+                screenWidth,
+                screenHeight,
                 SystemConfiguration.ScreenDepth,
                 SystemConfiguration.ScreenNear,
                 SystemConfiguration.VerticalSyncEnabled
@@ -40,7 +40,7 @@ public class SystemFramework
         _timer = new Timer();
         _timer.Initialize();
         _graphics = new GraphicsFramework();
-        if (!_graphics.Initialize(_openGL, sw, sh))
+        if (!_graphics.Initialize(_openGL, screenWidth, screenHeight))
             return false;
         _graphicsInitialized = true;
         return true;
@@ -71,13 +71,13 @@ public class SystemFramework
         return _graphics.Frame(_timer.GetFrameTime());
     }
 
-    private bool InitializeWindows(ref int sw, ref int sh)
+    private bool InitializeWindows(ref int screenWidth, ref int screenHeight)
     {
-        sw = SystemConfiguration.FullScreen ? 1920 : 800;
-        sh = SystemConfiguration.FullScreen ? 1080 : 600;
+        screenWidth = SystemConfiguration.FullScreen ? 1920 : 800;
+        screenHeight = SystemConfiguration.FullScreen ? 1080 : 600;
         var options = WindowOptions.Default;
         options.Title = "Tutorial13 - Sprite Animation (OpenGL)";
-        options.Size = new Vector2D<int>(sw, sh);
+        options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Resizable;
         options.WindowState = SystemConfiguration.FullScreen
             ? WindowState.Fullscreen
@@ -95,8 +95,8 @@ public class SystemFramework
         _window.Closing += OnClosing;
         _window.Initialize();
         _window.Title = "Tutorial13 - Sprite Animation (OpenGL)";
-        sw = _window.Size.X;
-        sh = _window.Size.Y;
+        screenWidth = _window.Size.X;
+        screenHeight = _window.Size.Y;
         return true;
     }
 

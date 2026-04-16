@@ -54,86 +54,86 @@ public class Model
         );
     }
 
-    public void SetTexture(GL4 OpenGL, uint tu)
+    public void SetTexture(GL4 OpenGL, uint textureUnit)
     {
-        _texture?.SetTexture(OpenGL, tu);
+        _texture?.SetTexture(OpenGL, textureUnit);
     }
 
-    private bool LoadModel(string fn)
+    private bool LoadModel(string filename)
     {
-        if (!File.Exists(fn))
+        if (!File.Exists(filename))
         {
-            Console.WriteLine($"Model not found: {fn}");
+            Console.WriteLine($"Model not found: {filename}");
             return false;
         }
-        var lines = File.ReadAllLines(fn);
-        int vc = 0,
-            ds = -1;
+        var lines = File.ReadAllLines(filename);
+        int vertexCount = 0,
+            dataStartIndex = -1;
         for (int i = 0; i < lines.Length; i++)
         {
-            var l = lines[i].Trim();
-            if (l.StartsWith("Vertex Count:"))
-                vc = int.Parse(l.Substring(13).Trim());
-            if (l == "Data:")
+            var line = lines[i].Trim();
+            if (line.StartsWith("Vertex Count:"))
+                vertexCount = int.Parse(line.Substring(13).Trim());
+            if (line == "Data:")
             {
-                ds = i + 1;
+                dataStartIndex = i + 1;
                 break;
             }
         }
-        if (vc == 0 || ds < 0)
+        if (vertexCount == 0 || dataStartIndex < 0)
             return false;
-        _vertexCount = vc;
-        _indexCount = vc;
-        _modelData = new float[vc * 8];
-        int vi = 0;
-        for (int i = ds; i < lines.Length && vi < vc; i++)
+        _vertexCount = vertexCount;
+        _indexCount = vertexCount;
+        _modelData = new float[vertexCount * 8];
+        int vertexIndex = 0;
+        for (int i = dataStartIndex; i < lines.Length && vertexIndex < vertexCount; i++)
         {
-            var l = lines[i].Trim();
-            if (string.IsNullOrEmpty(l))
+            var line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line))
                 continue;
-            var p = l.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (p.Length < 8)
+            var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 8)
                 continue;
-            int o = vi * 8;
-            _modelData[o] = float.Parse(p[0]);
-            _modelData[o + 1] = float.Parse(p[1]);
-            _modelData[o + 2] = float.Parse(p[2]);
-            _modelData[o + 3] = float.Parse(p[3]);
-            _modelData[o + 4] = float.Parse(p[4]);
-            _modelData[o + 5] = float.Parse(p[5]);
-            _modelData[o + 6] = float.Parse(p[6]);
-            _modelData[o + 7] = float.Parse(p[7]);
-            vi++;
+            int offset = vertexIndex * 8;
+            _modelData[offset] = float.Parse(parts[0]);
+            _modelData[offset + 1] = float.Parse(parts[1]);
+            _modelData[offset + 2] = float.Parse(parts[2]);
+            _modelData[offset + 3] = float.Parse(parts[3]);
+            _modelData[offset + 4] = float.Parse(parts[4]);
+            _modelData[offset + 5] = float.Parse(parts[5]);
+            _modelData[offset + 6] = float.Parse(parts[6]);
+            _modelData[offset + 7] = float.Parse(parts[7]);
+            vertexIndex++;
         }
-        return vi == vc;
+        return vertexIndex == vertexCount;
     }
 
     private unsafe bool InitBuffers(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        var v = new VertexType[_vertexCount];
-        var idx = new uint[_indexCount];
+        var vertices = new VertexType[_vertexCount];
+        var indices = new uint[_indexCount];
         for (int i = 0; i < _vertexCount; i++)
         {
-            int o = i * 8;
-            v[i].x = _modelData[o];
-            v[i].y = _modelData[o + 1];
-            v[i].z = _modelData[o + 2];
-            v[i].tu = _modelData[o + 3];
-            v[i].tv = _modelData[o + 4];
-            v[i].nx = _modelData[o + 5];
-            v[i].ny = _modelData[o + 6];
-            v[i].nz = _modelData[o + 7];
-            idx[i] = (uint)i;
+            int offset = i * 8;
+            vertices[i].x = _modelData[offset];
+            vertices[i].y = _modelData[offset + 1];
+            vertices[i].z = _modelData[offset + 2];
+            vertices[i].tu = _modelData[offset + 3];
+            vertices[i].tv = _modelData[offset + 4];
+            vertices[i].nx = _modelData[offset + 5];
+            vertices[i].ny = _modelData[offset + 6];
+            vertices[i].nz = _modelData[offset + 7];
+            indices[i] = (uint)i;
         }
         _vertexArrayId = gl.GenVertexArray();
         gl.BindVertexArray(_vertexArrayId);
         _vertexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
-        fixed (VertexType* p = v)
+        fixed (VertexType* p = vertices)
             gl.BufferData(
                 BufferTargetARB.ArrayBuffer,
-                (nuint)(sizeof(VertexType) * v.Length),
+                (nuint)(sizeof(VertexType) * vertices.Length),
                 p,
                 BufferUsageARB.StaticDraw
             );
@@ -166,10 +166,10 @@ public class Model
         );
         _indexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
-        fixed (uint* p = idx)
+        fixed (uint* p = indices)
             gl.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
-                (nuint)(sizeof(uint) * idx.Length),
+                (nuint)(sizeof(uint) * indices.Length),
                 p,
                 BufferUsageARB.StaticDraw
             );

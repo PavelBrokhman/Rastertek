@@ -20,7 +20,7 @@ public class GraphicsFramework
     private float _waterHeight = 2.75f,
         _waterTranslation;
 
-    public bool Initialize(GL4 OpenGL, int sw, int sh)
+    public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
         _openGL = OpenGL;
         _camera = new Camera();
@@ -50,8 +50,8 @@ public class GraphicsFramework
         if (
             !_refractionTexture.Initialize(
                 OpenGL,
-                sw,
-                sh,
+                screenWidth,
+                screenHeight,
                 SystemConfiguration.ScreenNear,
                 SystemConfiguration.ScreenDepth
             )
@@ -61,8 +61,8 @@ public class GraphicsFramework
         if (
             !_reflectionTexture.Initialize(
                 OpenGL,
-                sw,
-                sh,
+                screenWidth,
+                screenHeight,
                 SystemConfiguration.ScreenNear,
                 SystemConfiguration.ScreenDepth
             )

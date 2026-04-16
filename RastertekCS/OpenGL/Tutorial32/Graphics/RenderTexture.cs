@@ -12,7 +12,7 @@ public class RenderTexture
         _textureHeight;
     private Matrix4X4<float> _projectionMatrix;
 
-    public unsafe bool Initialize(GL4 gl, int tw, int th, float sn, float sd)
+    public unsafe bool Initialize(GL4 gl, int tw, int th, float screenNear, float screenDepth)
     {
         var g = gl.Gl;
         _textureWidth = tw;
@@ -68,7 +68,12 @@ public class RenderTexture
         fixed (GLEnum* p = db)
             g.DrawBuffers(1, p);
         g.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4f, (float)tw / th, sn, sd);
+        _projectionMatrix = PerspectiveFovLH(
+            MathF.PI / 4f,
+            (float)tw / th,
+            screenNear,
+            screenDepth
+        );
         return true;
     }
 

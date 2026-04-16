@@ -14,7 +14,7 @@ public class GraphicsFramework
     private GlassShader _glassShader;
     private float _rotation = 360f;
 
-    public bool Initialize(GL4 gl, int sw, int sh)
+    public bool Initialize(GL4 gl, int screenWidth, int screenHeight)
     {
         _gl = gl;
         _camera = new Camera();
@@ -48,8 +48,8 @@ public class GraphicsFramework
         if (
             !_renderTexture.Initialize(
                 gl,
-                sw,
-                sh,
+                screenWidth,
+                screenHeight,
                 SystemConfiguration.ScreenNear,
                 SystemConfiguration.ScreenDepth
             )

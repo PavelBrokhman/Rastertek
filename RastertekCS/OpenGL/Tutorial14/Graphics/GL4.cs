@@ -14,7 +14,14 @@ public class GL4
 
     public GL Gl => _gl;
 
-    public bool Initialize(IWindow window, int sw, int sh, float sd, float sn, bool vsync)
+    public bool Initialize(
+        IWindow window,
+        int screenWidth,
+        int screenHeight,
+        float screenDepth,
+        float screenNear,
+        bool vsync
+    )
     {
         _gl = GL.GetApi(window);
         var vendor = _gl.GetStringS(StringName.Vendor) ?? "";
@@ -27,14 +34,14 @@ public class GL4
         _gl.FrontFace(FrontFaceDirection.CW);
         _gl.Enable(EnableCap.CullFace);
         _gl.CullFace(TriangleFace.Back);
-        _gl.Viewport(0, 0, (uint)sw, (uint)sh);
+        _gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
 
         _worldMatrix = Matrix4X4<float>.Identity;
 
         float fov = MathF.PI / 4.0f;
-        float aspect = (float)sw / sh;
-        BuildPerspectiveFovLH(out _projectionMatrix, fov, aspect, sn, sd);
-        BuildOrthoLH(out _orthoMatrix, sw, sh, sn, sd);
+        float aspect = (float)screenWidth / screenHeight;
+        BuildPerspectiveFovLH(out _projectionMatrix, fov, aspect, screenNear, screenDepth);
+        BuildOrthoLH(out _orthoMatrix, screenWidth, screenHeight, screenNear, screenDepth);
 
         _ = vsync;
         return true;

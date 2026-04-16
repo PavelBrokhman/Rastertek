@@ -18,16 +18,16 @@ public class SystemFramework
 
     public bool Initialize()
     {
-        int sw = 0,
-            sh = 0;
+        int screenWidth = 0,
+            screenHeight = 0;
         _openGL = new GL4();
-        if (!InitWin(ref sw, ref sh))
+        if (!InitWin(ref screenWidth, ref screenHeight))
             return false;
         if (
             !_openGL.Initialize(
                 _window,
-                sw,
-                sh,
+                screenWidth,
+                screenHeight,
                 SystemConfiguration.ScreenDepth,
                 SystemConfiguration.ScreenNear,
                 SystemConfiguration.VerticalSyncEnabled
@@ -37,7 +37,7 @@ public class SystemFramework
         _input = new Input();
         _input.Initialize();
         _graphics = new GraphicsFramework();
-        if (!_graphics.Initialize(_openGL, sw, sh))
+        if (!_graphics.Initialize(_openGL, screenWidth, screenHeight))
             return false;
         _initialized = true;
         return true;
@@ -61,13 +61,13 @@ public class SystemFramework
         _window.Run();
     }
 
-    private bool InitWin(ref int sw, ref int sh)
+    private bool InitWin(ref int screenWidth, ref int screenHeight)
     {
-        sw = 800;
-        sh = 600;
+        screenWidth = 800;
+        screenHeight = 600;
         var o = WindowOptions.Default;
         o.Title = "Tutorial 32";
-        o.Size = new Vector2D<int>(sw, sh);
+        o.Size = new Vector2D<int>(screenWidth, screenHeight);
         o.WindowBorder = WindowBorder.Resizable;
         o.VSync = SystemConfiguration.VerticalSyncEnabled;
         o.API = new GraphicsAPI(
@@ -81,8 +81,8 @@ public class SystemFramework
         _window.Render += OnRender;
         _window.Closing += OnClosing;
         _window.Initialize();
-        sw = _window.Size.X;
-        sh = _window.Size.Y;
+        screenWidth = _window.Size.X;
+        screenHeight = _window.Size.Y;
         return true;
     }
 

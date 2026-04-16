@@ -15,25 +15,37 @@ public class GL4
 
     public GL Gl => _gl;
 
-    public bool Initialize(IWindow window, int sw, int sh, float sd, float sn, bool vsync)
+    public bool Initialize(
+        IWindow window,
+        int screenWidth,
+        int screenHeight,
+        float screenDepth,
+        float screenNear,
+        bool vsync
+    )
     {
         _gl = GL.GetApi(window);
         var vendor = _gl.GetStringS(StringName.Vendor) ?? "";
         var renderer = _gl.GetStringS(StringName.Renderer) ?? "";
         _videoCardDescription = vendor + " - " + renderer;
 
-        _screenWidth = sw;
-        _screenHeight = sh;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
 
         _gl.ClearDepth(1.0f);
         _gl.Enable(EnableCap.DepthTest);
         _gl.FrontFace(FrontFaceDirection.CW);
         _gl.Enable(EnableCap.CullFace);
         _gl.CullFace(TriangleFace.Back);
-        _gl.Viewport(0, 0, (uint)sw, (uint)sh);
+        _gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
 
         _worldMatrix = Matrix4X4<float>.Identity;
-        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
+        _projectionMatrix = PerspectiveFovLH(
+            MathF.PI / 4.0f,
+            (float)screenWidth / screenHeight,
+            screenNear,
+            screenDepth
+        );
         _ = vsync;
         return true;
     }
