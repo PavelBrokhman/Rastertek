@@ -37,7 +37,7 @@ public class SystemFramework
         sw = SystemConfiguration.FullScreen ? 1920 : 800; sh = SystemConfiguration.FullScreen ? 1080 : 600;
         var options = WindowOptions.Default;
         options.Title = "Tutorial 31 - Water";
-        options.Size = new Vector2D<int>(sw, sh); options.WindowBorder = WindowBorder.Fixed;
+        options.Size = new Vector2D<int>(sw, sh); options.WindowBorder = WindowBorder.Resizable;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
         options.VSync = SystemConfiguration.VerticalSyncEnabled;
         options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new APIVersion(4, 0));

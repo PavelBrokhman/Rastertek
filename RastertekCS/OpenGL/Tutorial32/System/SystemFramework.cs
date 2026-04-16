@@ -24,7 +24,7 @@ public class SystemFramework
     public void Run() { m_done = false; m_window.Run(); }
     private bool InitWin(ref int sw, ref int sh)
     {
-        sw = 800; sh = 600; var o = WindowOptions.Default; o.Title = "Tutorial 32"; o.Size = new Vector2D<int>(sw, sh); o.WindowBorder = WindowBorder.Fixed;
+        sw = 800; sh = 600; var o = WindowOptions.Default; o.Title = "Tutorial 32"; o.Size = new Vector2D<int>(sw, sh); o.WindowBorder = WindowBorder.Resizable;
         o.VSync = SystemConfiguration.VerticalSyncEnabled;
         o.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new APIVersion(4, 0));
         m_window = Window.Create(o); m_window.Load += OnLoad; m_window.Render += OnRender; m_window.Closing += OnClosing;

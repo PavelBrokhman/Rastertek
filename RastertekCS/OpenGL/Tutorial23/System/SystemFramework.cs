@@ -51,7 +51,7 @@ public class SystemFramework
         var options = WindowOptions.Default;
         options.Title = "Tutorial 23 - Frustum Culling";
         options.Size = new Vector2D<int>(sw, sh);
-        options.WindowBorder = WindowBorder.Fixed;
+        options.WindowBorder = WindowBorder.Resizable;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
         options.VSync = SystemConfiguration.VerticalSyncEnabled;
         options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core,

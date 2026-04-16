@@ -27,7 +27,7 @@ public class SystemFramework
     private bool InitializeWindows(ref int sw, ref int sh)
     {
         sw = SystemConfiguration.FullScreen ? 1920 : 800; sh = SystemConfiguration.FullScreen ? 1080 : 600;
-        var o = WindowOptions.Default; o.Title = "Tutorial38"; o.Size = new Vector2D<int>(sw, sh); o.WindowBorder = WindowBorder.Fixed;
+        var o = WindowOptions.Default; o.Title = "Tutorial38"; o.Size = new Vector2D<int>(sw, sh); o.WindowBorder = WindowBorder.Resizable;
         o.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
         o.VSync = SystemConfiguration.VerticalSyncEnabled;
         o.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new APIVersion(4, 0));

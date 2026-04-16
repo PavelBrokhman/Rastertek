@@ -21,7 +21,7 @@ LOGFILE="$SCRIPT_DIR/build_log.txt"
 
     echo "--- RUN ---"
     cd "$SCRIPT_DIR/bin/Debug/net8.0"
-    dotnet Tutorial33.dll 2>&1
+    unset WAYLAND_DISPLAY && dotnet Tutorial33.dll 2>&1
     echo "EXIT CODE: $?"
 
     echo "============================================================"

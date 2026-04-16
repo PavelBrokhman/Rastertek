@@ -54,7 +54,7 @@ public class SystemFramework
         var options = WindowOptions.Default;
         options.Title = "Tutorial06";
         options.Size = new Vector2D<int>(sw, sh);
-        options.WindowBorder = WindowBorder.Fixed;
+        options.WindowBorder = WindowBorder.Resizable;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
         options.VSync = SystemConfiguration.VerticalSyncEnabled;
         options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core,

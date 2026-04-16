@@ -96,7 +96,7 @@ public class SystemClass
         var options = WindowOptions.Default;
         options.Title = "Engine";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
-        options.WindowBorder = WindowBorder.Fixed;
+        options.WindowBorder = WindowBorder.Resizable;
         options.WindowState = GraphicsClass.FULL_SCREEN ? WindowState.Fullscreen : WindowState.Normal;
         options.VSync = GraphicsClass.VSYNC_ENABLED;
         options.API = new GraphicsAPI(
