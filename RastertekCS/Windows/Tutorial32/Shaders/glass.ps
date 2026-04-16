@@ -1,0 +1,47 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: glass.ps
+////////////////////////////////////////////////////////////////////////////////
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer RefractionScaleBuffer : register(b0)
+{
+    float refractionScale;
+    float3 padding;
+};
+
+Texture2D colorTexture    : register(t0);
+Texture2D normalTexture   : register(t1);
+Texture2D refractionTexture : register(t2);
+SamplerState SampleType   : register(s0);
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float4 refractionPosition : TEXCOORD1;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+float4 GlassPixelShader(PixelInputType input) : SV_TARGET
+{
+    float2 refractTexCoord;
+    refractTexCoord.x =  input.refractionPosition.x / input.refractionPosition.w * 0.5f + 0.5f;
+    refractTexCoord.y = -input.refractionPosition.y / input.refractionPosition.w * 0.5f + 0.5f;
+
+    float4 normalMap = normalTexture.Sample(SampleType, input.tex);
+    float3 normal = normalMap.xyz * 2.0f - 1.0f;
+
+    refractTexCoord += normal.xy * refractionScale;
+
+    float4 refractionColor = refractionTexture.Sample(SampleType, refractTexCoord);
+    float4 textureColor    = colorTexture.Sample(SampleType, input.tex);
+
+    return lerp(refractionColor, textureColor, 0.5f);
+}
