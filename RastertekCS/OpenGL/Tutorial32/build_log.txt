@@ -1,0 +1,31 @@
+============================================================ 
+Tutorial32 - 2026-04-15 20:26:03.10 
+dotnet version: 
+10.0.201
+OS: 
+
+Microsoft Windows [Version 10.0.22631.6199]
+============================================================ 
+--- RESTORE --- 
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+--- BUILD --- 
+D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Graphics\Camera.cs(5,43): warning CS0649: Field 'Camera.m_ry' is never assigned to, and will always have its default value 0 [D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Tutorial32.csproj]
+D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Graphics\Camera.cs(5,49): warning CS0649: Field 'Camera.m_rz' is never assigned to, and will always have its default value 0 [D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Tutorial32.csproj]
+D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Graphics\Camera.cs(5,37): warning CS0649: Field 'Camera.m_rx' is never assigned to, and will always have its default value 0 [D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Tutorial32.csproj]
+  Tutorial32 -> D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\bin\Debug\net8.0\Tutorial32.dll
+
+Build succeeded.
+
+D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Graphics\Camera.cs(5,43): warning CS0649: Field 'Camera.m_ry' is never assigned to, and will always have its default value 0 [D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Tutorial32.csproj]
+D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Graphics\Camera.cs(5,49): warning CS0649: Field 'Camera.m_rz' is never assigned to, and will always have its default value 0 [D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Tutorial32.csproj]
+D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Graphics\Camera.cs(5,37): warning CS0649: Field 'Camera.m_rx' is never assigned to, and will always have its default value 0 [D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial32\Tutorial32.csproj]
+    3 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.05
+--- RUN --- 
+EXIT CODE: -1073741819 
+============================================================ 
+Finished: 2026-04-15 20:26:20.57 
+============================================================ 
