@@ -1,5 +1,5 @@
 ============================================================ 
-Tutorial32 - 2026-04-15 20:31:23.56 
+Tutorial33 - 2026-04-15 22:26:11.65 
 dotnet version: 
 10.0.201
 OS: 
@@ -10,15 +10,15 @@ Microsoft Windows [Version 10.0.22631.6199]
   Determining projects to restore...
   All projects are up-to-date for restore.
 --- BUILD --- 
-  Tutorial32 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial32\bin\Debug\net8.0\Tutorial32.dll
+  Tutorial33 -> D:\Projects\Rastertek\RastertekCS\Windows\Tutorial33\bin\Debug\net8.0\Tutorial33.dll
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:00.68
+Time Elapsed 00:00:00.67
 --- RUN --- 
 EXIT CODE: 0 
 ============================================================ 
-Finished: 2026-04-15 20:31:31.18 
+Finished: 2026-04-15 22:26:16.55 
 ============================================================ 
