@@ -36,20 +36,20 @@ public class Texture
                 PixelType.UnsignedByte,
                 p
             );
-        g.GenerateMipmap(TextureTarget.Texture2D);
         var wm = wrap ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToEdge;
         g.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, wm);
         g.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, wm);
         g.TexParameter(
             TextureTarget.Texture2D,
-            TextureParameterName.TextureMinFilter,
-            (int)TextureMinFilter.LinearMipmapLinear
-        );
-        g.TexParameter(
-            TextureTarget.Texture2D,
             TextureParameterName.TextureMagFilter,
             (int)TextureMagFilter.Linear
         );
+        g.TexParameter(
+            TextureTarget.Texture2D,
+            TextureParameterName.TextureMinFilter,
+            (int)TextureMinFilter.LinearMipmapLinear
+        );
+        g.GenerateMipmap(TextureTarget.Texture2D);
         _loaded = true;
         return true;
     }
@@ -72,39 +72,40 @@ public class Texture
         }
     }
 
-    static bool LoadTga(string fn, out int w, out int h, out byte[] rgba)
+    static bool LoadTga(string filename, out int width, out int height, out byte[] rgbaData)
     {
-        w = 0;
-        h = 0;
-        rgba = null;
-        var d = File.ReadAllBytes(fn);
-        if (d.Length < 18)
+        width = 0;
+        height = 0;
+        rgbaData = null;
+        var fileData = File.ReadAllBytes(filename);
+        if (fileData.Length < 18)
             return false;
-        int il = d[0],
-            it = d[2],
-            bpp = d[16],
-            desc = d[17];
-        w = d[12] | (d[13] << 8);
-        h = d[14] | (d[15] << 8);
-        if (it != 2 || (bpp != 24 && bpp != 32))
+        int imageIdLength = fileData[0];
+        int imageType = fileData[2];
+        int bpp = fileData[16];
+        width = fileData[12] | (fileData[13] << 8);
+        height = fileData[14] | (fileData[15] << 8);
+        if (imageType != 2 || (bpp != 24 && bpp != 32))
             return false;
-        int off = 18 + il,
-            ch = bpp / 8,
-            pc = w * h;
-        if (d.Length < off + pc * ch)
+        int pixelDataOffset = 18 + imageIdLength;
+        int channels = bpp / 8;
+        int pixelCount = width * height;
+        if (fileData.Length < pixelDataOffset + pixelCount * channels)
             return false;
-        rgba = new byte[pc * 4];
-        for (int y = 0; y < h; y++)
+        rgbaData = new byte[pixelCount * 4];
+        // TGA stores rows bottom-to-top. Our LH projection maps V=0 to the visual top,
+        // so we flip vertically here to compensate (C++ GL skips this flip because V=0=bottom).
+        for (int destRow = 0; destRow < height; destRow++)
         {
-            int sr = h - 1 - y;
-            int so = off + sr * w * ch;
-            int doff = y * w * 4;
-            for (int x = 0; x < w; x++)
+            int srcRow = height - 1 - destRow;
+            int srcOffset = pixelDataOffset + srcRow * width * channels;
+            int destOffset = destRow * width * 4;
+            for (int x = 0; x < width; x++)
             {
-                rgba[doff + x * 4] = d[so + x * ch + 2];
-                rgba[doff + x * 4 + 1] = d[so + x * ch + 1];
-                rgba[doff + x * 4 + 2] = d[so + x * ch];
-                rgba[doff + x * 4 + 3] = ch == 4 ? d[so + x * ch + 3] : (byte)255;
+                rgbaData[destOffset + x * 4 + 0] = fileData[srcOffset + x * channels + 2]; // R <- B
+                rgbaData[destOffset + x * 4 + 1] = fileData[srcOffset + x * channels + 1]; // G <- G
+                rgbaData[destOffset + x * 4 + 2] = fileData[srcOffset + x * channels + 0]; // B <- R
+                rgbaData[destOffset + x * 4 + 3] = channels == 4 ? fileData[srcOffset + x * channels + 3] : (byte)255;
             }
         }
         return true;
