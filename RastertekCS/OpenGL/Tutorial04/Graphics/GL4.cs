@@ -15,8 +15,14 @@ public class GL4
 
     public GL Gl => m_gl;
 
-    public bool Initialize(IWindow window, int screenWidth, int screenHeight,
-                           float screenDepth, float screenNear, bool vsync)
+    public bool Initialize(
+        IWindow window,
+        int screenWidth,
+        int screenHeight,
+        float screenDepth,
+        float screenNear,
+        bool vsync
+    )
     {
         m_window = window;
         m_gl = GL.GetApi(window);
@@ -54,21 +60,42 @@ public class GL4
         m_gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
-    public void EndScene() { /* SwapBuffers выполняет Silk.NET */ }
+    public void EndScene() { /* SwapBuffers выполняет Silk.NET */
+    }
 
     public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
     public string GetVideoCardInfo() => m_videoCardDescription;
 
-    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    private static Matrix4X4<float> PerspectiveFovLH(
+        float fov,
+        float aspect,
+        float nearZ,
+        float farZ
+    )
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);
         float w = h / aspect;
         float range = farZ / (farZ - nearZ);
         return new Matrix4X4<float>(
-            w, 0, 0, 0,
-            0, h, 0, 0,
-            0, 0, range, 1,
-            0, 0, -range * nearZ, 0);
+            w,
+            0,
+            0,
+            0,
+            0,
+            h,
+            0,
+            0,
+            0,
+            0,
+            range,
+            1,
+            0,
+            0,
+            -range * nearZ,
+            0
+        );
     }
 }

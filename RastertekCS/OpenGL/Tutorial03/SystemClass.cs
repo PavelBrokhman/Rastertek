@@ -33,9 +33,16 @@ public class SystemClass
 
         // Инициализируем OpenGL (делается здесь после создания окна,
         // так как нужны screenWidth/Height и контекст окна).
-        if (!m_OpenGL.Initialize(m_window, screenWidth, screenHeight,
-                                 GraphicsClass.SCREEN_DEPTH, GraphicsClass.SCREEN_NEAR,
-                                 GraphicsClass.VSYNC_ENABLED))
+        if (
+            !m_OpenGL.Initialize(
+                m_window,
+                screenWidth,
+                screenHeight,
+                GraphicsClass.SCREEN_DEPTH,
+                GraphicsClass.SCREEN_NEAR,
+                GraphicsClass.VSYNC_ENABLED
+            )
+        )
         {
             Console.WriteLine("Не удалось инициализировать OpenGL.");
             return false;
@@ -97,13 +104,16 @@ public class SystemClass
         options.Title = "Engine";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Resizable;
-        options.WindowState = GraphicsClass.FULL_SCREEN ? WindowState.Fullscreen : WindowState.Normal;
+        options.WindowState = GraphicsClass.FULL_SCREEN
+            ? WindowState.Fullscreen
+            : WindowState.Normal;
         options.VSync = GraphicsClass.VSYNC_ENABLED;
         options.API = new GraphicsAPI(
             ContextAPI.OpenGL,
             ContextProfile.Core,
             ContextFlags.ForwardCompatible,
-            new APIVersion(4, 0));
+            new APIVersion(4, 0)
+        );
 
         m_window = Window.Create(options);
 

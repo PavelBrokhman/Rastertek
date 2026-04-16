@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -23,5 +22,4 @@
     <None Update="Shaders\Color.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Color.ps" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
 </Project>

@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -22,11 +21,30 @@
   <ItemGroup>
     <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Sprite.txt" Link="Data\Sprite.txt" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Sprite01.tga" Link="Textures\Sprite01.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Sprite02.tga" Link="Textures\Sprite02.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Sprite03.tga" Link="Textures\Sprite03.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Sprite04.tga" Link="Textures\Sprite04.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None
+      Include="..\..\Assets\Data\Sprite.txt"
+      Link="Data\Sprite.txt"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\Sprite01.tga"
+      Link="Textures\Sprite01.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\Sprite02.tga"
+      Link="Textures\Sprite02.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\Sprite03.tga"
+      Link="Textures\Sprite03.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\Sprite04.tga"
+      Link="Textures\Sprite04.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
   </ItemGroup>
-
 </Project>

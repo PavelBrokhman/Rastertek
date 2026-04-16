@@ -18,7 +18,8 @@ public class SystemFramework
 
     public bool Initialize()
     {
-        int screenWidth = 0, screenHeight = 0;
+        int screenWidth = 0,
+            screenHeight = 0;
         m_DirectX = new DX11();
 
         if (!InitializeWindows(ref screenWidth, ref screenHeight))
@@ -27,10 +28,16 @@ public class SystemFramework
             return false;
         }
 
-        if (!m_DirectX.Initialize(m_window, screenWidth, screenHeight,
-                                   SystemConfiguration.ScreenDepth,
-                                   SystemConfiguration.ScreenNear,
-                                   SystemConfiguration.VerticalSyncEnabled))
+        if (
+            !m_DirectX.Initialize(
+                m_window,
+                screenWidth,
+                screenHeight,
+                SystemConfiguration.ScreenDepth,
+                SystemConfiguration.ScreenNear,
+                SystemConfiguration.VerticalSyncEnabled
+            )
+        )
         {
             Console.WriteLine("Could not initialize Direct3D.");
             return false;
@@ -40,7 +47,8 @@ public class SystemFramework
         m_Input.Initialize();
 
         m_Graphics = new GraphicsFramework();
-        if (!m_Graphics.Initialize(m_DirectX)) return false;
+        if (!m_Graphics.Initialize(m_DirectX))
+            return false;
         m_graphicsInitialized = true;
 
         return true;
@@ -64,7 +72,8 @@ public class SystemFramework
 
     private bool Frame()
     {
-        if (m_Input.IsKeyDown(Key.Escape)) return false;
+        if (m_Input.IsKeyDown(Key.Escape))
+            return false;
         return m_Graphics.Frame();
     }
 
@@ -77,7 +86,9 @@ public class SystemFramework
         options.Title = "Tutorial05 - DirectX";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
-        options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
+        options.WindowState = SystemConfiguration.FullScreen
+            ? WindowState.Fullscreen
+            : WindowState.Normal;
         options.VSync = SystemConfiguration.VerticalSyncEnabled;
         options.API = GraphicsAPI.None;
 
@@ -112,7 +123,8 @@ public class SystemFramework
 
     private void OnRender(double deltaTime)
     {
-        if (!m_graphicsInitialized || m_done) return;
+        if (!m_graphicsInitialized || m_done)
+            return;
         if (!Frame())
         {
             m_done = true;

@@ -18,7 +18,8 @@ public class GraphicsFramework
     private Position m_Position;
     private ModelList m_ModelList;
     private Frustum m_Frustum;
-    private int m_screenWidth, m_screenHeight;
+    private int m_screenWidth,
+        m_screenHeight;
 
     public bool Initialize(DX11 DirectX, Input input, int screenWidth, int screenHeight)
     {
@@ -32,24 +33,42 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/sphere.txt", "Data/stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/sphere.txt", "Data/stone01.tga", true))
+            return false;
 
         m_Light = new Light();
         m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
         m_Light.SetDirection(0.0f, 0.0f, 1.0f);
 
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(DirectX)) return false;
+        if (!m_LightShader.Initialize(DirectX))
+            return false;
 
         m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(DirectX)) return false;
+        if (!m_FontShader.Initialize(DirectX))
+            return false;
 
         m_Font = new Font();
-        if (!m_Font.Initialize(DirectX, 0)) return false;
+        if (!m_Font.Initialize(DirectX, 0))
+            return false;
 
         m_RenderCountString = new Text();
-        if (!m_RenderCountString.Initialize(DirectX, screenWidth, screenHeight, 32, m_Font,
-                                             "Render Count: 0", 10, 10, 1.0f, 1.0f, 1.0f)) return false;
+        if (
+            !m_RenderCountString.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                32,
+                m_Font,
+                "Render Count: 0",
+                10,
+                10,
+                1.0f,
+                1.0f,
+                1.0f
+            )
+        )
+            return false;
 
         m_Position = new Position();
         m_ModelList = new ModelList();
@@ -112,8 +131,17 @@ public class GraphicsFramework
                 var worldT = Matrix4X4.CreateTranslation(px, py, pz);
                 m_Model.Render(m_DirectX);
                 m_Model.SetTexture(m_DirectX, 0);
-                if (!m_LightShader.Render(m_DirectX, m_Model.GetIndexCount(), worldT, view, projection,
-                    m_Light.GetDirection(), m_Light.GetDiffuseColor()))
+                if (
+                    !m_LightShader.Render(
+                        m_DirectX,
+                        m_Model.GetIndexCount(),
+                        worldT,
+                        view,
+                        projection,
+                        m_Light.GetDirection(),
+                        m_Light.GetDiffuseColor()
+                    )
+                )
                     return false;
                 renderCount++;
             }
@@ -122,11 +150,28 @@ public class GraphicsFramework
         m_DirectX.TurnZBufferOff();
         m_DirectX.EnableAlphaBlending();
 
-        m_RenderCountString.UpdateText(m_DirectX, m_Font, $"Render Count: {renderCount}", 10, 10, 1.0f, 1.0f, 1.0f);
+        m_RenderCountString.UpdateText(
+            m_DirectX,
+            m_Font,
+            $"Render Count: {renderCount}",
+            10,
+            10,
+            1.0f,
+            1.0f,
+            1.0f
+        );
         m_Font.SetTexture(m_DirectX, 0);
         m_RenderCountString.Render(m_DirectX);
-        if (!m_FontShader.Render(m_DirectX, m_RenderCountString.GetIndexCount(), world, view, ortho,
-                                  m_RenderCountString.GetPixelColor()))
+        if (
+            !m_FontShader.Render(
+                m_DirectX,
+                m_RenderCountString.GetIndexCount(),
+                world,
+                view,
+                ortho,
+                m_RenderCountString.GetPixelColor()
+            )
+        )
             return false;
 
         m_DirectX.DisableAlphaBlending();

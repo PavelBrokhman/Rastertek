@@ -1,5 +1,5 @@
-using Silk.NET.Maths;
 using RastertekCS.OpenGL.Tutorial30.System;
+using Silk.NET.Maths;
 
 namespace RastertekCS.OpenGL.Tutorial30.Graphics;
 
@@ -7,7 +7,8 @@ public class GraphicsFramework
 {
     private GL4 m_OpenGL;
     private Camera m_Camera;
-    private Model m_CubeModel, m_FloorModel;
+    private Model m_CubeModel,
+        m_FloorModel;
     private TextureShader m_TextureShader;
     private ReflectionShader m_ReflectionShader;
     private RenderTexture m_RenderTexture;
@@ -21,39 +22,59 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_CubeModel = new Model();
-        if (!m_CubeModel.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga", true)) return false;
+        if (!m_CubeModel.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga", true))
+            return false;
 
         m_FloorModel = new Model();
-        if (!m_FloorModel.Initialize(OpenGL, "Models/floor.txt", "Data/blue01.tga", true)) return false;
+        if (!m_FloorModel.Initialize(OpenGL, "Models/floor.txt", "Data/blue01.tga", true))
+            return false;
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL)) return false;
+        if (!m_TextureShader.Initialize(OpenGL))
+            return false;
 
         m_ReflectionShader = new ReflectionShader();
-        if (!m_ReflectionShader.Initialize(OpenGL)) return false;
+        if (!m_ReflectionShader.Initialize(OpenGL))
+            return false;
 
         m_RenderTexture = new RenderTexture();
-        if (!m_RenderTexture.Initialize(OpenGL, screenWidth, screenHeight,
-            SystemConfiguration.ScreenNear, SystemConfiguration.ScreenDepth)) return false;
+        if (
+            !m_RenderTexture.Initialize(
+                OpenGL,
+                screenWidth,
+                screenHeight,
+                SystemConfiguration.ScreenNear,
+                SystemConfiguration.ScreenDepth
+            )
+        )
+            return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_RenderTexture?.Shutdown(m_OpenGL); m_RenderTexture = null;
-        m_ReflectionShader?.Shutdown(m_OpenGL); m_ReflectionShader = null;
-        m_TextureShader?.Shutdown(m_OpenGL); m_TextureShader = null;
-        m_FloorModel?.Shutdown(m_OpenGL); m_FloorModel = null;
-        m_CubeModel?.Shutdown(m_OpenGL); m_CubeModel = null;
-        m_Camera = null; m_OpenGL = null;
+        m_RenderTexture?.Shutdown(m_OpenGL);
+        m_RenderTexture = null;
+        m_ReflectionShader?.Shutdown(m_OpenGL);
+        m_ReflectionShader = null;
+        m_TextureShader?.Shutdown(m_OpenGL);
+        m_TextureShader = null;
+        m_FloorModel?.Shutdown(m_OpenGL);
+        m_FloorModel = null;
+        m_CubeModel?.Shutdown(m_OpenGL);
+        m_CubeModel = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f) m_rotation += MathF.Tau;
-        if (!RenderReflectionToTexture(m_rotation)) return false;
+        if (m_rotation < 0.0f)
+            m_rotation += MathF.Tau;
+        if (!RenderReflectionToTexture(m_rotation))
+            return false;
         return Render(m_rotation);
     }
 

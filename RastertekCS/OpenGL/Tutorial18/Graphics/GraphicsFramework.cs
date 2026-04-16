@@ -19,21 +19,33 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/square.txt",
-            "Data/stone01.tga", TEXTURE_UNIT_1,
-            "Data/light01.tga", TEXTURE_UNIT_2)) return false;
+        if (
+            !m_Model.Initialize(
+                OpenGL,
+                "Models/square.txt",
+                "Data/stone01.tga",
+                TEXTURE_UNIT_1,
+                "Data/light01.tga",
+                TEXTURE_UNIT_2
+            )
+        )
+            return false;
 
         m_LightMapShader = new LightMapShader();
-        if (!m_LightMapShader.Initialize(OpenGL)) return false;
+        if (!m_LightMapShader.Initialize(OpenGL))
+            return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_LightMapShader?.Shutdown(m_OpenGL); m_LightMapShader = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
-        m_Camera = null; m_OpenGL = null;
+        m_LightMapShader?.Shutdown(m_OpenGL);
+        m_LightMapShader = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame() => Render();
@@ -49,8 +61,17 @@ public class GraphicsFramework
         m_LightMapShader.SetShader(m_OpenGL);
         m_Model.SetTextures(m_OpenGL, TEXTURE_UNIT_1, TEXTURE_UNIT_2);
 
-        if (!m_LightMapShader.SetShaderParameters(m_OpenGL, world, view, projection,
-            (int)TEXTURE_UNIT_1, (int)TEXTURE_UNIT_2)) return false;
+        if (
+            !m_LightMapShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                (int)TEXTURE_UNIT_1,
+                (int)TEXTURE_UNIT_2
+            )
+        )
+            return false;
 
         m_Model.Render(m_OpenGL);
 

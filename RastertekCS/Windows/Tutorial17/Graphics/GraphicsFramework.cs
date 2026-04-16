@@ -18,11 +18,20 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", "Data/dirt01.tga", true))
+        if (
+            !m_Model.Initialize(
+                DirectX,
+                "Models/square.txt",
+                "Data/stone01.tga",
+                "Data/dirt01.tga",
+                true
+            )
+        )
             return false;
 
         m_MultiTextureShader = new MultiTextureShader();
-        if (!m_MultiTextureShader.Initialize(DirectX)) return false;
+        if (!m_MultiTextureShader.Initialize(DirectX))
+            return false;
 
         return true;
     }
@@ -50,7 +59,15 @@ public class GraphicsFramework
         m_Model.Render(m_DirectX);
         m_Model.SetTextures(m_DirectX);
 
-        if (!m_MultiTextureShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection))
+        if (
+            !m_MultiTextureShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world,
+                view,
+                projection
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

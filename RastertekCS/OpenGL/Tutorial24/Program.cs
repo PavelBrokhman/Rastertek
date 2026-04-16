@@ -9,8 +9,25 @@ namespace RastertekCS.OpenGL.Tutorial24;
 /// </summary>
 internal static class Program
 {
-    struct Vector3 { public float X, Y, Z; }
-    struct Face { public int V1, V2, V3, T1, T2, T3, N1, N2, N3; }
+    struct Vector3
+    {
+        public float X,
+            Y,
+            Z;
+    }
+
+    struct Face
+    {
+        public int V1,
+            V2,
+            V3,
+            T1,
+            T2,
+            T3,
+            N1,
+            N2,
+            N3;
+    }
 
     static int Main(string[] args)
     {
@@ -51,7 +68,14 @@ internal static class Program
                 float y = float.Parse(p[1], CultureInfo.InvariantCulture);
                 float z = float.Parse(p[2], CultureInfo.InvariantCulture);
                 // Convert Blender to LH: swap X and Z, then negate both
-                vertices.Add(new Vector3 { X = -z, Y = y, Z = -x });
+                vertices.Add(
+                    new Vector3
+                    {
+                        X = -z,
+                        Y = y,
+                        Z = -x,
+                    }
+                );
             }
             else if (line.StartsWith("vt "))
             {
@@ -59,7 +83,14 @@ internal static class Program
                 float u = float.Parse(p[0], CultureInfo.InvariantCulture);
                 float v = float.Parse(p[1], CultureInfo.InvariantCulture);
                 // Invert V for LH
-                texcoords.Add(new Vector3 { X = u, Y = 1.0f - v, Z = 0 });
+                texcoords.Add(
+                    new Vector3
+                    {
+                        X = u,
+                        Y = 1.0f - v,
+                        Z = 0,
+                    }
+                );
             }
             else if (line.StartsWith("vn "))
             {
@@ -68,7 +99,14 @@ internal static class Program
                 float y = float.Parse(p[1], CultureInfo.InvariantCulture);
                 float z = float.Parse(p[2], CultureInfo.InvariantCulture);
                 // Convert Blender to LH: swap X and Z, then negate both
-                normals.Add(new Vector3 { X = -z, Y = y, Z = -x });
+                normals.Add(
+                    new Vector3
+                    {
+                        X = -z,
+                        Y = y,
+                        Z = -x,
+                    }
+                );
             }
             else if (line.StartsWith("f "))
             {
@@ -79,12 +117,20 @@ internal static class Program
                     var f3 = ParseFaceVertex(p[0]);
                     var f2 = ParseFaceVertex(p[1]);
                     var f1 = ParseFaceVertex(p[2]);
-                    faces.Add(new Face
-                    {
-                        V1 = f1.v, V2 = f2.v, V3 = f3.v,
-                        T1 = f1.t, T2 = f2.t, T3 = f3.t,
-                        N1 = f1.n, N2 = f2.n, N3 = f3.n
-                    });
+                    faces.Add(
+                        new Face
+                        {
+                            V1 = f1.v,
+                            V2 = f2.v,
+                            V3 = f3.v,
+                            T1 = f1.t,
+                            T2 = f2.t,
+                            T3 = f3.t,
+                            N1 = f1.n,
+                            N2 = f2.n,
+                            N3 = f3.n,
+                        }
+                    );
                 }
             }
         }
@@ -127,6 +173,8 @@ internal static class Program
 
     static void WriteFaceVertex(StreamWriter w, Vector3 v, Vector3 t, Vector3 n, CultureInfo inv)
     {
-        w.WriteLine($"{v.X.ToString(inv)} {v.Y.ToString(inv)} {v.Z.ToString(inv)} {t.X.ToString(inv)} {t.Y.ToString(inv)} {n.X.ToString(inv)} {n.Y.ToString(inv)} {n.Z.ToString(inv)}");
+        w.WriteLine(
+            $"{v.X.ToString(inv)} {v.Y.ToString(inv)} {v.Z.ToString(inv)} {t.X.ToString(inv)} {t.Y.ToString(inv)} {n.X.ToString(inv)} {n.Y.ToString(inv)} {n.Z.ToString(inv)}"
+        );
     }
 }

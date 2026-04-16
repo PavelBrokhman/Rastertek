@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -20,8 +19,15 @@
   <ItemGroup>
     <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\Assets\Data\**" LinkBase="Data" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Sprite.txt" Link="Data\Sprite.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content
+      Include="..\..\Assets\Data\**"
+      LinkBase="Data"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\Sprite.txt"
+      Link="Data\Sprite.txt"
+      CopyToOutputDirectory="PreserveNewest"
+    />
   </ItemGroup>
-
 </Project>

@@ -9,11 +9,16 @@ internal static class Program
         try
         {
             var system = new SystemFramework();
-            if (system.Initialize()) system.Run();
-            else Console.WriteLine("ERROR: Initialize failed");
+            if (system.Initialize())
+                system.Run();
+            else
+                Console.WriteLine("ERROR: Initialize failed");
             Environment.Exit(0);
         }
-        catch (Exception ex) { Console.WriteLine($"EXCEPTION: {ex}"); }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"EXCEPTION: {ex}");
+        }
         return 0;
     }
 }

@@ -1,5 +1,5 @@
-using Silk.NET.Maths;
 using RastertekCS.OpenGL.Tutorial25.System;
+using Silk.NET.Maths;
 
 namespace RastertekCS.OpenGL.Tutorial25.Graphics;
 
@@ -34,8 +34,15 @@ public class GraphicsFramework
 
         // Create and initialize the render-to-texture object (256x256).
         m_RenderTexture = new RenderTexture();
-        if (!m_RenderTexture.Initialize(OpenGL, 256, 256,
-            SystemConfiguration.ScreenNear, SystemConfiguration.ScreenDepth))
+        if (
+            !m_RenderTexture.Initialize(
+                OpenGL,
+                256,
+                256,
+                SystemConfiguration.ScreenNear,
+                SystemConfiguration.ScreenDepth
+            )
+        )
             return false;
 
         // Create and initialize the display plane (1x1 quad).
@@ -50,10 +57,14 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_DisplayPlane?.Shutdown(m_OpenGL); m_DisplayPlane = null;
-        m_RenderTexture?.Shutdown(); m_RenderTexture = null;
-        m_TextureShader?.Shutdown(m_OpenGL); m_TextureShader = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
+        m_DisplayPlane?.Shutdown(m_OpenGL);
+        m_DisplayPlane = null;
+        m_RenderTexture?.Shutdown();
+        m_RenderTexture = null;
+        m_TextureShader?.Shutdown(m_OpenGL);
+        m_TextureShader = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
         m_Camera = null;
         m_OpenGL = null;
     }

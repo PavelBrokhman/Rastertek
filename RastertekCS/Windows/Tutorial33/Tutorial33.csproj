@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -22,22 +21,52 @@
   <ItemGroup>
     <None Update="Shaders\fire.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\fire.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\fire01.tga"   Link="Data\fire01.tga"   CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\noise01.tga"  Link="Data\noise01.tga"  CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\alpha01.tga"  Link="Data\alpha01.tga"  CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Models\square.txt" Link="Models\square.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None
+      Include="..\..\Assets\Data\fire01.tga"
+      Link="Data\fire01.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\noise01.tga"
+      Link="Data\noise01.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\alpha01.tga"
+      Link="Data\alpha01.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Models\square.txt"
+      Link="Models\square.txt"
+      CopyToOutputDirectory="PreserveNewest"
+    />
   </ItemGroup>
 
   <Target Name="LogAssetSync" AfterTargets="Build">
     <Message Importance="high" Text="--- Asset sync check ($(OutDir)) ---" />
-    <Message Importance="high" Text="fire01.tga   : src=$(ProjectDir)..\..\Assets\Data\fire01.tga" />
-    <Message Importance="high" Text="noise01.tga  : src=$(ProjectDir)..\..\Assets\Data\noise01.tga" />
-    <Message Importance="high" Text="alpha01.tga  : src=$(ProjectDir)..\..\Assets\Data\alpha01.tga" />
-    <Message Importance="high" Text="square.txt   : src=$(ProjectDir)..\..\Assets\Models\square.txt" />
+    <Message
+      Importance="high"
+      Text="fire01.tga   : src=$(ProjectDir)..\..\Assets\Data\fire01.tga"
+    />
+    <Message
+      Importance="high"
+      Text="noise01.tga  : src=$(ProjectDir)..\..\Assets\Data\noise01.tga"
+    />
+    <Message
+      Importance="high"
+      Text="alpha01.tga  : src=$(ProjectDir)..\..\Assets\Data\alpha01.tga"
+    />
+    <Message
+      Importance="high"
+      Text="square.txt   : src=$(ProjectDir)..\..\Assets\Models\square.txt"
+    />
     <ItemGroup>
       <_AssetOut Include="$(OutDir)Data\fire01.tga;$(OutDir)Data\noise01.tga;$(OutDir)Data\alpha01.tga;$(OutDir)Models\square.txt;$(OutDir)Shaders\fire.vs;$(OutDir)Shaders\fire.ps" />
     </ItemGroup>
-    <Message Importance="high" Text="OUT: %(_AssetOut.Identity)  [exists=%(_AssetOut.Exists)  bytes=%(_AssetOut.FileSize)]" />
+    <Message
+      Importance="high"
+      Text="OUT: %(_AssetOut.Identity)  [exists=%(_AssetOut.Exists)  bytes=%(_AssetOut.FileSize)]"
+    />
   </Target>
-
 </Project>

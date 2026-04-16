@@ -9,16 +9,26 @@ public unsafe class Model
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
     }
 
     private struct ModelType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
     }
 
     private ComPtr<ID3D11Buffer> m_vertexBuffer;
@@ -32,7 +42,8 @@ public unsafe class Model
     {
         var device = DirectX.Device;
 
-        if (!LoadModel(modelFilename)) return false;
+        if (!LoadModel(modelFilename))
+            return false;
 
         var vertices = new VertexType[m_vertexCount];
         var indices = new uint[m_indexCount];
@@ -56,11 +67,14 @@ public unsafe class Model
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(VertexType) * vertices.Length),
                 BindFlags = (uint)BindFlag.VertexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer));
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+            );
         }
 
         fixed (uint* pIndices = indices)
@@ -70,15 +84,19 @@ public unsafe class Model
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(uint) * indices.Length),
                 BindFlags = (uint)BindFlag.IndexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer));
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+            );
         }
 
         m_Texture = new Texture();
-        if (!m_Texture.Initialize(DirectX, textureFilename, wrap)) return false;
+        if (!m_Texture.Initialize(DirectX, textureFilename, wrap))
+            return false;
 
         return true;
     }
@@ -122,16 +140,26 @@ public unsafe class Model
         var lines = File.ReadAllLines(filename);
         int idx = 0;
 
-        while (idx < lines.Length && !lines[idx].StartsWith("Vertex Count", StringComparison.OrdinalIgnoreCase)) idx++;
-        if (idx >= lines.Length) return false;
+        while (
+            idx < lines.Length
+            && !lines[idx].StartsWith("Vertex Count", StringComparison.OrdinalIgnoreCase)
+        )
+            idx++;
+        if (idx >= lines.Length)
+            return false;
         var parts = lines[idx].Split(':');
-        if (parts.Length < 2) return false;
+        if (parts.Length < 2)
+            return false;
         m_vertexCount = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
         m_indexCount = m_vertexCount;
         m_model = new ModelType[m_vertexCount];
         idx++;
 
-        while (idx < lines.Length && !lines[idx].Trim().StartsWith("Data", StringComparison.OrdinalIgnoreCase)) idx++;
+        while (
+            idx < lines.Length
+            && !lines[idx].Trim().StartsWith("Data", StringComparison.OrdinalIgnoreCase)
+        )
+            idx++;
         idx++;
 
         int vi = 0;
@@ -139,9 +167,11 @@ public unsafe class Model
         {
             var line = lines[idx].Trim();
             idx++;
-            if (line.Length == 0) continue;
+            if (line.Length == 0)
+                continue;
             var tokens = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (tokens.Length < 8) continue;
+            if (tokens.Length < 8)
+                continue;
             m_model[vi].x = float.Parse(tokens[0], CultureInfo.InvariantCulture);
             m_model[vi].y = float.Parse(tokens[1], CultureInfo.InvariantCulture);
             m_model[vi].z = float.Parse(tokens[2], CultureInfo.InvariantCulture);

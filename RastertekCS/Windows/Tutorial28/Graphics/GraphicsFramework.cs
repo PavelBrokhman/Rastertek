@@ -19,10 +19,12 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", true))
+            return false;
 
         m_TranslateShader = new TranslateShader();
-        if (!m_TranslateShader.Initialize(DirectX)) return false;
+        if (!m_TranslateShader.Initialize(DirectX))
+            return false;
 
         return true;
     }
@@ -40,7 +42,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_textureTranslation += 0.01f;
-        if (m_textureTranslation > 1.0f) m_textureTranslation -= 1.0f;
+        if (m_textureTranslation > 1.0f)
+            m_textureTranslation -= 1.0f;
         return Render();
     }
 
@@ -55,7 +58,16 @@ public class GraphicsFramework
         m_Model.Render(m_DirectX);
         m_Model.SetTexture(m_DirectX, 0);
 
-        if (!m_TranslateShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection, m_textureTranslation))
+        if (
+            !m_TranslateShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_textureTranslation
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

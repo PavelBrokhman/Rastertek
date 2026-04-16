@@ -22,7 +22,15 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/sphere.txt", "Data/stone01.tga", "Data/normal01.tga", true))
+        if (
+            !m_Model.Initialize(
+                DirectX,
+                "Models/sphere.txt",
+                "Data/stone01.tga",
+                "Data/normal01.tga",
+                true
+            )
+        )
             return false;
 
         m_Light = new Light();
@@ -30,13 +38,16 @@ public class GraphicsFramework
         m_Light.SetDirection(0.0f, 0.0f, 1.0f);
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX)) return false;
+        if (!m_TextureShader.Initialize(DirectX))
+            return false;
 
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(DirectX)) return false;
+        if (!m_LightShader.Initialize(DirectX))
+            return false;
 
         m_NormalMapShader = new NormalMapShader();
-        if (!m_NormalMapShader.Initialize(DirectX)) return false;
+        if (!m_NormalMapShader.Initialize(DirectX))
+            return false;
 
         return true;
     }
@@ -59,7 +70,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation <= 0.0f) m_rotation += MathF.Tau;
+        if (m_rotation <= 0.0f)
+            m_rotation += MathF.Tau;
         return Render();
     }
 
@@ -80,15 +92,33 @@ public class GraphicsFramework
         var world2 = rotate * Matrix4X4.CreateTranslation(-1.5f, -1.0f, 0.0f);
         m_Model.Render(m_DirectX);
         m_Model.SetTextures(m_DirectX);
-        if (!m_LightShader.Render(m_DirectX, m_Model.GetIndexCount(), world2, view, projection,
-            m_Light.GetDirection(), m_Light.GetDiffuseColor()))
+        if (
+            !m_LightShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world2,
+                view,
+                projection,
+                m_Light.GetDirection(),
+                m_Light.GetDiffuseColor()
+            )
+        )
             return false;
 
         var world3 = rotate * Matrix4X4.CreateTranslation(1.5f, -1.0f, 0.0f);
         m_Model.Render(m_DirectX);
         m_Model.SetTextures(m_DirectX);
-        if (!m_NormalMapShader.Render(m_DirectX, m_Model.GetIndexCount(), world3, view, projection,
-            m_Light.GetDirection(), m_Light.GetDiffuseColor()))
+        if (
+            !m_NormalMapShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world3,
+                view,
+                projection,
+                m_Light.GetDirection(),
+                m_Light.GetDiffuseColor()
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

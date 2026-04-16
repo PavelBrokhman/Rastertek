@@ -18,16 +18,28 @@ public unsafe class Text
     private int m_screenHeight;
     private readonly float[] m_pixelColor = new float[4];
 
-    public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight, int maxLength,
-                           Font font, string text, int positionX, int positionY,
-                           float red, float green, float blue)
+    public bool Initialize(
+        DX11 DirectX,
+        int screenWidth,
+        int screenHeight,
+        int maxLength,
+        Font font,
+        string text,
+        int positionX,
+        int positionY,
+        float red,
+        float green,
+        float blue
+    )
     {
         m_screenWidth = screenWidth;
         m_screenHeight = screenHeight;
         m_maxLength = maxLength;
 
-        if (!InitializeBuffers(DirectX)) return false;
-        if (!UpdateText(DirectX, font, text, positionX, positionY, red, green, blue)) return false;
+        if (!InitializeBuffers(DirectX))
+            return false;
+        if (!UpdateText(DirectX, font, text, positionX, positionY, red, green, blue))
+            return false;
         return true;
     }
 
@@ -49,6 +61,7 @@ public unsafe class Text
     }
 
     public int GetIndexCount() => m_indexCount;
+
     public float[] GetPixelColor() => m_pixelColor;
 
     private bool InitializeBuffers(DX11 DirectX)
@@ -60,7 +73,8 @@ public unsafe class Text
 
         var vertices = new float[m_vertexCount * FLOATS_PER_VERTEX];
         var indices = new uint[m_indexCount];
-        for (int i = 0; i < m_indexCount; i++) indices[i] = (uint)i;
+        for (int i = 0; i < m_indexCount; i++)
+            indices[i] = (uint)i;
 
         var vertexBufferDesc = new BufferDesc
         {
@@ -68,13 +82,15 @@ public unsafe class Text
             ByteWidth = (uint)(sizeof(float) * vertices.Length),
             BindFlags = (uint)BindFlag.VertexBuffer,
             CPUAccessFlags = (uint)CpuAccessFlag.Write,
-            MiscFlags = 0, StructureByteStride = 0
+            MiscFlags = 0,
+            StructureByteStride = 0,
         };
         fixed (float* pVertices = vertices)
         {
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer));
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+            );
         }
 
         var indexBufferDesc = new BufferDesc
@@ -83,27 +99,38 @@ public unsafe class Text
             ByteWidth = (uint)(sizeof(uint) * m_indexCount),
             BindFlags = (uint)BindFlag.IndexBuffer,
             CPUAccessFlags = 0,
-            MiscFlags = 0, StructureByteStride = 0
+            MiscFlags = 0,
+            StructureByteStride = 0,
         };
         fixed (uint* pIndices = indices)
         {
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer));
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+            );
         }
 
         return true;
     }
 
-    public bool UpdateText(DX11 DirectX, Font font, string text, int positionX, int positionY,
-                           float red, float green, float blue)
+    public bool UpdateText(
+        DX11 DirectX,
+        Font font,
+        string text,
+        int positionX,
+        int positionY,
+        float red,
+        float green,
+        float blue
+    )
     {
         m_pixelColor[0] = red;
         m_pixelColor[1] = green;
         m_pixelColor[2] = blue;
         m_pixelColor[3] = 1.0f;
 
-        if (text.Length > m_maxLength) return false;
+        if (text.Length > m_maxLength)
+            return false;
 
         var vertices = new float[m_vertexCount * FLOATS_PER_VERTEX];
 
@@ -115,11 +142,16 @@ public unsafe class Text
         var context = DirectX.DeviceContext;
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_vertexBuffer, 0, Map.WriteDiscard, 0, &mappedResource));
+            context.Map(m_vertexBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+        );
         fixed (float* pSrc = vertices)
         {
-            global::System.Buffer.MemoryCopy(pSrc, mappedResource.PData,
-                sizeof(float) * vertices.Length, sizeof(float) * vertices.Length);
+            global::System.Buffer.MemoryCopy(
+                pSrc,
+                mappedResource.PData,
+                sizeof(float) * vertices.Length,
+                sizeof(float) * vertices.Length
+            );
         }
         context.Unmap(m_vertexBuffer, 0);
 

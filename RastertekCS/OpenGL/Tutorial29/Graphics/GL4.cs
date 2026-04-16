@@ -33,7 +33,11 @@ public class GL4
         return true;
     }
 
-    public void Shutdown() { m_gl?.Dispose(); m_gl = null; }
+    public void Shutdown()
+    {
+        m_gl?.Dispose();
+        m_gl = null;
+    }
 
     public void BeginScene(float r, float g, float b, float a)
     {
@@ -55,18 +59,38 @@ public class GL4
     }
 
     public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
     public string GetVideoCardInfo() => m_videoCardDescription;
 
-    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    private static Matrix4X4<float> PerspectiveFovLH(
+        float fov,
+        float aspect,
+        float nearZ,
+        float farZ
+    )
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);
         float w = h / aspect;
         float range = farZ / (farZ - nearZ);
         return new Matrix4X4<float>(
-            w, 0, 0, 0,
-            0, h, 0, 0,
-            0, 0, range, 1,
-            0, 0, -range * nearZ, 0);
+            w,
+            0,
+            0,
+            0,
+            0,
+            h,
+            0,
+            0,
+            0,
+            0,
+            range,
+            1,
+            0,
+            0,
+            -range * nearZ,
+            0
+        );
     }
 }

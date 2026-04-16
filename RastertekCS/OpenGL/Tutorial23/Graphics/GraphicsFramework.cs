@@ -21,7 +21,8 @@ public class GraphicsFramework
     private ModelList m_ModelList;
     private Frustum m_Frustum;
     private Matrix4X4<float> m_baseViewMatrix;
-    private int m_screenWidth, m_screenHeight;
+    private int m_screenWidth,
+        m_screenHeight;
 
     public bool Initialize(GL4 OpenGL, Input input, int screenWidth, int screenHeight)
     {
@@ -38,7 +39,8 @@ public class GraphicsFramework
 
         // Create and initialize the model.
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/sphere.txt", "Data/stone01.tga", TEXTURE_UNIT)) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/sphere.txt", "Data/stone01.tga", TEXTURE_UNIT))
+            return false;
 
         // Create and initialize the light.
         m_Light = new Light();
@@ -47,20 +49,37 @@ public class GraphicsFramework
 
         // Create and initialize the light shader.
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(OpenGL)) return false;
+        if (!m_LightShader.Initialize(OpenGL))
+            return false;
 
         // Create and initialize the font shader.
         m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(OpenGL)) return false;
+        if (!m_FontShader.Initialize(OpenGL))
+            return false;
 
         // Create and initialize the font.
         m_Font = new Font();
-        if (!m_Font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT)) return false;
+        if (!m_Font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
+            return false;
 
         // Create and initialize the render count text.
         m_RenderCountString = new Text();
-        if (!m_RenderCountString.Initialize(OpenGL, m_Font, "Render Count: 0",
-            10, 10, 1.0f, 1.0f, 1.0f, screenWidth, screenHeight, 32)) return false;
+        if (
+            !m_RenderCountString.Initialize(
+                OpenGL,
+                m_Font,
+                "Render Count: 0",
+                10,
+                10,
+                1.0f,
+                1.0f,
+                1.0f,
+                screenWidth,
+                screenHeight,
+                32
+            )
+        )
+            return false;
 
         // Create the position object.
         m_Position = new Position();
@@ -78,14 +97,20 @@ public class GraphicsFramework
     public void Shutdown()
     {
         m_Frustum = null;
-        m_ModelList?.Shutdown(); m_ModelList = null;
+        m_ModelList?.Shutdown();
+        m_ModelList = null;
         m_Position = null;
-        m_RenderCountString?.Shutdown(m_OpenGL); m_RenderCountString = null;
-        m_Font?.Shutdown(m_OpenGL); m_Font = null;
-        m_FontShader?.Shutdown(m_OpenGL); m_FontShader = null;
-        m_LightShader?.Shutdown(m_OpenGL); m_LightShader = null;
+        m_RenderCountString?.Shutdown(m_OpenGL);
+        m_RenderCountString = null;
+        m_Font?.Shutdown(m_OpenGL);
+        m_Font = null;
+        m_FontShader?.Shutdown(m_OpenGL);
+        m_FontShader = null;
+        m_LightShader?.Shutdown(m_OpenGL);
+        m_LightShader = null;
         m_Light = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
         m_Camera = null;
         m_Input = null;
         m_OpenGL = null;
@@ -143,8 +168,17 @@ public class GraphicsFramework
                 var worldTranslated = Matrix4X4.CreateTranslation(posX, posY, posZ);
 
                 // Set the light shader parameters.
-                if (!m_LightShader.SetShaderParameters(m_OpenGL, worldTranslated, view, projection,
-                    (int)TEXTURE_UNIT, lightDirection, diffuseLightColor))
+                if (
+                    !m_LightShader.SetShaderParameters(
+                        m_OpenGL,
+                        worldTranslated,
+                        view,
+                        projection,
+                        (int)TEXTURE_UNIT,
+                        lightDirection,
+                        diffuseLightColor
+                    )
+                )
                     return false;
 
                 // Render the sphere.
@@ -172,8 +206,16 @@ public class GraphicsFramework
         m_FontShader.SetShader(m_OpenGL);
         m_Font.SetTexture(m_OpenGL, TEXTURE_UNIT);
 
-        if (!m_FontShader.SetShaderParameters(m_OpenGL, world, identityView, ortho,
-            (int)TEXTURE_UNIT, m_RenderCountString.GetPixelColor()))
+        if (
+            !m_FontShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                identityView,
+                ortho,
+                (int)TEXTURE_UNIT,
+                m_RenderCountString.GetPixelColor()
+            )
+        )
             return false;
 
         m_RenderCountString.Render(m_OpenGL);
@@ -192,7 +234,17 @@ public class GraphicsFramework
     private void UpdateRenderCountString(int renderCount)
     {
         string text = $"Render Count: {renderCount}";
-        m_RenderCountString.UpdateText(m_OpenGL, m_Font, text,
-            10, 10, 1.0f, 1.0f, 1.0f, m_screenWidth, m_screenHeight);
+        m_RenderCountString.UpdateText(
+            m_OpenGL,
+            m_Font,
+            text,
+            10,
+            10,
+            1.0f,
+            1.0f,
+            1.0f,
+            m_screenWidth,
+            m_screenHeight
+        );
     }
 }

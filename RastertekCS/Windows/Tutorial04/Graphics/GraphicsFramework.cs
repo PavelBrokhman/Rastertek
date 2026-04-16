@@ -15,10 +15,12 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX)) return false;
+        if (!m_Model.Initialize(DirectX))
+            return false;
 
         m_ColorShader = new ColorShader();
-        if (!m_ColorShader.Initialize(DirectX)) return false;
+        if (!m_ColorShader.Initialize(DirectX))
+            return false;
 
         return true;
     }

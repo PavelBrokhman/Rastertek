@@ -32,8 +32,17 @@ public class Texture
 
         fixed (byte* p = pixels)
         {
-            gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba,
-                (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, p);
+            gl.TexImage2D(
+                TextureTarget.Texture2D,
+                0,
+                (int)InternalFormat.Rgba,
+                (uint)width,
+                (uint)height,
+                0,
+                PixelFormat.Rgba,
+                PixelType.UnsignedByte,
+                p
+            );
         }
 
         gl.GenerateMipmap(TextureTarget.Texture2D);
@@ -41,8 +50,16 @@ public class Texture
         var wrapMode = wrap ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToEdge;
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, wrapMode);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, wrapMode);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        gl.TexParameter(
+            TextureTarget.Texture2D,
+            TextureParameterName.TextureMinFilter,
+            (int)TextureMinFilter.LinearMipmapLinear
+        );
+        gl.TexParameter(
+            TextureTarget.Texture2D,
+            TextureParameterName.TextureMagFilter,
+            (int)TextureMagFilter.Linear
+        );
 
         m_loaded = true;
         return true;
@@ -60,25 +77,31 @@ public class Texture
     // Минимальный TGA-reader: поддерживает uncompressed 24-bit и 32-bit BGR/BGRA.
     private static bool LoadTga(string filename, out int width, out int height, out byte[] rgba)
     {
-        width = 0; height = 0; rgba = null;
+        width = 0;
+        height = 0;
+        rgba = null;
 
         byte[] data = File.ReadAllBytes(filename);
-        if (data.Length < 18) return false;
+        if (data.Length < 18)
+            return false;
 
         int idLength = data[0];
-        int imageType = data[2];         // 2 = uncompressed true-color
+        int imageType = data[2]; // 2 = uncompressed true-color
         width = data[12] | (data[13] << 8);
         height = data[14] | (data[15] << 8);
         int bpp = data[16];
         int descriptor = data[17];
 
-        if (imageType != 2) return false;
-        if (bpp != 24 && bpp != 32) return false;
+        if (imageType != 2)
+            return false;
+        if (bpp != 24 && bpp != 32)
+            return false;
 
         int offset = 18 + idLength;
         int channels = bpp / 8;
         int pixelCount = width * height;
-        if (data.Length < offset + pixelCount * channels) return false;
+        if (data.Length < offset + pixelCount * channels)
+            return false;
 
         rgba = new byte[pixelCount * 4];
 
@@ -112,17 +135,18 @@ public class Texture
     private static void GenerateCheckerboardTga(string filename, int size)
     {
         var dir = Path.GetDirectoryName(filename);
-        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
 
         // TGA header: 18 байт.
         byte[] header = new byte[18];
-        header[2] = 2;                         // image type = uncompressed true-color
+        header[2] = 2; // image type = uncompressed true-color
         header[12] = (byte)(size & 0xFF);
         header[13] = (byte)((size >> 8) & 0xFF);
         header[14] = (byte)(size & 0xFF);
         header[15] = (byte)((size >> 8) & 0xFF);
-        header[16] = 32;                       // bits per pixel
-        header[17] = 0x28;                     // top-left origin + 8 bits alpha
+        header[16] = 32; // bits per pixel
+        header[17] = 0x28; // top-left origin + 8 bits alpha
 
         byte[] pixels = new byte[size * size * 4];
         int cell = size / 8;
@@ -132,10 +156,10 @@ public class Texture
             {
                 bool white = (((x / cell) + (y / cell)) & 1) == 0;
                 int i = (y * size + x) * 4;
-                pixels[i + 0] = white ? (byte)220 : (byte)40;  // B
-                pixels[i + 1] = white ? (byte)220 : (byte)40;  // G
-                pixels[i + 2] = white ? (byte)220 : (byte)40;  // R
-                pixels[i + 3] = 255;                            // A
+                pixels[i + 0] = white ? (byte)220 : (byte)40; // B
+                pixels[i + 1] = white ? (byte)220 : (byte)40; // G
+                pixels[i + 2] = white ? (byte)220 : (byte)40; // R
+                pixels[i + 3] = 255; // A
             }
         }
 

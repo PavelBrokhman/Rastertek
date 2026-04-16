@@ -4,7 +4,9 @@ public class ModelList
 {
     private struct ModelInfoType
     {
-        public float PositionX, PositionY, PositionZ;
+        public float PositionX,
+            PositionY,
+            PositionZ;
     }
 
     private ModelInfoType[] m_modelInfoList;
@@ -25,7 +27,10 @@ public class ModelList
         }
     }
 
-    public void Shutdown() { m_modelInfoList = null; }
+    public void Shutdown()
+    {
+        m_modelInfoList = null;
+    }
 
     public int GetModelCount() => m_modelCount;
 

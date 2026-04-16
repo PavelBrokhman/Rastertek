@@ -18,11 +18,20 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", "Data/light01.tga", true))
+        if (
+            !m_Model.Initialize(
+                DirectX,
+                "Models/square.txt",
+                "Data/stone01.tga",
+                "Data/light01.tga",
+                true
+            )
+        )
             return false;
 
         m_LightMapShader = new LightMapShader();
-        if (!m_LightMapShader.Initialize(DirectX)) return false;
+        if (!m_LightMapShader.Initialize(DirectX))
+            return false;
 
         return true;
     }

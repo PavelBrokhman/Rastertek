@@ -23,16 +23,20 @@ public class GraphicsFramework
             return false;
 
         m_ClipPlaneShader = new ClipPlaneShader();
-        if (!m_ClipPlaneShader.Initialize(OpenGL)) return false;
+        if (!m_ClipPlaneShader.Initialize(OpenGL))
+            return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_ClipPlaneShader?.Shutdown(m_OpenGL); m_ClipPlaneShader = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
-        m_Camera = null; m_OpenGL = null;
+        m_ClipPlaneShader?.Shutdown(m_OpenGL);
+        m_ClipPlaneShader = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame()
@@ -59,8 +63,19 @@ public class GraphicsFramework
         m_Model.SetTexture(m_OpenGL, 0);
 
         // Clip plane: y = 0, clips everything below y=0.
-        if (!m_ClipPlaneShader.SetShaderParameters(m_OpenGL, world, view, projection,
-            0.0f, -1.0f, 0.0f, 0.0f, 0))
+        if (
+            !m_ClipPlaneShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                0.0f,
+                -1.0f,
+                0.0f,
+                0.0f,
+                0
+            )
+        )
             return false;
 
         m_Model.Render(m_OpenGL);

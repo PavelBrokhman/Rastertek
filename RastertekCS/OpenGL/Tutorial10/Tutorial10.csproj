@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -20,8 +19,15 @@
   <ItemGroup>
     <None Update="Shaders\Light.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Light.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\Stone01.tga" Link="Data\Stone01.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Models\sphere.txt" Link="Models\sphere.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None
+      Include="..\..\Assets\Data\Stone01.tga"
+      Link="Data\Stone01.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Models\sphere.txt"
+      Link="Models\sphere.txt"
+      CopyToOutputDirectory="PreserveNewest"
+    />
   </ItemGroup>
-
 </Project>

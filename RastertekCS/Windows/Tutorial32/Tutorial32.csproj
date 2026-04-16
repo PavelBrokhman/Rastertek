@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -22,13 +21,32 @@
   <ItemGroup>
     <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Shaders\glass.vs"   CopyToOutputDirectory="PreserveNewest" />
-    <None Update="Shaders\glass.ps"   CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\stone01.tga"  Link="Data\stone01.tga"  CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\glass01.tga"  Link="Data\glass01.tga"  CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\normal03.tga" Link="Data\normal03.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Models\Cube.txt"   Link="Models\Cube.txt"   CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Models\square.txt" Link="Models\square.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Shaders\glass.vs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Shaders\glass.ps" CopyToOutputDirectory="PreserveNewest" />
+    <None
+      Include="..\..\Assets\Data\stone01.tga"
+      Link="Data\stone01.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\glass01.tga"
+      Link="Data\glass01.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Data\normal03.tga"
+      Link="Data\normal03.tga"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Models\Cube.txt"
+      Link="Models\Cube.txt"
+      CopyToOutputDirectory="PreserveNewest"
+    />
+    <None
+      Include="..\..\Assets\Models\square.txt"
+      Link="Models\square.txt"
+      CopyToOutputDirectory="PreserveNewest"
+    />
   </ItemGroup>
-
 </Project>

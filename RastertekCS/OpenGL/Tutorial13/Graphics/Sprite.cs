@@ -1,5 +1,5 @@
-using Silk.NET.OpenGL;
 using System.Globalization;
+using Silk.NET.OpenGL;
 
 namespace RastertekCS.OpenGL.Tutorial13.Graphics;
 
@@ -7,8 +7,11 @@ public class Sprite
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float tu, tv;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
     }
 
     private uint m_vertexArrayId;
@@ -22,12 +25,20 @@ public class Sprite
     private float m_cycleTime;
     private float m_frameTime;
 
-    private int m_screenWidth, m_screenHeight;
-    private int m_bitmapWidth, m_bitmapHeight;
-    private int m_renderX, m_renderY;
+    private int m_screenWidth,
+        m_screenHeight;
+    private int m_bitmapWidth,
+        m_bitmapHeight;
+    private int m_renderX,
+        m_renderY;
 
-    public unsafe bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight,
-                                   string spriteFilename, uint textureUnit)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        int screenWidth,
+        int screenHeight,
+        string spriteFilename,
+        uint textureUnit
+    )
     {
         var gl = OpenGL.Gl;
         m_screenWidth = screenWidth;
@@ -35,7 +46,8 @@ public class Sprite
         m_currentTexture = 0;
         m_frameTime = 0;
 
-        if (!LoadSpriteFile(spriteFilename)) return false;
+        if (!LoadSpriteFile(spriteFilename))
+            return false;
 
         m_Textures = new Texture[m_textureCount];
         var lines = File.ReadAllLines(spriteFilename);
@@ -44,7 +56,8 @@ public class Sprite
         {
             var texFile = lines[startLine + i].Trim();
             m_Textures[i] = new Texture();
-            if (!m_Textures[i].Initialize(OpenGL, texFile, textureUnit, false)) return false;
+            if (!m_Textures[i].Initialize(OpenGL, texFile, textureUnit, false))
+                return false;
         }
 
         m_vertexCount = 6;
@@ -58,19 +71,41 @@ public class Sprite
         m_vertexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (VertexType* p = vertices)
-            gl.BufferData(BufferTargetARB.ArrayBuffer,
-                (nuint)(sizeof(VertexType) * vertices.Length), p, BufferUsageARB.DynamicDraw);
+            gl.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                (nuint)(sizeof(VertexType) * vertices.Length),
+                p,
+                BufferUsageARB.DynamicDraw
+            );
 
         gl.EnableVertexAttribArray(0);
         gl.EnableVertexAttribArray(1);
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)0);
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(3 * sizeof(float)));
+        gl.VertexAttribPointer(
+            0,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)0
+        );
+        gl.VertexAttribPointer(
+            1,
+            2,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(3 * sizeof(float))
+        );
 
         m_indexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
         fixed (uint* p = indices)
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer,
-                (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                (nuint)(sizeof(uint) * indices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         return true;
     }
@@ -79,7 +114,8 @@ public class Sprite
     {
         if (m_Textures != null)
         {
-            foreach (var t in m_Textures) t?.Shutdown(OpenGL);
+            foreach (var t in m_Textures)
+                t?.Shutdown(OpenGL);
             m_Textures = null;
         }
         var gl = OpenGL.Gl;
@@ -100,11 +136,16 @@ public class Sprite
         {
             m_frameTime -= m_cycleTime;
             m_currentTexture++;
-            if (m_currentTexture >= m_textureCount) m_currentTexture = 0;
+            if (m_currentTexture >= m_textureCount)
+                m_currentTexture = 0;
         }
     }
 
-    public void SetRenderLocation(int x, int y) { m_renderX = x; m_renderY = y; }
+    public void SetRenderLocation(int x, int y)
+    {
+        m_renderX = x;
+        m_renderY = y;
+    }
 
     public void SetTexture(GL4 OpenGL, uint textureUnit)
     {
@@ -122,26 +163,78 @@ public class Sprite
 
         var v = new VertexType[6]
         {
-            new() { x = left,  y = top,    z = 0, tu = 0, tv = 0 },
-            new() { x = right, y = bottom, z = 0, tu = 1, tv = 1 },
-            new() { x = left,  y = bottom, z = 0, tu = 0, tv = 1 },
-            new() { x = left,  y = top,    z = 0, tu = 0, tv = 0 },
-            new() { x = right, y = top,    z = 0, tu = 1, tv = 0 },
-            new() { x = right, y = bottom, z = 0, tu = 1, tv = 1 },
+            new()
+            {
+                x = left,
+                y = top,
+                z = 0,
+                tu = 0,
+                tv = 0,
+            },
+            new()
+            {
+                x = right,
+                y = bottom,
+                z = 0,
+                tu = 1,
+                tv = 1,
+            },
+            new()
+            {
+                x = left,
+                y = bottom,
+                z = 0,
+                tu = 0,
+                tv = 1,
+            },
+            new()
+            {
+                x = left,
+                y = top,
+                z = 0,
+                tu = 0,
+                tv = 0,
+            },
+            new()
+            {
+                x = right,
+                y = top,
+                z = 0,
+                tu = 1,
+                tv = 0,
+            },
+            new()
+            {
+                x = right,
+                y = bottom,
+                z = 0,
+                tu = 1,
+                tv = 1,
+            },
         };
 
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (VertexType* p = v)
-            gl.BufferSubData(BufferTargetARB.ArrayBuffer, 0,
-                (nuint)(sizeof(VertexType) * v.Length), p);
+            gl.BufferSubData(
+                BufferTargetARB.ArrayBuffer,
+                0,
+                (nuint)(sizeof(VertexType) * v.Length),
+                p
+            );
 
         gl.BindVertexArray(m_vertexArrayId);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)m_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.DrawElements(
+            PrimitiveType.Triangles,
+            (uint)m_indexCount,
+            DrawElementsType.UnsignedInt,
+            (void*)0
+        );
     }
 
     private bool LoadSpriteFile(string filename)
     {
-        if (!File.Exists(filename)) return false;
+        if (!File.Exists(filename))
+            return false;
         var lines = File.ReadAllLines(filename);
         // Format:
         //   TextureCount: N

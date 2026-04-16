@@ -7,8 +7,11 @@ public class SystemConfiguration
     public int Height { get; set; }
     public bool WaitVerticalBlanking { get; set; }
 
-    public SystemConfiguration() : this("DirectX Tutorial") { }
-    public SystemConfiguration(string title) : this(title, 800, 600) { }
+    public SystemConfiguration()
+        : this("DirectX Tutorial") { }
+
+    public SystemConfiguration(string title)
+        : this(title, 800, 600) { }
 
     public SystemConfiguration(string title, int width, int height)
     {

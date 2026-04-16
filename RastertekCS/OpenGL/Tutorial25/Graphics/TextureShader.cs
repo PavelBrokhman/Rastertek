@@ -9,7 +9,8 @@ public class TextureShader
     private uint m_fragmentShader;
     private uint m_shaderProgram;
 
-    public bool Initialize(GL4 OpenGL) => InitializeShader(OpenGL, "Shaders/Texture.vs", "Shaders/Texture.ps");
+    public bool Initialize(GL4 OpenGL) =>
+        InitializeShader(OpenGL, "Shaders/Texture.vs", "Shaders/Texture.ps");
 
     public void Shutdown(GL4 OpenGL)
     {
@@ -23,9 +24,13 @@ public class TextureShader
 
     public void SetShader(GL4 OpenGL) => OpenGL.Gl.UseProgram(m_shaderProgram);
 
-    public unsafe bool SetShaderParameters(GL4 OpenGL,
-        Matrix4X4<float> worldMatrix, Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix,
-        int textureUnit)
+    public unsafe bool SetShaderParameters(
+        GL4 OpenGL,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
+        Matrix4X4<float> projectionMatrix,
+        int textureUnit
+    )
     {
         var gl = OpenGL.Gl;
         int loc;
@@ -33,19 +38,35 @@ public class TextureShader
         gl.UseProgram(m_shaderProgram);
 
         loc = gl.GetUniformLocation(m_shaderProgram, "worldMatrix");
-        if (loc == -1) { Console.WriteLine("World matrix not set."); return false; }
+        if (loc == -1)
+        {
+            Console.WriteLine("World matrix not set.");
+            return false;
+        }
         gl.UniformMatrix4(loc, 1, false, (float*)&worldMatrix);
 
         loc = gl.GetUniformLocation(m_shaderProgram, "viewMatrix");
-        if (loc == -1) { Console.WriteLine("View matrix not set."); return false; }
+        if (loc == -1)
+        {
+            Console.WriteLine("View matrix not set.");
+            return false;
+        }
         gl.UniformMatrix4(loc, 1, false, (float*)&viewMatrix);
 
         loc = gl.GetUniformLocation(m_shaderProgram, "projectionMatrix");
-        if (loc == -1) { Console.WriteLine("Projection matrix not set."); return false; }
+        if (loc == -1)
+        {
+            Console.WriteLine("Projection matrix not set.");
+            return false;
+        }
         gl.UniformMatrix4(loc, 1, false, (float*)&projectionMatrix);
 
         loc = gl.GetUniformLocation(m_shaderProgram, "shaderTexture");
-        if (loc == -1) { Console.WriteLine("Shader texture not set."); return false; }
+        if (loc == -1)
+        {
+            Console.WriteLine("Shader texture not set.");
+            return false;
+        }
         gl.Uniform1(loc, textureUnit);
 
         return true;
@@ -60,12 +81,14 @@ public class TextureShader
         m_vertexShader = gl.CreateShader(ShaderType.VertexShader);
         gl.ShaderSource(m_vertexShader, vsSrc);
         gl.CompileShader(m_vertexShader);
-        if (!CheckShaderCompile(gl, m_vertexShader, vsFilename)) return false;
+        if (!CheckShaderCompile(gl, m_vertexShader, vsFilename))
+            return false;
 
         m_fragmentShader = gl.CreateShader(ShaderType.FragmentShader);
         gl.ShaderSource(m_fragmentShader, psSrc);
         gl.CompileShader(m_fragmentShader);
-        if (!CheckShaderCompile(gl, m_fragmentShader, psFilename)) return false;
+        if (!CheckShaderCompile(gl, m_fragmentShader, psFilename))
+            return false;
 
         m_shaderProgram = gl.CreateProgram();
         gl.AttachShader(m_shaderProgram, m_vertexShader);
@@ -74,14 +97,22 @@ public class TextureShader
         gl.BindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
         gl.LinkProgram(m_shaderProgram);
         gl.GetProgram(m_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
-        if (ls != 1) { Console.WriteLine($"Link: {gl.GetProgramInfoLog(m_shaderProgram)}"); return false; }
+        if (ls != 1)
+        {
+            Console.WriteLine($"Link: {gl.GetProgramInfoLog(m_shaderProgram)}");
+            return false;
+        }
         return true;
     }
 
     private static bool CheckShaderCompile(GL gl, uint shader, string filename)
     {
         gl.GetShader(shader, ShaderParameterName.CompileStatus, out int s);
-        if (s != 1) { Console.WriteLine($"Compile {filename}: {gl.GetShaderInfoLog(shader)}"); return false; }
+        if (s != 1)
+        {
+            Console.WriteLine($"Compile {filename}: {gl.GetShaderInfoLog(shader)}");
+            return false;
+        }
         return true;
     }
 }

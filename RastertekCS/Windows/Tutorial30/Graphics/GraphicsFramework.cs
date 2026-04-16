@@ -25,19 +25,32 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_CubeModel = new Model();
-        if (!m_CubeModel.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true)) return false;
+        if (!m_CubeModel.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
+            return false;
 
         m_FloorModel = new Model();
-        if (!m_FloorModel.Initialize(DirectX, "Models/floor.txt", "Data/blue01.tga", true)) return false;
+        if (!m_FloorModel.Initialize(DirectX, "Models/floor.txt", "Data/blue01.tga", true))
+            return false;
 
         m_RenderTexture = new RenderTexture();
-        if (!m_RenderTexture.Initialize(DirectX, screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) return false;
+        if (
+            !m_RenderTexture.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                SCREEN_DEPTH,
+                SCREEN_NEAR
+            )
+        )
+            return false;
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX)) return false;
+        if (!m_TextureShader.Initialize(DirectX))
+            return false;
 
         m_ReflectionShader = new ReflectionShader();
-        if (!m_ReflectionShader.Initialize(DirectX)) return false;
+        if (!m_ReflectionShader.Initialize(DirectX))
+            return false;
 
         return true;
     }
@@ -61,8 +74,10 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f) m_rotation += MathF.Tau;
-        if (!RenderReflectionToTexture()) return false;
+        if (m_rotation < 0.0f)
+            m_rotation += MathF.Tau;
+        if (!RenderReflectionToTexture())
+            return false;
         return Render();
     }
 
@@ -77,8 +92,16 @@ public class GraphicsFramework
         var world = Matrix4X4.CreateRotationY(m_rotation);
 
         m_CubeModel.Render(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_CubeModel.GetIndexCount(), world, reflectionView, projection,
-            m_CubeModel.GetTextureView()))
+        if (
+            !m_TextureShader.Render(
+                m_DirectX,
+                m_CubeModel.GetIndexCount(),
+                world,
+                reflectionView,
+                projection,
+                m_CubeModel.GetTextureView()
+            )
+        )
             return false;
 
         m_DirectX.SetBackBufferRenderTarget();
@@ -95,15 +118,33 @@ public class GraphicsFramework
         var world = Matrix4X4.CreateRotationY(m_rotation);
 
         m_CubeModel.Render(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_CubeModel.GetIndexCount(), world, view, projection,
-            m_CubeModel.GetTextureView()))
+        if (
+            !m_TextureShader.Render(
+                m_DirectX,
+                m_CubeModel.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_CubeModel.GetTextureView()
+            )
+        )
             return false;
 
         var floorWorld = Matrix4X4.CreateTranslation(0.0f, -1.5f, 0.0f);
         var reflectionView = m_Camera.GetReflectionViewMatrix();
         m_FloorModel.Render(m_DirectX);
-        if (!m_ReflectionShader.Render(m_DirectX, m_FloorModel.GetIndexCount(), floorWorld, view, projection,
-            m_FloorModel.GetTextureView(), m_RenderTexture.GetShaderResourceView(), reflectionView))
+        if (
+            !m_ReflectionShader.Render(
+                m_DirectX,
+                m_FloorModel.GetIndexCount(),
+                floorWorld,
+                view,
+                projection,
+                m_FloorModel.GetTextureView(),
+                m_RenderTexture.GetShaderResourceView(),
+                reflectionView
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

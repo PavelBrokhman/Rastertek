@@ -19,10 +19,12 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/Cube.txt", "Data/Stone01.tga", TEXTURE_UNIT, true)) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/Cube.txt", "Data/Stone01.tga", TEXTURE_UNIT, true))
+            return false;
 
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(OpenGL)) return false;
+        if (!m_LightShader.Initialize(OpenGL))
+            return false;
 
         m_Light = new Light();
         m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -34,14 +36,19 @@ public class GraphicsFramework
     {
         m_LightShader?.Shutdown(m_OpenGL);
         m_Model?.Shutdown(m_OpenGL);
-        m_LightShader = null; m_Model = null; m_Camera = null; m_Light = null; m_OpenGL = null;
+        m_LightShader = null;
+        m_Model = null;
+        m_Camera = null;
+        m_Light = null;
+        m_OpenGL = null;
     }
 
     public bool Frame()
     {
         // Вращаем куб для наглядности освещения.
         m_rotation += 0.01f;
-        if (m_rotation > MathF.Tau) m_rotation -= MathF.Tau;
+        if (m_rotation > MathF.Tau)
+            m_rotation -= MathF.Tau;
         return Render();
     }
 
@@ -55,8 +62,18 @@ public class GraphicsFramework
         var projection = m_OpenGL.GetProjectionMatrix();
 
         m_LightShader.SetShader(m_OpenGL);
-        if (!m_LightShader.SetShaderParameters(m_OpenGL, world, view, projection, (int)TEXTURE_UNIT,
-            m_Light.GetDirection(), m_Light.GetDiffuseColor())) return false;
+        if (
+            !m_LightShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                (int)TEXTURE_UNIT,
+                m_Light.GetDirection(),
+                m_Light.GetDiffuseColor()
+            )
+        )
+            return false;
 
         m_Model.Render(m_OpenGL);
         m_OpenGL.EndScene();

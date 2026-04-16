@@ -15,10 +15,12 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL)) return false;
+        if (!m_Model.Initialize(OpenGL))
+            return false;
 
         m_ColorShader = new ColorShader();
-        if (!m_ColorShader.Initialize(OpenGL)) return false;
+        if (!m_ColorShader.Initialize(OpenGL))
+            return false;
 
         return true;
     }
@@ -46,7 +48,8 @@ public class GraphicsFramework
         var projection = m_OpenGL.GetProjectionMatrix();
 
         m_ColorShader.SetShader(m_OpenGL);
-        if (!m_ColorShader.SetShaderParameters(m_OpenGL, world, view, projection)) return false;
+        if (!m_ColorShader.SetShaderParameters(m_OpenGL, world, view, projection))
+            return false;
 
         m_Model.Render(m_OpenGL);
 

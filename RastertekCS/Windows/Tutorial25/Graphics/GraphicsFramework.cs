@@ -24,16 +24,20 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
+            return false;
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX)) return false;
+        if (!m_TextureShader.Initialize(DirectX))
+            return false;
 
         m_RenderTexture = new RenderTexture();
-        if (!m_RenderTexture.Initialize(DirectX, 256, 256, SCREEN_DEPTH, SCREEN_NEAR)) return false;
+        if (!m_RenderTexture.Initialize(DirectX, 256, 256, SCREEN_DEPTH, SCREEN_NEAR))
+            return false;
 
         m_DisplayPlane = new DisplayPlane();
-        if (!m_DisplayPlane.Initialize(DirectX, 1.0f, 1.0f)) return false;
+        if (!m_DisplayPlane.Initialize(DirectX, 1.0f, 1.0f))
+            return false;
 
         return true;
     }
@@ -55,8 +59,10 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f) m_rotation += MathF.Tau;
-        if (!RenderSceneToTexture()) return false;
+        if (m_rotation < 0.0f)
+            m_rotation += MathF.Tau;
+        if (!RenderSceneToTexture())
+            return false;
         return Render();
     }
 
@@ -73,8 +79,16 @@ public class GraphicsFramework
         var world = Matrix4X4.CreateRotationY(m_rotation);
 
         m_Model.Render(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection,
-            m_Model.GetTextureView()))
+        if (
+            !m_TextureShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_Model.GetTextureView()
+            )
+        )
             return false;
 
         m_DirectX.SetBackBufferRenderTarget();
@@ -96,17 +110,44 @@ public class GraphicsFramework
 
         var world1 = Matrix4X4.CreateTranslation(0.0f, 1.5f, 0.0f);
         m_DisplayPlane.Render(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_DisplayPlane.GetIndexCount(), world1, view, projection, rtSrv))
+        if (
+            !m_TextureShader.Render(
+                m_DirectX,
+                m_DisplayPlane.GetIndexCount(),
+                world1,
+                view,
+                projection,
+                rtSrv
+            )
+        )
             return false;
 
         var world2 = Matrix4X4.CreateTranslation(-1.5f, -1.5f, 0.0f);
         m_DisplayPlane.Render(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_DisplayPlane.GetIndexCount(), world2, view, projection, rtSrv))
+        if (
+            !m_TextureShader.Render(
+                m_DirectX,
+                m_DisplayPlane.GetIndexCount(),
+                world2,
+                view,
+                projection,
+                rtSrv
+            )
+        )
             return false;
 
         var world3 = Matrix4X4.CreateTranslation(1.5f, -1.5f, 0.0f);
         m_DisplayPlane.Render(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_DisplayPlane.GetIndexCount(), world3, view, projection, rtSrv))
+        if (
+            !m_TextureShader.Render(
+                m_DirectX,
+                m_DisplayPlane.GetIndexCount(),
+                world3,
+                view,
+                projection,
+                rtSrv
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

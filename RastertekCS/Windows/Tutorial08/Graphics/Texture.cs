@@ -40,7 +40,7 @@ public unsafe class Texture
             Usage = Usage.Default,
             BindFlags = (uint)BindFlag.ShaderResource,
             CPUAccessFlags = 0,
-            MiscFlags = 0
+            MiscFlags = 0,
         };
 
         fixed (byte* pPixels = pixels)
@@ -49,10 +49,11 @@ public unsafe class Texture
             {
                 PSysMem = pPixels,
                 SysMemPitch = (uint)(width * 4),
-                SysMemSlicePitch = 0
+                SysMemSlicePitch = 0,
             };
             SilkMarshal.ThrowHResult(
-                device.CreateTexture2D(&textureDesc, &initData, ref m_texture));
+                device.CreateTexture2D(&textureDesc, &initData, ref m_texture)
+            );
         }
 
         // Create shader resource view.
@@ -60,10 +61,11 @@ public unsafe class Texture
         {
             Format = Format.FormatR8G8B8A8Unorm,
             ViewDimension = D3DSrvDimension.D3DSrvDimensionTexture2D,
-            Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = 1 }
+            Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = 1 },
         };
         SilkMarshal.ThrowHResult(
-            device.CreateShaderResourceView(m_texture, &srvDesc, ref m_textureView));
+            device.CreateShaderResourceView(m_texture, &srvDesc, ref m_textureView)
+        );
 
         // Create sampler state.
         var samplerDesc = new SamplerDesc
@@ -76,14 +78,13 @@ public unsafe class Texture
             MaxAnisotropy = 1,
             ComparisonFunc = ComparisonFunc.Always,
             MinLOD = 0,
-            MaxLOD = float.MaxValue
+            MaxLOD = float.MaxValue,
         };
         samplerDesc.BorderColor[0] = 0;
         samplerDesc.BorderColor[1] = 0;
         samplerDesc.BorderColor[2] = 0;
         samplerDesc.BorderColor[3] = 0;
-        SilkMarshal.ThrowHResult(
-            device.CreateSamplerState(&samplerDesc, ref m_samplerState));
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_samplerState));
 
         m_loaded = true;
         return true;
@@ -111,10 +112,13 @@ public unsafe class Texture
 
     private static bool LoadTga(string filename, out int width, out int height, out byte[] rgba)
     {
-        width = 0; height = 0; rgba = null;
+        width = 0;
+        height = 0;
+        rgba = null;
 
         byte[] data = File.ReadAllBytes(filename);
-        if (data.Length < 18) return false;
+        if (data.Length < 18)
+            return false;
 
         int idLength = data[0];
         int imageType = data[2];
@@ -123,13 +127,16 @@ public unsafe class Texture
         int bpp = data[16];
         int descriptor = data[17];
 
-        if (imageType != 2) return false;
-        if (bpp != 24 && bpp != 32) return false;
+        if (imageType != 2)
+            return false;
+        if (bpp != 24 && bpp != 32)
+            return false;
 
         int offset = 18 + idLength;
         int channels = bpp / 8;
         int pixelCount = width * height;
-        if (data.Length < offset + pixelCount * channels) return false;
+        if (data.Length < offset + pixelCount * channels)
+            return false;
 
         rgba = new byte[pixelCount * 4];
 
@@ -161,7 +168,8 @@ public unsafe class Texture
     private static void GenerateCheckerboardTga(string filename, int size)
     {
         var dir = Path.GetDirectoryName(filename);
-        if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
 
         byte[] header = new byte[18];
         header[2] = 2;

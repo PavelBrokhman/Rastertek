@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
+using Silk.NET.Direct3D11;
 using Silk.NET.Maths;
 
 namespace RastertekCS.Windows.Tutorial04.Graphics;
@@ -33,8 +33,13 @@ public unsafe class ColorShader
         m_vertexShader.Release();
     }
 
-    public bool Render(DX11 DirectX, int indexCount,
-        Matrix4X4<float> worldMatrix, Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix)
+    public bool Render(
+        DX11 DirectX,
+        int indexCount,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
+        Matrix4X4<float> projectionMatrix
+    )
     {
         if (!SetShaderParameters(DirectX, worldMatrix, viewMatrix, projectionMatrix))
             return false;
@@ -56,20 +61,30 @@ public unsafe class ColorShader
         {
             SilkMarshal.ThrowHResult(
                 compiler.Compile(
-                    pVsSource, (nuint)vsSource.Length,
+                    pVsSource,
+                    (nuint)vsSource.Length,
                     (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi),
-                    null, (ID3DInclude*)null,
+                    null,
+                    (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("ColorVertexShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &pVsBlob, &pErrorBlob));
+                    0,
+                    0,
+                    &pVsBlob,
+                    &pErrorBlob
+                )
+            );
         }
         ComPtr<ID3D10Blob> vsBlob = pVsBlob;
 
         SilkMarshal.ThrowHResult(
             device.CreateVertexShader(
-                vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(),
+                vsBlob.GetBufferPointer(),
+                vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_vertexShader));
+                ref m_vertexShader
+            )
+        );
 
         // Compile pixel shader.
         ID3D10Blob* pPsBlob = null;
@@ -79,20 +94,30 @@ public unsafe class ColorShader
         {
             SilkMarshal.ThrowHResult(
                 compiler.Compile(
-                    pPsSource, (nuint)psSource.Length,
+                    pPsSource,
+                    (nuint)psSource.Length,
                     (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi),
-                    null, (ID3DInclude*)null,
+                    null,
+                    (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("ColorPixelShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &pPsBlob, &pErrorBlob));
+                    0,
+                    0,
+                    &pPsBlob,
+                    &pErrorBlob
+                )
+            );
         }
         ComPtr<ID3D10Blob> psBlob = pPsBlob;
 
         SilkMarshal.ThrowHResult(
             device.CreatePixelShader(
-                psBlob.GetBufferPointer(), psBlob.GetBufferSize(),
+                psBlob.GetBufferPointer(),
+                psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_pixelShader));
+                ref m_pixelShader
+            )
+        );
 
         // Create the input layout.
         var posName = SilkMarshal.StringToPtr("POSITION", NativeStringEncoding.Ansi);
@@ -108,7 +133,7 @@ public unsafe class ColorShader
                 InputSlot = 0,
                 AlignedByteOffset = 0,
                 InputSlotClass = InputClassification.PerVertexData,
-                InstanceDataStepRate = 0
+                InstanceDataStepRate = 0,
             },
             new()
             {
@@ -118,15 +143,21 @@ public unsafe class ColorShader
                 InputSlot = 0,
                 AlignedByteOffset = 12,
                 InputSlotClass = InputClassification.PerVertexData,
-                InstanceDataStepRate = 0
-            }
+                InstanceDataStepRate = 0,
+            },
         };
 
         fixed (InputElementDesc* pLayout = layoutDesc)
         {
             SilkMarshal.ThrowHResult(
-                device.CreateInputLayout(pLayout, (uint)layoutDesc.Length,
-                    vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(), ref m_layout));
+                device.CreateInputLayout(
+                    pLayout,
+                    (uint)layoutDesc.Length,
+                    vsBlob.GetBufferPointer(),
+                    vsBlob.GetBufferSize(),
+                    ref m_layout
+                )
+            );
         }
 
         SilkMarshal.Free(posName);
@@ -141,16 +172,20 @@ public unsafe class ColorShader
             ByteWidth = (uint)sizeof(MatrixBufferType),
             BindFlags = (uint)BindFlag.ConstantBuffer,
             CPUAccessFlags = (uint)CpuAccessFlag.Write,
-            MiscFlags = 0, StructureByteStride = 0
+            MiscFlags = 0,
+            StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(
-            device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
 
         return true;
     }
 
-    private bool SetShaderParameters(DX11 DirectX,
-        Matrix4X4<float> worldMatrix, Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix)
+    private bool SetShaderParameters(
+        DX11 DirectX,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
+        Matrix4X4<float> projectionMatrix
+    )
     {
         var context = DirectX.DeviceContext;
 
@@ -162,7 +197,8 @@ public unsafe class ColorShader
         // Map the constant buffer.
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource));
+            context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+        );
 
         var dataPtr = (MatrixBufferType*)mappedResource.PData;
         dataPtr->world = worldMatrix;

@@ -30,13 +30,24 @@ public class GL4
 
         m_worldMatrix = Matrix4X4<float>.Identity;
         m_projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
-        m_orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-sw / 2f, sw / 2f, -sh / 2f, sh / 2f, -1f, 1f);
+        m_orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(
+            -sw / 2f,
+            sw / 2f,
+            -sh / 2f,
+            sh / 2f,
+            -1f,
+            1f
+        );
 
         _ = vsync;
         return true;
     }
 
-    public void Shutdown() { m_gl?.Dispose(); m_gl = null; }
+    public void Shutdown()
+    {
+        m_gl?.Dispose();
+        m_gl = null;
+    }
 
     public void BeginScene(float r, float g, float b, float a)
     {
@@ -47,31 +58,57 @@ public class GL4
     public void EndScene() { }
 
     public void TurnZBufferOn() => m_gl.Enable(EnableCap.DepthTest);
+
     public void TurnZBufferOff() => m_gl.Disable(EnableCap.DepthTest);
 
     public void EnableAlphaBlending()
     {
         m_gl.Enable(EnableCap.Blend);
-        m_gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha,
-                                BlendingFactor.One, BlendingFactor.Zero);
+        m_gl.BlendFuncSeparate(
+            BlendingFactor.SrcAlpha,
+            BlendingFactor.OneMinusSrcAlpha,
+            BlendingFactor.One,
+            BlendingFactor.Zero
+        );
     }
 
     public void DisableAlphaBlending() => m_gl.Disable(EnableCap.Blend);
 
     public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
     public Matrix4X4<float> GetOrthoMatrix() => m_orthoMatrix;
+
     public string GetVideoCardInfo() => m_videoCardDescription;
 
-    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    private static Matrix4X4<float> PerspectiveFovLH(
+        float fov,
+        float aspect,
+        float nearZ,
+        float farZ
+    )
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);
         float w = h / aspect;
         float range = farZ / (farZ - nearZ);
         return new Matrix4X4<float>(
-            w, 0, 0, 0,
-            0, h, 0, 0,
-            0, 0, range, 1,
-            0, 0, -range * nearZ, 0);
+            w,
+            0,
+            0,
+            0,
+            0,
+            h,
+            0,
+            0,
+            0,
+            0,
+            range,
+            1,
+            0,
+            0,
+            -range * nearZ,
+            0
+        );
     }
 }

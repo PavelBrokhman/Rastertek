@@ -101,7 +101,9 @@ public class SystemClass
         options.Title = "Tutorial02 - DirectX";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
-        options.WindowState = GraphicsClass.FULL_SCREEN ? WindowState.Fullscreen : WindowState.Normal;
+        options.WindowState = GraphicsClass.FULL_SCREEN
+            ? WindowState.Fullscreen
+            : WindowState.Normal;
         options.VSync = GraphicsClass.VSYNC_ENABLED;
         options.API = GraphicsAPI.None;
 
@@ -154,9 +156,7 @@ public class SystemClass
         }
     }
 
-    private void OnRender(double deltaTime)
-    {
-    }
+    private void OnRender(double deltaTime) { }
 
     private void OnClosing()
     {

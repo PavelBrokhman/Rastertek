@@ -17,10 +17,12 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/Stone01.tga", TEXTURE_UNIT, true)) return false;
+        if (!m_Model.Initialize(OpenGL, "Data/Stone01.tga", TEXTURE_UNIT, true))
+            return false;
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL)) return false;
+        if (!m_TextureShader.Initialize(OpenGL))
+            return false;
 
         return true;
     }
@@ -48,7 +50,16 @@ public class GraphicsFramework
         var projection = m_OpenGL.GetProjectionMatrix();
 
         m_TextureShader.SetShader(m_OpenGL);
-        if (!m_TextureShader.SetShaderParameters(m_OpenGL, world, view, projection, (int)TEXTURE_UNIT)) return false;
+        if (
+            !m_TextureShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                (int)TEXTURE_UNIT
+            )
+        )
+            return false;
 
         m_Model.Render(m_OpenGL);
 

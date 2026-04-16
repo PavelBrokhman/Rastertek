@@ -18,31 +18,51 @@ public class SystemFramework
 
     public bool Initialize()
     {
-        int sw = 0, sh = 0;
+        int sw = 0,
+            sh = 0;
         m_OpenGL = new GL4();
-        if (!InitializeWindows(ref sw, ref sh)) return false;
-        if (!m_OpenGL.Initialize(m_window, sw, sh, SystemConfiguration.ScreenDepth,
-                                  SystemConfiguration.ScreenNear, SystemConfiguration.VerticalSyncEnabled)) return false;
-        m_Input = new Input(); m_Input.Initialize();
+        if (!InitializeWindows(ref sw, ref sh))
+            return false;
+        if (
+            !m_OpenGL.Initialize(
+                m_window,
+                sw,
+                sh,
+                SystemConfiguration.ScreenDepth,
+                SystemConfiguration.ScreenNear,
+                SystemConfiguration.VerticalSyncEnabled
+            )
+        )
+            return false;
+        m_Input = new Input();
+        m_Input.Initialize();
         m_Graphics = new GraphicsFramework();
-        if (!m_Graphics.Initialize(m_OpenGL)) return false;
+        if (!m_Graphics.Initialize(m_OpenGL))
+            return false;
         m_graphicsInitialized = true;
         return true;
     }
 
     public void Shutdown()
     {
-        m_Graphics?.Shutdown(); m_Graphics = null;
+        m_Graphics?.Shutdown();
+        m_Graphics = null;
         m_Input = null;
-        m_OpenGL?.Shutdown(); m_OpenGL = null;
+        m_OpenGL?.Shutdown();
+        m_OpenGL = null;
         ShutdownWindows();
     }
 
-    public void Run() { m_done = false; m_window.Run(); }
+    public void Run()
+    {
+        m_done = false;
+        m_window.Run();
+    }
 
     private bool Frame()
     {
-        if (m_Input.IsKeyDown(Key.Escape)) return false;
+        if (m_Input.IsKeyDown(Key.Escape))
+            return false;
         return m_Graphics.Frame();
     }
 
@@ -54,24 +74,33 @@ public class SystemFramework
         options.Title = "Tutorial10 - Specular Lighting (OpenGL)";
         options.Size = new Vector2D<int>(sw, sh);
         options.WindowBorder = WindowBorder.Resizable;
-        options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
+        options.WindowState = SystemConfiguration.FullScreen
+            ? WindowState.Fullscreen
+            : WindowState.Normal;
         options.VSync = SystemConfiguration.VerticalSyncEnabled;
-        options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core,
-            ContextFlags.ForwardCompatible, new APIVersion(4, 0));
+        options.API = new GraphicsAPI(
+            ContextAPI.OpenGL,
+            ContextProfile.Core,
+            ContextFlags.ForwardCompatible,
+            new APIVersion(4, 0)
+        );
         m_window = Window.Create(options);
         m_window.Load += OnLoad;
         m_window.Render += OnRender;
         m_window.Closing += OnClosing;
         m_window.Initialize();
         m_window.Title = "Tutorial10 - Specular Lighting (OpenGL)";
-        sw = m_window.Size.X; sh = m_window.Size.Y;
+        sw = m_window.Size.X;
+        sh = m_window.Size.Y;
         return true;
     }
 
     private void ShutdownWindows()
     {
-        m_inputContext?.Dispose(); m_inputContext = null;
-        m_window?.Dispose(); m_window = null;
+        m_inputContext?.Dispose();
+        m_inputContext = null;
+        m_window?.Dispose();
+        m_window = null;
     }
 
     private void OnLoad()
@@ -86,14 +115,21 @@ public class SystemFramework
 
     private void OnRender(double dt)
     {
-        if (!m_graphicsInitialized) return;
-        if (m_done || !Frame()) { m_done = true; m_window.Close(); }
+        if (!m_graphicsInitialized)
+            return;
+        if (m_done || !Frame())
+        {
+            m_done = true;
+            m_window.Close();
+        }
     }
 
     private void OnClosing()
     {
         m_done = true;
-        m_Graphics?.Shutdown(); m_Graphics = null;
-        m_OpenGL?.Shutdown(); m_OpenGL = null;
+        m_Graphics?.Shutdown();
+        m_Graphics = null;
+        m_OpenGL?.Shutdown();
+        m_OpenGL = null;
     }
 }

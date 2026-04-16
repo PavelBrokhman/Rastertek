@@ -31,9 +31,16 @@ public class SystemClass
             return false;
         }
 
-        if (!m_DirectX.Initialize(m_window, screenWidth, screenHeight,
-                                   GraphicsClass.SCREEN_DEPTH, GraphicsClass.SCREEN_NEAR,
-                                   GraphicsClass.VSYNC_ENABLED))
+        if (
+            !m_DirectX.Initialize(
+                m_window,
+                screenWidth,
+                screenHeight,
+                GraphicsClass.SCREEN_DEPTH,
+                GraphicsClass.SCREEN_NEAR,
+                GraphicsClass.VSYNC_ENABLED
+            )
+        )
         {
             Console.WriteLine("Could not initialize Direct3D.");
             return false;
@@ -95,7 +102,9 @@ public class SystemClass
         options.Title = "Tutorial03 - DirectX";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
-        options.WindowState = GraphicsClass.FULL_SCREEN ? WindowState.Fullscreen : WindowState.Normal;
+        options.WindowState = GraphicsClass.FULL_SCREEN
+            ? WindowState.Fullscreen
+            : WindowState.Normal;
         options.VSync = GraphicsClass.VSYNC_ENABLED;
         options.API = GraphicsAPI.None;
 
@@ -141,7 +150,8 @@ public class SystemClass
 
     private void OnUpdate(double deltaTime)
     {
-        if (m_done) return;
+        if (m_done)
+            return;
         if (!Frame())
         {
             m_done = true;
@@ -151,7 +161,8 @@ public class SystemClass
 
     private void OnRender(double deltaTime)
     {
-        if (m_done) return;
+        if (m_done)
+            return;
         m_Graphics?.Frame();
     }
 

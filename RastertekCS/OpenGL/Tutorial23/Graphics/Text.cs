@@ -10,15 +10,29 @@ public class Text
     private int m_vertexCount;
     private int m_indexCount;
     private int m_maxLength;
-    private float m_red, m_green, m_blue;
+    private float m_red,
+        m_green,
+        m_blue;
 
-    public unsafe bool Initialize(GL4 OpenGL, Font font, string sentence,
-                                   int posX, int posY, float r, float g, float b,
-                                   int screenWidth, int screenHeight, int maxLength)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        Font font,
+        string sentence,
+        int posX,
+        int posY,
+        float r,
+        float g,
+        float b,
+        int screenWidth,
+        int screenHeight,
+        int maxLength
+    )
     {
         var gl = OpenGL.Gl;
         m_maxLength = maxLength;
-        m_red = r; m_green = g; m_blue = b;
+        m_red = r;
+        m_green = g;
+        m_blue = b;
 
         m_vertexCount = 6 * m_maxLength;
         m_indexCount = m_vertexCount;
@@ -26,7 +40,8 @@ public class Text
 
         var vertices = new float[m_vertexCount * floatsPerVertex];
         var indices = new uint[m_indexCount];
-        for (int i = 0; i < m_indexCount; i++) indices[i] = (uint)i;
+        for (int i = 0; i < m_indexCount; i++)
+            indices[i] = (uint)i;
 
         float startX = -(screenWidth / 2.0f) + posX;
         float startY = (screenHeight / 2.0f) - posY;
@@ -38,28 +53,61 @@ public class Text
         m_vertexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (float* p = vertices)
-            gl.BufferData(BufferTargetARB.ArrayBuffer,
-                (nuint)(sizeof(float) * vertices.Length), p, BufferUsageARB.DynamicDraw);
+            gl.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                (nuint)(sizeof(float) * vertices.Length),
+                p,
+                BufferUsageARB.DynamicDraw
+            );
 
         gl.EnableVertexAttribArray(0);
         gl.EnableVertexAttribArray(1);
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)(floatsPerVertex * sizeof(float)), (void*)0);
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)(floatsPerVertex * sizeof(float)), (void*)(3 * sizeof(float)));
+        gl.VertexAttribPointer(
+            0,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)(floatsPerVertex * sizeof(float)),
+            (void*)0
+        );
+        gl.VertexAttribPointer(
+            1,
+            2,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)(floatsPerVertex * sizeof(float)),
+            (void*)(3 * sizeof(float))
+        );
 
         m_indexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
         fixed (uint* p = indices)
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer,
-                (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                (nuint)(sizeof(uint) * indices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         return true;
     }
 
-    public unsafe void UpdateText(GL4 OpenGL, Font font, string sentence,
-                                   int posX, int posY, float r, float g, float b,
-                                   int screenWidth, int screenHeight)
+    public unsafe void UpdateText(
+        GL4 OpenGL,
+        Font font,
+        string sentence,
+        int posX,
+        int posY,
+        float r,
+        float g,
+        float b,
+        int screenWidth,
+        int screenHeight
+    )
     {
-        m_red = r; m_green = g; m_blue = b;
+        m_red = r;
+        m_green = g;
+        m_blue = b;
         int floatsPerVertex = 5;
         var vertices = new float[m_vertexCount * floatsPerVertex];
         float startX = -(screenWidth / 2.0f) + posX;
@@ -69,7 +117,12 @@ public class Text
         var gl = OpenGL.Gl;
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (float* p = vertices)
-            gl.BufferSubData(BufferTargetARB.ArrayBuffer, 0, (nuint)(sizeof(float) * vertices.Length), p);
+            gl.BufferSubData(
+                BufferTargetARB.ArrayBuffer,
+                0,
+                (nuint)(sizeof(float) * vertices.Length),
+                p
+            );
     }
 
     public void Shutdown(GL4 OpenGL)
@@ -91,6 +144,11 @@ public class Text
     {
         var gl = OpenGL.Gl;
         gl.BindVertexArray(m_vertexArrayId);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)m_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.DrawElements(
+            PrimitiveType.Triangles,
+            (uint)m_indexCount,
+            DrawElementsType.UnsignedInt,
+            (void*)0
+        );
     }
 }

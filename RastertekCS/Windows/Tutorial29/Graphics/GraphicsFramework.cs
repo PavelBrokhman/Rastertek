@@ -20,16 +20,20 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model1 = new Model();
-        if (!m_Model1.Initialize(DirectX, "Models/square.txt", "Data/dirt01.tga", true)) return false;
+        if (!m_Model1.Initialize(DirectX, "Models/square.txt", "Data/dirt01.tga", true))
+            return false;
 
         m_Model2 = new Model();
-        if (!m_Model2.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", true)) return false;
+        if (!m_Model2.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", true))
+            return false;
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX)) return false;
+        if (!m_TextureShader.Initialize(DirectX))
+            return false;
 
         m_TransparentShader = new TransparentShader();
-        if (!m_TransparentShader.Initialize(DirectX)) return false;
+        if (!m_TransparentShader.Initialize(DirectX))
+            return false;
 
         return true;
     }
@@ -59,15 +63,32 @@ public class GraphicsFramework
 
         var world1 = m_DirectX.GetWorldMatrix();
         m_Model1.Render(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_Model1.GetIndexCount(), world1, view, projection,
-            m_Model1.GetTextureView()))
+        if (
+            !m_TextureShader.Render(
+                m_DirectX,
+                m_Model1.GetIndexCount(),
+                world1,
+                view,
+                projection,
+                m_Model1.GetTextureView()
+            )
+        )
             return false;
 
         var world2 = Matrix4X4.CreateTranslation(1.0f, 0.0f, -1.0f);
         m_DirectX.EnableAlphaBlending();
         m_Model2.Render(m_DirectX);
-        if (!m_TransparentShader.Render(m_DirectX, m_Model2.GetIndexCount(), world2, view, projection,
-            m_Model2.GetTextureView(), 0.5f))
+        if (
+            !m_TransparentShader.Render(
+                m_DirectX,
+                m_Model2.GetIndexCount(),
+                world2,
+                view,
+                projection,
+                m_Model2.GetTextureView(),
+                0.5f
+            )
+        )
             return false;
         m_DirectX.DisableAlphaBlending();
 

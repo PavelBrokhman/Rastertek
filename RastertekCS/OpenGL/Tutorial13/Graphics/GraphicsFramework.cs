@@ -16,10 +16,14 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -1.0f);
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL)) return false;
+        if (!m_TextureShader.Initialize(OpenGL))
+            return false;
 
         m_Sprite = new Sprite();
-        if (!m_Sprite.Initialize(OpenGL, screenWidth, screenHeight, "Data/Sprite.txt", TEXTURE_UNIT)) return false;
+        if (
+            !m_Sprite.Initialize(OpenGL, screenWidth, screenHeight, "Data/Sprite.txt", TEXTURE_UNIT)
+        )
+            return false;
         m_Sprite.SetRenderLocation(100, 100);
         return true;
     }
@@ -28,7 +32,10 @@ public class GraphicsFramework
     {
         m_Sprite?.Shutdown(m_OpenGL);
         m_TextureShader?.Shutdown(m_OpenGL);
-        m_Sprite = null; m_TextureShader = null; m_Camera = null; m_OpenGL = null;
+        m_Sprite = null;
+        m_TextureShader = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame(float frameTimeMs)
@@ -48,7 +55,8 @@ public class GraphicsFramework
         m_OpenGL.TurnZBufferOff();
 
         m_TextureShader.SetShader(m_OpenGL);
-        if (!m_TextureShader.SetShaderParameters(m_OpenGL, world, view, ortho, (int)TEXTURE_UNIT)) return false;
+        if (!m_TextureShader.SetShaderParameters(m_OpenGL, world, view, ortho, (int)TEXTURE_UNIT))
+            return false;
         m_Sprite.SetTexture(m_OpenGL, TEXTURE_UNIT);
         m_Sprite.Render(m_OpenGL);
 

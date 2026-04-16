@@ -21,13 +21,23 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_SpecMapShader = new SpecMapShader();
-        if (!m_SpecMapShader.Initialize(OpenGL)) return false;
+        if (!m_SpecMapShader.Initialize(OpenGL))
+            return false;
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/Cube.txt",
-            "Data/stone02.tga", true,
-            "Data/normal02.tga", true,
-            "Data/spec02.tga", false)) return false;
+        if (
+            !m_Model.Initialize(
+                OpenGL,
+                "Models/Cube.txt",
+                "Data/stone02.tga",
+                true,
+                "Data/normal02.tga",
+                true,
+                "Data/spec02.tga",
+                false
+            )
+        )
+            return false;
 
         m_Light = new Light();
         m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -41,9 +51,12 @@ public class GraphicsFramework
     public void Shutdown()
     {
         m_Light = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
-        m_SpecMapShader?.Shutdown(m_OpenGL); m_SpecMapShader = null;
-        m_Camera = null; m_OpenGL = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
+        m_SpecMapShader?.Shutdown(m_OpenGL);
+        m_SpecMapShader = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     private float m_rotation = 360.0f;
@@ -51,7 +64,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f) m_rotation += MathF.Tau;
+        if (m_rotation < 0.0f)
+            m_rotation += MathF.Tau;
         return Render(m_rotation);
     }
 
@@ -70,12 +84,30 @@ public class GraphicsFramework
         var cameraPosition = m_Camera.GetPosition();
 
         m_SpecMapShader.SetShader(m_OpenGL);
-        m_Model.SetTextures(m_OpenGL, TEXTURE_UNIT_COLOR, TEXTURE_UNIT_NORMAL, TEXTURE_UNIT_SPECULAR);
+        m_Model.SetTextures(
+            m_OpenGL,
+            TEXTURE_UNIT_COLOR,
+            TEXTURE_UNIT_NORMAL,
+            TEXTURE_UNIT_SPECULAR
+        );
 
-        if (!m_SpecMapShader.SetShaderParameters(m_OpenGL, world, view, projection,
-            lightDirection, diffuseLightColor, cameraPosition,
-            specularColor, specularPower,
-            (int)TEXTURE_UNIT_COLOR, (int)TEXTURE_UNIT_NORMAL, (int)TEXTURE_UNIT_SPECULAR)) return false;
+        if (
+            !m_SpecMapShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                lightDirection,
+                diffuseLightColor,
+                cameraPosition,
+                specularColor,
+                specularPower,
+                (int)TEXTURE_UNIT_COLOR,
+                (int)TEXTURE_UNIT_NORMAL,
+                (int)TEXTURE_UNIT_SPECULAR
+            )
+        )
+            return false;
 
         m_Model.Render(m_OpenGL);
 

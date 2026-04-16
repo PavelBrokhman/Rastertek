@@ -8,9 +8,14 @@ public unsafe class DisplayPlane
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
     }
 
     private ComPtr<ID3D11Buffer> m_vertexBuffer;
@@ -26,12 +31,54 @@ public unsafe class DisplayPlane
 
         var vertices = new VertexType[]
         {
-            new() { x = -width, y =  height, z = 0, tu = 0, tv = 0 },
-            new() { x =  width, y = -height, z = 0, tu = 1, tv = 1 },
-            new() { x = -width, y = -height, z = 0, tu = 0, tv = 1 },
-            new() { x = -width, y =  height, z = 0, tu = 0, tv = 0 },
-            new() { x =  width, y =  height, z = 0, tu = 1, tv = 0 },
-            new() { x =  width, y = -height, z = 0, tu = 1, tv = 1 }
+            new()
+            {
+                x = -width,
+                y = height,
+                z = 0,
+                tu = 0,
+                tv = 0,
+            },
+            new()
+            {
+                x = width,
+                y = -height,
+                z = 0,
+                tu = 1,
+                tv = 1,
+            },
+            new()
+            {
+                x = -width,
+                y = -height,
+                z = 0,
+                tu = 0,
+                tv = 1,
+            },
+            new()
+            {
+                x = -width,
+                y = height,
+                z = 0,
+                tu = 0,
+                tv = 0,
+            },
+            new()
+            {
+                x = width,
+                y = height,
+                z = 0,
+                tu = 1,
+                tv = 0,
+            },
+            new()
+            {
+                x = width,
+                y = -height,
+                z = 0,
+                tu = 1,
+                tv = 1,
+            },
         };
         var indices = new uint[] { 0, 1, 2, 3, 4, 5 };
 
@@ -42,7 +89,9 @@ public unsafe class DisplayPlane
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(VertexType) * m_vertexCount),
                 BindFlags = (uint)BindFlag.VertexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var vd = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(device.CreateBuffer(&vbd, &vd, ref m_vertexBuffer));
@@ -55,7 +104,9 @@ public unsafe class DisplayPlane
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(uint) * m_indexCount),
                 BindFlags = (uint)BindFlag.IndexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var id = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(device.CreateBuffer(&ibd, &id, ref m_indexBuffer));

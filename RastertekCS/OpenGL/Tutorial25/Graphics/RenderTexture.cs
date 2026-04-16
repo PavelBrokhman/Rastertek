@@ -6,13 +6,20 @@ namespace RastertekCS.OpenGL.Tutorial25.Graphics;
 public class RenderTexture
 {
     private GL4 m_OpenGLPtr;
-    private int m_textureWidth, m_textureHeight;
+    private int m_textureWidth,
+        m_textureHeight;
     private uint m_frameBufferId;
     private uint m_textureId;
     private uint m_depthBufferId;
     private Matrix4X4<float> m_projectionMatrix;
 
-    public unsafe bool Initialize(GL4 OpenGL, int textureWidth, int textureHeight, float screenNear, float screenDepth)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        int textureWidth,
+        int textureHeight,
+        float screenNear,
+        float screenDepth
+    )
     {
         m_OpenGLPtr = OpenGL;
         m_textureWidth = textureWidth;
@@ -28,22 +35,52 @@ public class RenderTexture
         gl.ActiveTexture(TextureUnit.Texture0);
         m_textureId = gl.GenTexture();
         gl.BindTexture(TextureTarget.Texture2D, m_textureId);
-        gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba,
-            (uint)textureWidth, (uint)textureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (void*)0);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        gl.TexImage2D(
+            TextureTarget.Texture2D,
+            0,
+            (int)InternalFormat.Rgba,
+            (uint)textureWidth,
+            (uint)textureHeight,
+            0,
+            PixelFormat.Rgba,
+            PixelType.UnsignedByte,
+            (void*)0
+        );
+        gl.TexParameter(
+            TextureTarget.Texture2D,
+            TextureParameterName.TextureMagFilter,
+            (int)TextureMagFilter.Linear
+        );
+        gl.TexParameter(
+            TextureTarget.Texture2D,
+            TextureParameterName.TextureMinFilter,
+            (int)TextureMinFilter.Linear
+        );
 
         // Attach the texture to the framebuffer.
-        gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
-            TextureTarget.Texture2D, m_textureId, 0);
+        gl.FramebufferTexture2D(
+            FramebufferTarget.Framebuffer,
+            FramebufferAttachment.ColorAttachment0,
+            TextureTarget.Texture2D,
+            m_textureId,
+            0
+        );
 
         // Create the depth renderbuffer.
         m_depthBufferId = gl.GenRenderbuffer();
         gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, m_depthBufferId);
-        gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.DepthComponent24,
-            (uint)textureWidth, (uint)textureHeight);
-        gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment,
-            RenderbufferTarget.Renderbuffer, m_depthBufferId);
+        gl.RenderbufferStorage(
+            RenderbufferTarget.Renderbuffer,
+            InternalFormat.DepthComponent24,
+            (uint)textureWidth,
+            (uint)textureHeight
+        );
+        gl.FramebufferRenderbuffer(
+            FramebufferTarget.Framebuffer,
+            FramebufferAttachment.DepthAttachment,
+            RenderbufferTarget.Renderbuffer,
+            m_depthBufferId
+        );
 
         // Set the draw buffer.
         GLEnum drawBuffer = GLEnum.ColorAttachment0;
@@ -54,7 +91,12 @@ public class RenderTexture
 
         // Build the projection matrix for this render texture.
         float screenAspect = (float)textureWidth / (float)textureHeight;
-        m_projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, screenAspect, screenNear, screenDepth);
+        m_projectionMatrix = PerspectiveFovLH(
+            MathF.PI / 4.0f,
+            screenAspect,
+            screenNear,
+            screenDepth
+        );
 
         return true;
     }
@@ -91,15 +133,33 @@ public class RenderTexture
 
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
 
-    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    private static Matrix4X4<float> PerspectiveFovLH(
+        float fov,
+        float aspect,
+        float nearZ,
+        float farZ
+    )
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);
         float w = h / aspect;
         float range = farZ / (farZ - nearZ);
         return new Matrix4X4<float>(
-            w, 0, 0, 0,
-            0, h, 0, 0,
-            0, 0, range, 1,
-            0, 0, -range * nearZ, 0);
+            w,
+            0,
+            0,
+            0,
+            0,
+            h,
+            0,
+            0,
+            0,
+            0,
+            range,
+            1,
+            0,
+            0,
+            -range * nearZ,
+            0
+        );
     }
 }

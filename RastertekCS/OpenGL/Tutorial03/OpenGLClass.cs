@@ -21,8 +21,14 @@ public class OpenGLClass
     // Silk.NET делает это автоматически — GL объект получает все функции сразу.
     public GL Gl => m_gl;
 
-    public bool Initialize(IWindow window, int screenWidth, int screenHeight,
-                           float screenDepth, float screenNear, bool vsync)
+    public bool Initialize(
+        IWindow window,
+        int screenWidth,
+        int screenHeight,
+        float screenDepth,
+        float screenNear,
+        bool vsync
+    )
     {
         m_window = window;
 
@@ -57,7 +63,11 @@ public class OpenGLClass
         float fieldOfView = MathF.PI / 4.0f;
         float screenAspect = (float)screenWidth / (float)screenHeight;
         m_projectionMatrix = Matrix4X4.CreatePerspectiveFieldOfView(
-            fieldOfView, screenAspect, screenNear, screenDepth);
+            fieldOfView,
+            screenAspect,
+            screenNear,
+            screenDepth
+        );
 
         // VSync контролируется через свойство окна Silk.NET (см. SystemClass).
         _ = vsync;
@@ -80,11 +90,11 @@ public class OpenGLClass
 
     // В C++ было SwapBuffers(m_deviceContext). Silk.NET.Windowing вызывает
     // SwapBuffers автоматически после коллбэка Render, поэтому здесь пусто.
-    public void EndScene()
-    {
-    }
+    public void EndScene() { }
 
     public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
     public string GetVideoCardInfo() => m_videoCardDescription;
 }

@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
+using Silk.NET.Direct3D11;
 using Silk.NET.Maths;
 
 namespace RastertekCS.Windows.Tutorial33.Graphics;
@@ -56,20 +56,44 @@ public unsafe class FireShader
         m_vertexShader.Release();
     }
 
-    public bool Render(DX11 DirectX, int indexCount,
-        Matrix4X4<float> world, Matrix4X4<float> view, Matrix4X4<float> projection,
-        float frameTime, float[] scrollSpeeds, float[] scales,
-        float[] distortion1, float[] distortion2, float[] distortion3,
-        float distortionScale, float distortionBias,
+    public bool Render(
+        DX11 DirectX,
+        int indexCount,
+        Matrix4X4<float> world,
+        Matrix4X4<float> view,
+        Matrix4X4<float> projection,
+        float frameTime,
+        float[] scrollSpeeds,
+        float[] scales,
+        float[] distortion1,
+        float[] distortion2,
+        float[] distortion3,
+        float distortionScale,
+        float distortionBias,
         ComPtr<ID3D11ShaderResourceView> fireTexture,
         ComPtr<ID3D11ShaderResourceView> noiseTexture,
-        ComPtr<ID3D11ShaderResourceView> alphaTexture)
+        ComPtr<ID3D11ShaderResourceView> alphaTexture
+    )
     {
-        if (!SetShaderParameters(DirectX, world, view, projection,
-                frameTime, scrollSpeeds, scales,
-                distortion1, distortion2, distortion3,
-                distortionScale, distortionBias,
-                fireTexture, noiseTexture, alphaTexture))
+        if (
+            !SetShaderParameters(
+                DirectX,
+                world,
+                view,
+                projection,
+                frameTime,
+                scrollSpeeds,
+                scales,
+                distortion1,
+                distortion2,
+                distortion3,
+                distortionScale,
+                distortionBias,
+                fireTexture,
+                noiseTexture,
+                alphaTexture
+            )
+        )
             return false;
         RenderShader(DirectX, indexCount);
         return true;
@@ -85,68 +109,136 @@ public unsafe class FireShader
         var vsSource = File.ReadAllBytes(vsFilename);
         fixed (byte* pVsSource = vsSource)
             SilkMarshal.ThrowHResult(
-                compiler.Compile(pVsSource, (nuint)vsSource.Length,
+                compiler.Compile(
+                    pVsSource,
+                    (nuint)vsSource.Length,
                     (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi),
-                    null, (ID3DInclude*)null,
+                    null,
+                    (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("FireVertexShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &pVsBlob, &pErrorBlob));
+                    0,
+                    0,
+                    &pVsBlob,
+                    &pErrorBlob
+                )
+            );
         ComPtr<ID3D10Blob> vsBlob = pVsBlob;
         SilkMarshal.ThrowHResult(
-            device.CreateVertexShader(vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(),
-                ref Unsafe.NullRef<ID3D11ClassLinkage>(), ref m_vertexShader));
+            device.CreateVertexShader(
+                vsBlob.GetBufferPointer(),
+                vsBlob.GetBufferSize(),
+                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref m_vertexShader
+            )
+        );
 
         ID3D10Blob* pPsBlob = null;
         var psSource = File.ReadAllBytes(psFilename);
         fixed (byte* pPsSource = psSource)
             SilkMarshal.ThrowHResult(
-                compiler.Compile(pPsSource, (nuint)psSource.Length,
+                compiler.Compile(
+                    pPsSource,
+                    (nuint)psSource.Length,
                     (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi),
-                    null, (ID3DInclude*)null,
+                    null,
+                    (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("FirePixelShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &pPsBlob, &pErrorBlob));
+                    0,
+                    0,
+                    &pPsBlob,
+                    &pErrorBlob
+                )
+            );
         ComPtr<ID3D10Blob> psBlob = pPsBlob;
         SilkMarshal.ThrowHResult(
-            device.CreatePixelShader(psBlob.GetBufferPointer(), psBlob.GetBufferSize(),
-                ref Unsafe.NullRef<ID3D11ClassLinkage>(), ref m_pixelShader));
+            device.CreatePixelShader(
+                psBlob.GetBufferPointer(),
+                psBlob.GetBufferSize(),
+                ref Unsafe.NullRef<ID3D11ClassLinkage>(),
+                ref m_pixelShader
+            )
+        );
 
         var posName = SilkMarshal.StringToPtr("POSITION", NativeStringEncoding.Ansi);
         var texName = SilkMarshal.StringToPtr("TEXCOORD", NativeStringEncoding.Ansi);
         var layoutDesc = new InputElementDesc[]
         {
-            new() { SemanticName = (byte*)posName, SemanticIndex = 0,
-                Format = Silk.NET.DXGI.Format.FormatR32G32B32Float, InputSlot = 0,
-                AlignedByteOffset = 0, InputSlotClass = InputClassification.PerVertexData, InstanceDataStepRate = 0 },
-            new() { SemanticName = (byte*)texName, SemanticIndex = 0,
-                Format = Silk.NET.DXGI.Format.FormatR32G32Float, InputSlot = 0,
-                AlignedByteOffset = 12, InputSlotClass = InputClassification.PerVertexData, InstanceDataStepRate = 0 }
+            new()
+            {
+                SemanticName = (byte*)posName,
+                SemanticIndex = 0,
+                Format = Silk.NET.DXGI.Format.FormatR32G32B32Float,
+                InputSlot = 0,
+                AlignedByteOffset = 0,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0,
+            },
+            new()
+            {
+                SemanticName = (byte*)texName,
+                SemanticIndex = 0,
+                Format = Silk.NET.DXGI.Format.FormatR32G32Float,
+                InputSlot = 0,
+                AlignedByteOffset = 12,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0,
+            },
         };
         fixed (InputElementDesc* pLayout = layoutDesc)
             SilkMarshal.ThrowHResult(
-                device.CreateInputLayout(pLayout, (uint)layoutDesc.Length,
-                    vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(), ref m_layout));
-        SilkMarshal.Free(posName); SilkMarshal.Free(texName);
-        vsBlob.Release(); psBlob.Release();
+                device.CreateInputLayout(
+                    pLayout,
+                    (uint)layoutDesc.Length,
+                    vsBlob.GetBufferPointer(),
+                    vsBlob.GetBufferSize(),
+                    ref m_layout
+                )
+            );
+        SilkMarshal.Free(posName);
+        SilkMarshal.Free(texName);
+        vsBlob.Release();
+        psBlob.Release();
 
-        var matrixDesc = new BufferDesc { Usage = Usage.Dynamic, ByteWidth = (uint)sizeof(MatrixBufferType),
-            BindFlags = (uint)BindFlag.ConstantBuffer, CPUAccessFlags = (uint)CpuAccessFlag.Write };
+        var matrixDesc = new BufferDesc
+        {
+            Usage = Usage.Dynamic,
+            ByteWidth = (uint)sizeof(MatrixBufferType),
+            BindFlags = (uint)BindFlag.ConstantBuffer,
+            CPUAccessFlags = (uint)CpuAccessFlag.Write,
+        };
         SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixDesc, null, ref m_matrixBuffer));
 
-        var noiseDesc = new BufferDesc { Usage = Usage.Dynamic, ByteWidth = (uint)sizeof(NoiseBufferType),
-            BindFlags = (uint)BindFlag.ConstantBuffer, CPUAccessFlags = (uint)CpuAccessFlag.Write };
+        var noiseDesc = new BufferDesc
+        {
+            Usage = Usage.Dynamic,
+            ByteWidth = (uint)sizeof(NoiseBufferType),
+            BindFlags = (uint)BindFlag.ConstantBuffer,
+            CPUAccessFlags = (uint)CpuAccessFlag.Write,
+        };
         SilkMarshal.ThrowHResult(device.CreateBuffer(&noiseDesc, null, ref m_noiseBuffer));
 
-        var distDesc = new BufferDesc { Usage = Usage.Dynamic, ByteWidth = (uint)sizeof(DistortionBufferType),
-            BindFlags = (uint)BindFlag.ConstantBuffer, CPUAccessFlags = (uint)CpuAccessFlag.Write };
+        var distDesc = new BufferDesc
+        {
+            Usage = Usage.Dynamic,
+            ByteWidth = (uint)sizeof(DistortionBufferType),
+            BindFlags = (uint)BindFlag.ConstantBuffer,
+            CPUAccessFlags = (uint)CpuAccessFlag.Write,
+        };
         SilkMarshal.ThrowHResult(device.CreateBuffer(&distDesc, null, ref m_distortionBuffer));
 
         var samplerDesc = new SamplerDesc
         {
             Filter = Filter.MinMagMipLinear,
-            AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap,
-            MipLODBias = 0, MaxAnisotropy = 1, ComparisonFunc = ComparisonFunc.Always,
-            MinLOD = 0, MaxLOD = float.MaxValue
+            AddressU = TextureAddressMode.Wrap,
+            AddressV = TextureAddressMode.Wrap,
+            AddressW = TextureAddressMode.Wrap,
+            MipLODBias = 0,
+            MaxAnisotropy = 1,
+            ComparisonFunc = ComparisonFunc.Always,
+            MinLOD = 0,
+            MaxLOD = float.MaxValue,
         };
         SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_sampleStateWrap));
 
@@ -158,22 +250,35 @@ public unsafe class FireShader
         return true;
     }
 
-    private bool SetShaderParameters(DX11 DirectX,
-        Matrix4X4<float> world, Matrix4X4<float> view, Matrix4X4<float> projection,
-        float frameTime, float[] scrollSpeeds, float[] scales,
-        float[] distortion1, float[] distortion2, float[] distortion3,
-        float distortionScale, float distortionBias,
+    private bool SetShaderParameters(
+        DX11 DirectX,
+        Matrix4X4<float> world,
+        Matrix4X4<float> view,
+        Matrix4X4<float> projection,
+        float frameTime,
+        float[] scrollSpeeds,
+        float[] scales,
+        float[] distortion1,
+        float[] distortion2,
+        float[] distortion3,
+        float distortionScale,
+        float distortionBias,
         ComPtr<ID3D11ShaderResourceView> fireTexture,
         ComPtr<ID3D11ShaderResourceView> noiseTexture,
-        ComPtr<ID3D11ShaderResourceView> alphaTexture)
+        ComPtr<ID3D11ShaderResourceView> alphaTexture
+    )
     {
         var context = DirectX.DeviceContext;
-        world = Matrix4X4.Transpose(world); view = Matrix4X4.Transpose(view); projection = Matrix4X4.Transpose(projection);
+        world = Matrix4X4.Transpose(world);
+        view = Matrix4X4.Transpose(view);
+        projection = Matrix4X4.Transpose(projection);
 
         MappedSubresource mr;
         SilkMarshal.ThrowHResult(context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mr));
         var mp = (MatrixBufferType*)mr.PData;
-        mp->world = world; mp->view = view; mp->projection = projection;
+        mp->world = world;
+        mp->view = view;
+        mp->projection = projection;
         context.Unmap(m_matrixBuffer, 0);
         var mcb = m_matrixBuffer.GetPinnableReference();
         context.VSSetConstantBuffers(0, 1, &mcb);
@@ -199,9 +304,12 @@ public unsafe class FireShader
         var dcb = m_distortionBuffer.GetPinnableReference();
         context.PSSetConstantBuffers(0, 1, &dcb);
 
-        var ft = fireTexture.GetPinnableReference();  context.PSSetShaderResources(0, 1, &ft);
-        var nt = noiseTexture.GetPinnableReference(); context.PSSetShaderResources(1, 1, &nt);
-        var at = alphaTexture.GetPinnableReference(); context.PSSetShaderResources(2, 1, &at);
+        var ft = fireTexture.GetPinnableReference();
+        context.PSSetShaderResources(0, 1, &ft);
+        var nt = noiseTexture.GetPinnableReference();
+        context.PSSetShaderResources(1, 1, &nt);
+        var at = alphaTexture.GetPinnableReference();
+        context.PSSetShaderResources(2, 1, &at);
 
         return true;
     }
@@ -212,7 +320,7 @@ public unsafe class FireShader
         context.IASetInputLayout(m_layout);
         context.VSSetShader(m_vertexShader, null, 0);
         context.PSSetShader(m_pixelShader, null, 0);
-        var smpWrap  = m_sampleStateWrap.GetPinnableReference();
+        var smpWrap = m_sampleStateWrap.GetPinnableReference();
         var smpClamp = m_sampleStateClamp.GetPinnableReference();
         context.PSSetSamplers(0, 1, &smpWrap);
         context.PSSetSamplers(1, 1, &smpClamp);

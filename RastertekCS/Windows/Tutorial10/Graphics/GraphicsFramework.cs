@@ -19,10 +19,12 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/sphere.txt", "Data/Stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/sphere.txt", "Data/Stone01.tga", true))
+            return false;
 
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(DirectX)) return false;
+        if (!m_LightShader.Initialize(DirectX))
+            return false;
 
         m_Light = new Light();
         m_Light.SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
@@ -48,7 +50,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation += 0.01f;
-        if (m_rotation > MathF.Tau) m_rotation -= MathF.Tau;
+        if (m_rotation > MathF.Tau)
+            m_rotation -= MathF.Tau;
         return Render();
     }
 
@@ -65,9 +68,21 @@ public class GraphicsFramework
         m_Model.Render(m_DirectX);
         m_Model.SetTexture(m_DirectX, 0);
 
-        if (!m_LightShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection,
-            m_Light.GetDirection(), m_Light.GetDiffuseColor(), m_Light.GetAmbientColor(),
-            m_Camera.GetPosition(), m_Light.GetSpecularColor(), m_Light.GetSpecularPower()))
+        if (
+            !m_LightShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_Light.GetDirection(),
+                m_Light.GetDiffuseColor(),
+                m_Light.GetAmbientColor(),
+                m_Camera.GetPosition(),
+                m_Light.GetSpecularColor(),
+                m_Light.GetSpecularPower()
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

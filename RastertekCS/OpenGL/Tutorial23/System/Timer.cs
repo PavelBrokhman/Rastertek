@@ -24,5 +24,6 @@ public class Timer
     }
 
     public float GetTime() => m_frameTime / 1000.0f;
+
     public int GetFrameTime() => (int)m_frameTime;
 }

@@ -20,11 +20,21 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX)) return false;
+        if (!m_TextureShader.Initialize(DirectX))
+            return false;
 
         m_Bitmap = new Bitmap();
-        if (!m_Bitmap.Initialize(DirectX, screenWidth, screenHeight, "Data/Stone01.tga",
-                                  BITMAP_SIZE, BITMAP_SIZE)) return false;
+        if (
+            !m_Bitmap.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                "Data/Stone01.tga",
+                BITMAP_SIZE,
+                BITMAP_SIZE
+            )
+        )
+            return false;
         m_Bitmap.SetRenderLocation(50, 50);
 
         return true;
@@ -52,7 +62,8 @@ public class GraphicsFramework
 
         m_DirectX.TurnZBufferOff();
 
-        if (!m_Bitmap.Render(m_DirectX)) return false;
+        if (!m_Bitmap.Render(m_DirectX))
+            return false;
         m_Bitmap.SetTexture(m_DirectX, 0);
 
         if (!m_TextureShader.Render(m_DirectX, m_Bitmap.GetIndexCount(), world, view, ortho))

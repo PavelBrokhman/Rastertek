@@ -9,20 +9,38 @@ public unsafe class Model
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
-        public float tx, ty, tz;
-        public float bx, by, bz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
+        public float tx,
+            ty,
+            tz;
+        public float bx,
+            by,
+            bz;
     }
 
     private struct ModelType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
-        public float tx, ty, tz;
-        public float bx, by, bz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
+        public float tx,
+            ty,
+            tz;
+        public float bx,
+            by,
+            bz;
     }
 
     private ComPtr<ID3D11Buffer> m_vertexBuffer;
@@ -33,11 +51,18 @@ public unsafe class Model
     private Texture m_Texture1;
     private Texture m_Texture2;
 
-    public bool Initialize(DX11 DirectX, string modelFilename, string textureFilename1, string textureFilename2, bool wrap)
+    public bool Initialize(
+        DX11 DirectX,
+        string modelFilename,
+        string textureFilename1,
+        string textureFilename2,
+        bool wrap
+    )
     {
         var device = DirectX.Device;
 
-        if (!LoadModel(modelFilename)) return false;
+        if (!LoadModel(modelFilename))
+            return false;
 
         CalculateModelVectors();
 
@@ -69,11 +94,14 @@ public unsafe class Model
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(VertexType) * vertices.Length),
                 BindFlags = (uint)BindFlag.VertexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer));
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+            );
         }
 
         fixed (uint* pIndices = indices)
@@ -83,17 +111,22 @@ public unsafe class Model
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(uint) * indices.Length),
                 BindFlags = (uint)BindFlag.IndexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer));
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+            );
         }
 
         m_Texture1 = new Texture();
-        if (!m_Texture1.Initialize(DirectX, textureFilename1, wrap)) return false;
+        if (!m_Texture1.Initialize(DirectX, textureFilename1, wrap))
+            return false;
         m_Texture2 = new Texture();
-        if (!m_Texture2.Initialize(DirectX, textureFilename2, wrap)) return false;
+        if (!m_Texture2.Initialize(DirectX, textureFilename2, wrap))
+            return false;
 
         return true;
     }
@@ -135,23 +168,57 @@ public unsafe class Model
         int index = 0;
         for (int i = 0; i < faceCount; i++)
         {
-            var v1 = m_model[index]; index++;
-            var v2 = m_model[index]; index++;
-            var v3 = m_model[index]; index++;
+            var v1 = m_model[index];
+            index++;
+            var v2 = m_model[index];
+            index++;
+            var v3 = m_model[index];
+            index++;
 
-            CalculateTangentBinormal(v1, v2, v3, out float tx, out float ty, out float tz, out float bx, out float by, out float bz);
+            CalculateTangentBinormal(
+                v1,
+                v2,
+                v3,
+                out float tx,
+                out float ty,
+                out float tz,
+                out float bx,
+                out float by,
+                out float bz
+            );
 
-            m_model[index - 1].tx = tx; m_model[index - 1].ty = ty; m_model[index - 1].tz = tz;
-            m_model[index - 1].bx = bx; m_model[index - 1].by = by; m_model[index - 1].bz = bz;
-            m_model[index - 2].tx = tx; m_model[index - 2].ty = ty; m_model[index - 2].tz = tz;
-            m_model[index - 2].bx = bx; m_model[index - 2].by = by; m_model[index - 2].bz = bz;
-            m_model[index - 3].tx = tx; m_model[index - 3].ty = ty; m_model[index - 3].tz = tz;
-            m_model[index - 3].bx = bx; m_model[index - 3].by = by; m_model[index - 3].bz = bz;
+            m_model[index - 1].tx = tx;
+            m_model[index - 1].ty = ty;
+            m_model[index - 1].tz = tz;
+            m_model[index - 1].bx = bx;
+            m_model[index - 1].by = by;
+            m_model[index - 1].bz = bz;
+            m_model[index - 2].tx = tx;
+            m_model[index - 2].ty = ty;
+            m_model[index - 2].tz = tz;
+            m_model[index - 2].bx = bx;
+            m_model[index - 2].by = by;
+            m_model[index - 2].bz = bz;
+            m_model[index - 3].tx = tx;
+            m_model[index - 3].ty = ty;
+            m_model[index - 3].tz = tz;
+            m_model[index - 3].bx = bx;
+            m_model[index - 3].by = by;
+            m_model[index - 3].bz = bz;
         }
     }
 
-    private static void CalculateTangentBinormal(ModelType v1, ModelType v2, ModelType v3,
-        out float tx, out float ty, out float tz, out float bx, out float by, out float bz)
+    private static void CalculateTangentBinormal(
+        ModelType v1,
+        ModelType v2,
+        ModelType v3,
+        out float tx,
+        out float ty,
+        out float tz,
+        out float bx,
+        out float by,
+        out float bz
+    )
     {
         float vec1x = v2.x - v1.x;
         float vec1y = v2.y - v1.y;
@@ -176,9 +243,13 @@ public unsafe class Model
         bz = (tu0 * vec2z - tu1 * vec1z) * den;
 
         float len = MathF.Sqrt(tx * tx + ty * ty + tz * tz);
-        tx /= len; ty /= len; tz /= len;
+        tx /= len;
+        ty /= len;
+        tz /= len;
         len = MathF.Sqrt(bx * bx + by * by + bz * bz);
-        bx /= len; by /= len; bz /= len;
+        bx /= len;
+        by /= len;
+        bz /= len;
     }
 
     private bool LoadModel(string filename)
@@ -192,16 +263,26 @@ public unsafe class Model
         var lines = File.ReadAllLines(filename);
         int idx = 0;
 
-        while (idx < lines.Length && !lines[idx].StartsWith("Vertex Count", StringComparison.OrdinalIgnoreCase)) idx++;
-        if (idx >= lines.Length) return false;
+        while (
+            idx < lines.Length
+            && !lines[idx].StartsWith("Vertex Count", StringComparison.OrdinalIgnoreCase)
+        )
+            idx++;
+        if (idx >= lines.Length)
+            return false;
         var parts = lines[idx].Split(':');
-        if (parts.Length < 2) return false;
+        if (parts.Length < 2)
+            return false;
         m_vertexCount = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
         m_indexCount = m_vertexCount;
         m_model = new ModelType[m_vertexCount];
         idx++;
 
-        while (idx < lines.Length && !lines[idx].Trim().StartsWith("Data", StringComparison.OrdinalIgnoreCase)) idx++;
+        while (
+            idx < lines.Length
+            && !lines[idx].Trim().StartsWith("Data", StringComparison.OrdinalIgnoreCase)
+        )
+            idx++;
         idx++;
 
         int vi = 0;
@@ -209,9 +290,11 @@ public unsafe class Model
         {
             var line = lines[idx].Trim();
             idx++;
-            if (line.Length == 0) continue;
+            if (line.Length == 0)
+                continue;
             var tokens = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (tokens.Length < 8) continue;
+            if (tokens.Length < 8)
+                continue;
             m_model[vi].x = float.Parse(tokens[0], CultureInfo.InvariantCulture);
             m_model[vi].y = float.Parse(tokens[1], CultureInfo.InvariantCulture);
             m_model[vi].z = float.Parse(tokens[2], CultureInfo.InvariantCulture);

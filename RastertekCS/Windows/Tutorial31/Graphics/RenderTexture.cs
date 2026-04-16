@@ -14,9 +14,16 @@ public unsafe class RenderTexture
     private ComPtr<ID3D11DepthStencilView> m_depthStencilView;
     private Viewport m_viewport;
     private Matrix4X4<float> m_projectionMatrix;
-    private int m_textureWidth, m_textureHeight;
+    private int m_textureWidth,
+        m_textureHeight;
 
-    public bool Initialize(DX11 DirectX, int textureWidth, int textureHeight, float screenDepth, float screenNear)
+    public bool Initialize(
+        DX11 DirectX,
+        int textureWidth,
+        int textureHeight,
+        float screenDepth,
+        float screenNear
+    )
     {
         var device = DirectX.Device;
         m_textureWidth = textureWidth;
@@ -32,61 +39,78 @@ public unsafe class RenderTexture
             SampleDesc = new SampleDesc(1, 0),
             Usage = Usage.Default,
             BindFlags = (uint)(BindFlag.RenderTarget | BindFlag.ShaderResource),
-            CPUAccessFlags = 0, MiscFlags = 0
+            CPUAccessFlags = 0,
+            MiscFlags = 0,
         };
-        SilkMarshal.ThrowHResult(
-            device.CreateTexture2D(&texDesc, null, ref m_renderTargetTexture));
+        SilkMarshal.ThrowHResult(device.CreateTexture2D(&texDesc, null, ref m_renderTargetTexture));
 
         var rtvDesc = new RenderTargetViewDesc
         {
             Format = Format.FormatR8G8B8A8Unorm,
             ViewDimension = RtvDimension.Texture2D,
-            Texture2D = new Tex2DRtv { MipSlice = 0 }
+            Texture2D = new Tex2DRtv { MipSlice = 0 },
         };
         SilkMarshal.ThrowHResult(
-            device.CreateRenderTargetView(m_renderTargetTexture, &rtvDesc, ref m_renderTargetView));
+            device.CreateRenderTargetView(m_renderTargetTexture, &rtvDesc, ref m_renderTargetView)
+        );
 
         var srvDesc = new ShaderResourceViewDesc
         {
             Format = Format.FormatR8G8B8A8Unorm,
             ViewDimension = D3DSrvDimension.D3DSrvDimensionTexture2D,
-            Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = 1 }
+            Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = 1 },
         };
         SilkMarshal.ThrowHResult(
-            device.CreateShaderResourceView(m_renderTargetTexture, &srvDesc, ref m_shaderResourceView));
+            device.CreateShaderResourceView(
+                m_renderTargetTexture,
+                &srvDesc,
+                ref m_shaderResourceView
+            )
+        );
 
         var depthDesc = new Texture2DDesc
         {
             Width = (uint)textureWidth,
             Height = (uint)textureHeight,
-            MipLevels = 1, ArraySize = 1,
+            MipLevels = 1,
+            ArraySize = 1,
             Format = Format.FormatD24UnormS8Uint,
             SampleDesc = new SampleDesc(1, 0),
             Usage = Usage.Default,
             BindFlags = (uint)BindFlag.DepthStencil,
-            CPUAccessFlags = 0, MiscFlags = 0
+            CPUAccessFlags = 0,
+            MiscFlags = 0,
         };
         SilkMarshal.ThrowHResult(
-            device.CreateTexture2D(&depthDesc, null, ref m_depthStencilBuffer));
+            device.CreateTexture2D(&depthDesc, null, ref m_depthStencilBuffer)
+        );
 
         var dsvDesc = new DepthStencilViewDesc
         {
             Format = Format.FormatD24UnormS8Uint,
             ViewDimension = DsvDimension.Texture2D,
-            Texture2D = new Tex2DDsv { MipSlice = 0 }
+            Texture2D = new Tex2DDsv { MipSlice = 0 },
         };
         SilkMarshal.ThrowHResult(
-            device.CreateDepthStencilView(m_depthStencilBuffer, &dsvDesc, ref m_depthStencilView));
+            device.CreateDepthStencilView(m_depthStencilBuffer, &dsvDesc, ref m_depthStencilView)
+        );
 
         m_viewport = new Viewport
         {
-            TopLeftX = 0, TopLeftY = 0,
-            Width = textureWidth, Height = textureHeight,
-            MinDepth = 0.0f, MaxDepth = 1.0f
+            TopLeftX = 0,
+            TopLeftY = 0,
+            Width = textureWidth,
+            Height = textureHeight,
+            MinDepth = 0.0f,
+            MaxDepth = 1.0f,
         };
 
-        m_projectionMatrix = DXMath.PerspectiveFovLH(MathF.PI / 4.0f,
-            (float)textureWidth / textureHeight, screenNear, screenDepth);
+        m_projectionMatrix = DXMath.PerspectiveFovLH(
+            MathF.PI / 4.0f,
+            (float)textureWidth / textureHeight,
+            screenNear,
+            screenDepth
+        );
 
         return true;
     }
@@ -118,7 +142,10 @@ public unsafe class RenderTexture
     }
 
     public ComPtr<ID3D11ShaderResourceView> GetShaderResourceView() => m_shaderResourceView;
+
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
     public int GetTextureWidth() => m_textureWidth;
+
     public int GetTextureHeight() => m_textureHeight;
 }

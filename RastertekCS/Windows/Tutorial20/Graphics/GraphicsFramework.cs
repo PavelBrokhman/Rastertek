@@ -20,11 +20,20 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", "Data/normal01.tga", true))
+        if (
+            !m_Model.Initialize(
+                DirectX,
+                "Models/Cube.txt",
+                "Data/stone01.tga",
+                "Data/normal01.tga",
+                true
+            )
+        )
             return false;
 
         m_NormalMapShader = new NormalMapShader();
-        if (!m_NormalMapShader.Initialize(DirectX)) return false;
+        if (!m_NormalMapShader.Initialize(DirectX))
+            return false;
 
         m_Light = new Light();
         m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -47,7 +56,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation <= 0.0f) m_rotation += MathF.Tau;
+        if (m_rotation <= 0.0f)
+            m_rotation += MathF.Tau;
         return Render();
     }
 
@@ -62,8 +72,17 @@ public class GraphicsFramework
         m_Model.Render(m_DirectX);
         m_Model.SetTextures(m_DirectX);
 
-        if (!m_NormalMapShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection,
-            m_Light.GetDirection(), m_Light.GetDiffuseColor()))
+        if (
+            !m_NormalMapShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_Light.GetDirection(),
+                m_Light.GetDiffuseColor()
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

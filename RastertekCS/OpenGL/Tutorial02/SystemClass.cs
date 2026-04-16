@@ -112,13 +112,16 @@ public class SystemClass
             ? new Vector2D<int>(1920, 1080)
             : new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Resizable;
-        options.WindowState = GraphicsClass.FULL_SCREEN ? WindowState.Fullscreen : WindowState.Normal;
+        options.WindowState = GraphicsClass.FULL_SCREEN
+            ? WindowState.Fullscreen
+            : WindowState.Normal;
         options.VSync = GraphicsClass.VSYNC_ENABLED;
         options.API = new GraphicsAPI(
             ContextAPI.OpenGL,
             ContextProfile.Core,
             ContextFlags.ForwardCompatible,
-            new APIVersion(4, 0));
+            new APIVersion(4, 0)
+        );
 
         m_window = Window.Create(options);
 

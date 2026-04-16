@@ -19,10 +19,12 @@ public class GraphicsFramework
         m_Camera.SetRotation(15.0f, 0.0f, 0.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/Plane.txt", "Data/Stone01.tga", TEXTURE_UNIT, true)) return false;
+        if (!m_Model.Initialize(OpenGL, "Models/Plane.txt", "Data/Stone01.tga", TEXTURE_UNIT, true))
+            return false;
 
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(OpenGL)) return false;
+        if (!m_LightShader.Initialize(OpenGL))
+            return false;
 
         m_Lights = new Light[LightShader.NUM_LIGHTS];
         m_Lights[0] = new Light();
@@ -48,7 +50,11 @@ public class GraphicsFramework
     {
         m_LightShader?.Shutdown(m_OpenGL);
         m_Model?.Shutdown(m_OpenGL);
-        m_LightShader = null; m_Model = null; m_Camera = null; m_Lights = null; m_OpenGL = null;
+        m_LightShader = null;
+        m_Model = null;
+        m_Camera = null;
+        m_Lights = null;
+        m_OpenGL = null;
     }
 
     public bool Frame() => Render();
@@ -68,13 +74,28 @@ public class GraphicsFramework
         {
             var p = m_Lights[i].GetPosition();
             var c = m_Lights[i].GetDiffuseColor();
-            positions[i * 3 + 0] = p[0]; positions[i * 3 + 1] = p[1]; positions[i * 3 + 2] = p[2];
-            colors[i * 4 + 0] = c[0]; colors[i * 4 + 1] = c[1]; colors[i * 4 + 2] = c[2]; colors[i * 4 + 3] = c[3];
+            positions[i * 3 + 0] = p[0];
+            positions[i * 3 + 1] = p[1];
+            positions[i * 3 + 2] = p[2];
+            colors[i * 4 + 0] = c[0];
+            colors[i * 4 + 1] = c[1];
+            colors[i * 4 + 2] = c[2];
+            colors[i * 4 + 3] = c[3];
         }
 
         m_LightShader.SetShader(m_OpenGL);
-        if (!m_LightShader.SetShaderParameters(m_OpenGL, world, view, projection, (int)TEXTURE_UNIT,
-            positions, colors)) return false;
+        if (
+            !m_LightShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                (int)TEXTURE_UNIT,
+                positions,
+                colors
+            )
+        )
+            return false;
 
         m_Model.Render(m_OpenGL);
         m_OpenGL.EndScene();

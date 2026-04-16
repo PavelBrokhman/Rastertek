@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -19,7 +18,10 @@
 
   <ItemGroup>
     <None Update="Shaders\**" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\Assets\Data\**" LinkBase="Data" CopyToOutputDirectory="PreserveNewest" />
+    <Content
+      Include="..\..\Assets\Data\**"
+      LinkBase="Data"
+      CopyToOutputDirectory="PreserveNewest"
+    />
   </ItemGroup>
-
 </Project>

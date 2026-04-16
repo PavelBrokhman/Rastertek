@@ -18,10 +18,12 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX)) return false;
+        if (!m_TextureShader.Initialize(DirectX))
+            return false;
 
         m_Sprite = new Sprite();
-        if (!m_Sprite.Initialize(DirectX, screenWidth, screenHeight, "Data/Sprite.txt", 50, 50)) return false;
+        if (!m_Sprite.Initialize(DirectX, screenWidth, screenHeight, "Data/Sprite.txt", 50, 50))
+            return false;
 
         return true;
     }
@@ -52,7 +54,8 @@ public class GraphicsFramework
 
         m_DirectX.TurnZBufferOff();
 
-        if (!m_Sprite.Render(m_DirectX)) return false;
+        if (!m_Sprite.Render(m_DirectX))
+            return false;
         m_Sprite.SetTexture(m_DirectX, 0);
 
         if (!m_TextureShader.Render(m_DirectX, m_Sprite.GetIndexCount(), world, view, ortho))

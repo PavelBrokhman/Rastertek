@@ -20,18 +20,48 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(DirectX)) return false;
+        if (!m_FontShader.Initialize(DirectX))
+            return false;
 
         m_Font = new Font();
-        if (!m_Font.Initialize(DirectX, 0)) return false;
+        if (!m_Font.Initialize(DirectX, 0))
+            return false;
 
         m_TextString1 = new Text();
-        if (!m_TextString1.Initialize(DirectX, screenWidth, screenHeight, 32, m_Font,
-                                       "Hello", 10, 10, 0.0f, 1.0f, 0.0f)) return false;
+        if (
+            !m_TextString1.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                32,
+                m_Font,
+                "Hello",
+                10,
+                10,
+                0.0f,
+                1.0f,
+                0.0f
+            )
+        )
+            return false;
 
         m_TextString2 = new Text();
-        if (!m_TextString2.Initialize(DirectX, screenWidth, screenHeight, 32, m_Font,
-                                       "Goodbye", 10, 50, 1.0f, 1.0f, 0.0f)) return false;
+        if (
+            !m_TextString2.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                32,
+                m_Font,
+                "Goodbye",
+                10,
+                50,
+                1.0f,
+                1.0f,
+                0.0f
+            )
+        )
+            return false;
 
         return true;
     }
@@ -66,13 +96,29 @@ public class GraphicsFramework
         m_Font.SetTexture(m_DirectX, 0);
 
         m_TextString1.Render(m_DirectX);
-        if (!m_FontShader.Render(m_DirectX, m_TextString1.GetIndexCount(), world, view, ortho,
-                                  m_TextString1.GetPixelColor()))
+        if (
+            !m_FontShader.Render(
+                m_DirectX,
+                m_TextString1.GetIndexCount(),
+                world,
+                view,
+                ortho,
+                m_TextString1.GetPixelColor()
+            )
+        )
             return false;
 
         m_TextString2.Render(m_DirectX);
-        if (!m_FontShader.Render(m_DirectX, m_TextString2.GetIndexCount(), world, view, ortho,
-                                  m_TextString2.GetPixelColor()))
+        if (
+            !m_FontShader.Render(
+                m_DirectX,
+                m_TextString2.GetIndexCount(),
+                world,
+                view,
+                ortho,
+                m_TextString2.GetPixelColor()
+            )
+        )
             return false;
 
         m_DirectX.DisableAlphaBlending();

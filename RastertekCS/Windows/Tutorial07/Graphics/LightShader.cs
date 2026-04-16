@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Silk.NET.Core.Native;
-using Silk.NET.Direct3D11;
 using Silk.NET.Direct3D.Compilers;
+using Silk.NET.Direct3D11;
 using Silk.NET.Maths;
 
 namespace RastertekCS.Windows.Tutorial07.Graphics;
@@ -17,8 +17,13 @@ public unsafe class LightShader
 
     private struct LightBufferType
     {
-        public float diffuseColorR, diffuseColorG, diffuseColorB, diffuseColorA;
-        public float lightDirX, lightDirY, lightDirZ;
+        public float diffuseColorR,
+            diffuseColorG,
+            diffuseColorB,
+            diffuseColorA;
+        public float lightDirX,
+            lightDirY,
+            lightDirZ;
         public float padding;
     }
 
@@ -42,12 +47,26 @@ public unsafe class LightShader
         m_vertexShader.Release();
     }
 
-    public bool Render(DX11 DirectX, int indexCount,
-        Matrix4X4<float> worldMatrix, Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix,
-        float[] lightDirection, float[] diffuseLightColor)
+    public bool Render(
+        DX11 DirectX,
+        int indexCount,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
+        Matrix4X4<float> projectionMatrix,
+        float[] lightDirection,
+        float[] diffuseLightColor
+    )
     {
-        if (!SetShaderParameters(DirectX, worldMatrix, viewMatrix, projectionMatrix,
-            lightDirection, diffuseLightColor))
+        if (
+            !SetShaderParameters(
+                DirectX,
+                worldMatrix,
+                viewMatrix,
+                projectionMatrix,
+                lightDirection,
+                diffuseLightColor
+            )
+        )
             return false;
         RenderShader(DirectX, indexCount);
         return true;
@@ -67,20 +86,30 @@ public unsafe class LightShader
         {
             SilkMarshal.ThrowHResult(
                 compiler.Compile(
-                    pVsSource, (nuint)vsSource.Length,
+                    pVsSource,
+                    (nuint)vsSource.Length,
                     (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi),
-                    null, (ID3DInclude*)null,
+                    null,
+                    (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("LightVertexShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &pVsBlob, &pErrorBlob));
+                    0,
+                    0,
+                    &pVsBlob,
+                    &pErrorBlob
+                )
+            );
         }
         ComPtr<ID3D10Blob> vsBlob = pVsBlob;
 
         SilkMarshal.ThrowHResult(
             device.CreateVertexShader(
-                vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(),
+                vsBlob.GetBufferPointer(),
+                vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_vertexShader));
+                ref m_vertexShader
+            )
+        );
 
         // Compile pixel shader.
         ID3D10Blob* pPsBlob = null;
@@ -90,20 +119,30 @@ public unsafe class LightShader
         {
             SilkMarshal.ThrowHResult(
                 compiler.Compile(
-                    pPsSource, (nuint)psSource.Length,
+                    pPsSource,
+                    (nuint)psSource.Length,
                     (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi),
-                    null, (ID3DInclude*)null,
+                    null,
+                    (ID3DInclude*)null,
                     (byte*)SilkMarshal.StringToPtr("LightPixelShader", NativeStringEncoding.Ansi),
                     (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi),
-                    0, 0, &pPsBlob, &pErrorBlob));
+                    0,
+                    0,
+                    &pPsBlob,
+                    &pErrorBlob
+                )
+            );
         }
         ComPtr<ID3D10Blob> psBlob = pPsBlob;
 
         SilkMarshal.ThrowHResult(
             device.CreatePixelShader(
-                psBlob.GetBufferPointer(), psBlob.GetBufferSize(),
+                psBlob.GetBufferPointer(),
+                psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_pixelShader));
+                ref m_pixelShader
+            )
+        );
 
         // Create the input layout — position + texcoord + normal.
         var posName = SilkMarshal.StringToPtr("POSITION", NativeStringEncoding.Ansi);
@@ -114,32 +153,47 @@ public unsafe class LightShader
         {
             new()
             {
-                SemanticName = (byte*)posName, SemanticIndex = 0,
+                SemanticName = (byte*)posName,
+                SemanticIndex = 0,
                 Format = Silk.NET.DXGI.Format.FormatR32G32B32Float,
-                InputSlot = 0, AlignedByteOffset = 0,
-                InputSlotClass = InputClassification.PerVertexData, InstanceDataStepRate = 0
+                InputSlot = 0,
+                AlignedByteOffset = 0,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0,
             },
             new()
             {
-                SemanticName = (byte*)texName, SemanticIndex = 0,
+                SemanticName = (byte*)texName,
+                SemanticIndex = 0,
                 Format = Silk.NET.DXGI.Format.FormatR32G32Float,
-                InputSlot = 0, AlignedByteOffset = 12,
-                InputSlotClass = InputClassification.PerVertexData, InstanceDataStepRate = 0
+                InputSlot = 0,
+                AlignedByteOffset = 12,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0,
             },
             new()
             {
-                SemanticName = (byte*)normalName, SemanticIndex = 0,
+                SemanticName = (byte*)normalName,
+                SemanticIndex = 0,
                 Format = Silk.NET.DXGI.Format.FormatR32G32B32Float,
-                InputSlot = 0, AlignedByteOffset = 20,
-                InputSlotClass = InputClassification.PerVertexData, InstanceDataStepRate = 0
-            }
+                InputSlot = 0,
+                AlignedByteOffset = 20,
+                InputSlotClass = InputClassification.PerVertexData,
+                InstanceDataStepRate = 0,
+            },
         };
 
         fixed (InputElementDesc* pLayout = layoutDesc)
         {
             SilkMarshal.ThrowHResult(
-                device.CreateInputLayout(pLayout, (uint)layoutDesc.Length,
-                    vsBlob.GetBufferPointer(), vsBlob.GetBufferSize(), ref m_layout));
+                device.CreateInputLayout(
+                    pLayout,
+                    (uint)layoutDesc.Length,
+                    vsBlob.GetBufferPointer(),
+                    vsBlob.GetBufferSize(),
+                    ref m_layout
+                )
+            );
         }
 
         SilkMarshal.Free(posName);
@@ -155,10 +209,10 @@ public unsafe class LightShader
             ByteWidth = (uint)sizeof(MatrixBufferType),
             BindFlags = (uint)BindFlag.ConstantBuffer,
             CPUAccessFlags = (uint)CpuAccessFlag.Write,
-            MiscFlags = 0, StructureByteStride = 0
+            MiscFlags = 0,
+            StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(
-            device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
 
         // Create light constant buffer (PS slot 0).
         var lightBufferDesc = new BufferDesc
@@ -167,17 +221,22 @@ public unsafe class LightShader
             ByteWidth = (uint)sizeof(LightBufferType),
             BindFlags = (uint)BindFlag.ConstantBuffer,
             CPUAccessFlags = (uint)CpuAccessFlag.Write,
-            MiscFlags = 0, StructureByteStride = 0
+            MiscFlags = 0,
+            StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(
-            device.CreateBuffer(&lightBufferDesc, null, ref m_lightBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&lightBufferDesc, null, ref m_lightBuffer));
 
         return true;
     }
 
-    private bool SetShaderParameters(DX11 DirectX,
-        Matrix4X4<float> worldMatrix, Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix,
-        float[] lightDirection, float[] diffuseLightColor)
+    private bool SetShaderParameters(
+        DX11 DirectX,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
+        Matrix4X4<float> projectionMatrix,
+        float[] lightDirection,
+        float[] diffuseLightColor
+    )
     {
         var context = DirectX.DeviceContext;
 
@@ -189,7 +248,8 @@ public unsafe class LightShader
         // Update matrix buffer.
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource));
+            context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+        );
         var matrixPtr = (MatrixBufferType*)mappedResource.PData;
         matrixPtr->world = worldMatrix;
         matrixPtr->view = viewMatrix;
@@ -201,7 +261,8 @@ public unsafe class LightShader
 
         // Update light buffer.
         SilkMarshal.ThrowHResult(
-            context.Map(m_lightBuffer, 0, Map.WriteDiscard, 0, &mappedResource));
+            context.Map(m_lightBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+        );
         var lightPtr = (LightBufferType*)mappedResource.PData;
         lightPtr->diffuseColorR = diffuseLightColor[0];
         lightPtr->diffuseColorG = diffuseLightColor[1];

@@ -30,21 +30,28 @@ public class GraphicsFramework
             return false;
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL)) return false;
+        if (!m_TextureShader.Initialize(OpenGL))
+            return false;
 
         m_TransparentShader = new TransparentShader();
-        if (!m_TransparentShader.Initialize(OpenGL)) return false;
+        if (!m_TransparentShader.Initialize(OpenGL))
+            return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_TransparentShader?.Shutdown(m_OpenGL); m_TransparentShader = null;
-        m_TextureShader?.Shutdown(m_OpenGL); m_TextureShader = null;
-        m_Model2?.Shutdown(m_OpenGL); m_Model2 = null;
-        m_Model1?.Shutdown(m_OpenGL); m_Model1 = null;
-        m_Camera = null; m_OpenGL = null;
+        m_TransparentShader?.Shutdown(m_OpenGL);
+        m_TransparentShader = null;
+        m_TextureShader?.Shutdown(m_OpenGL);
+        m_TextureShader = null;
+        m_Model2?.Shutdown(m_OpenGL);
+        m_Model2 = null;
+        m_Model1?.Shutdown(m_OpenGL);
+        m_Model1 = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame() => Render();
@@ -78,7 +85,16 @@ public class GraphicsFramework
         m_TransparentShader.SetShader(m_OpenGL);
         m_Model2.SetTexture(m_OpenGL, 0);
 
-        if (!m_TransparentShader.SetShaderParameters(m_OpenGL, world2, view, projection, blendAmount, 0))
+        if (
+            !m_TransparentShader.SetShaderParameters(
+                m_OpenGL,
+                world2,
+                view,
+                projection,
+                blendAmount,
+                0
+            )
+        )
             return false;
 
         m_Model2.Render(m_OpenGL);

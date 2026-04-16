@@ -39,7 +39,11 @@ public class GL4
         return true;
     }
 
-    public void Shutdown() { m_gl?.Dispose(); m_gl = null; }
+    public void Shutdown()
+    {
+        m_gl?.Dispose();
+        m_gl = null;
+    }
 
     public void BeginScene(float r, float g, float b, float a)
     {
@@ -50,14 +54,24 @@ public class GL4
     public void EndScene() { }
 
     public void TurnZBufferOn() => m_gl.Enable(EnableCap.DepthTest);
+
     public void TurnZBufferOff() => m_gl.Disable(EnableCap.DepthTest);
 
     public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
     public Matrix4X4<float> GetOrthoMatrix() => m_orthoMatrix;
+
     public string GetVideoCardInfo() => m_videoCardDescription;
 
-    private static void BuildPerspectiveFovLH(out Matrix4X4<float> m, float fov, float aspect, float near, float far)
+    private static void BuildPerspectiveFovLH(
+        out Matrix4X4<float> m,
+        float fov,
+        float aspect,
+        float near,
+        float far
+    )
     {
         float tanHalf = MathF.Tan(fov * 0.5f);
         m = default;
@@ -68,7 +82,13 @@ public class GL4
         m.M43 = (-near * far) / (far - near);
     }
 
-    private static void BuildOrthoLH(out Matrix4X4<float> m, float w, float h, float near, float far)
+    private static void BuildOrthoLH(
+        out Matrix4X4<float> m,
+        float w,
+        float h,
+        float near,
+        float far
+    )
     {
         m = default;
         m.M11 = 2.0f / w;

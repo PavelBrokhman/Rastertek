@@ -8,20 +8,38 @@ public class Model
     // Layout: position(3) + texcoord(2) + normal(3) + tangent(3) + binormal(3) = 14 floats.
     private struct VertexType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
-        public float tx, ty, tz;
-        public float bx, by, bz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
+        public float tx,
+            ty,
+            tz;
+        public float bx,
+            by,
+            bz;
     }
 
     private struct ModelType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
-        public float tx, ty, tz;
-        public float bx, by, bz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
+        public float tx,
+            ty,
+            tz;
+        public float bx,
+            by,
+            bz;
     }
 
     private uint m_vertexArrayId;
@@ -33,27 +51,38 @@ public class Model
     private Texture m_Texture2;
     private ModelType[] m_model;
 
-    public unsafe bool Initialize(GL4 OpenGL, string modelFilename,
-        string textureFilename1, uint textureUnit1,
-        string textureFilename2, uint textureUnit2)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        string modelFilename,
+        string textureFilename1,
+        uint textureUnit1,
+        string textureFilename2,
+        uint textureUnit2
+    )
     {
-        if (!LoadModel(modelFilename)) return false;
+        if (!LoadModel(modelFilename))
+            return false;
         CalculateModelVectors();
-        if (!InitializeBuffers(OpenGL)) return false;
+        if (!InitializeBuffers(OpenGL))
+            return false;
 
         m_Texture1 = new Texture();
-        if (!m_Texture1.Initialize(OpenGL, textureFilename1, textureUnit1, true)) return false;
+        if (!m_Texture1.Initialize(OpenGL, textureFilename1, textureUnit1, true))
+            return false;
 
         m_Texture2 = new Texture();
-        if (!m_Texture2.Initialize(OpenGL, textureFilename2, textureUnit2, true)) return false;
+        if (!m_Texture2.Initialize(OpenGL, textureFilename2, textureUnit2, true))
+            return false;
 
         return true;
     }
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture2?.Shutdown(OpenGL); m_Texture2 = null;
-        m_Texture1?.Shutdown(OpenGL); m_Texture1 = null;
+        m_Texture2?.Shutdown(OpenGL);
+        m_Texture2 = null;
+        m_Texture1?.Shutdown(OpenGL);
+        m_Texture1 = null;
         ShutdownBuffers(OpenGL);
         m_model = null;
     }
@@ -62,7 +91,12 @@ public class Model
     {
         var gl = OpenGL.Gl;
         gl.BindVertexArray(m_vertexArrayId);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)m_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.DrawElements(
+            PrimitiveType.Triangles,
+            (uint)m_indexCount,
+            DrawElementsType.UnsignedInt,
+            (void*)0
+        );
     }
 
     public void SetTextures(GL4 OpenGL, uint textureUnit1, uint textureUnit2)
@@ -75,7 +109,11 @@ public class Model
 
     private bool LoadModel(string filename)
     {
-        if (!File.Exists(filename)) { Console.WriteLine($"Model file not found: {filename}"); return false; }
+        if (!File.Exists(filename))
+        {
+            Console.WriteLine($"Model file not found: {filename}");
+            return false;
+        }
         var lines = File.ReadAllLines(filename);
 
         int vertexCount = 0;
@@ -93,7 +131,8 @@ public class Model
                 break;
             }
         }
-        if (vertexCount == 0 || dataStart < 0) return false;
+        if (vertexCount == 0 || dataStart < 0)
+            return false;
 
         m_vertexCount = vertexCount;
         m_indexCount = vertexCount;
@@ -103,9 +142,11 @@ public class Model
         for (int i = dataStart; i < lines.Length && vi < vertexCount; i++)
         {
             var line = lines[i].Trim();
-            if (string.IsNullOrEmpty(line)) continue;
+            if (string.IsNullOrEmpty(line))
+                continue;
             var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 8) continue;
+            if (parts.Length < 8)
+                continue;
 
             m_model[vi].x = float.Parse(parts[0]);
             m_model[vi].y = float.Parse(parts[1]);
@@ -130,48 +171,109 @@ public class Model
         for (int i = 0; i < faceCount; i++)
         {
             // Get three vertices for this face.
-            float v1x = m_model[index].x, v1y = m_model[index].y, v1z = m_model[index].z;
-            float v1tu = m_model[index].tu, v1tv = m_model[index].tv;
+            float v1x = m_model[index].x,
+                v1y = m_model[index].y,
+                v1z = m_model[index].z;
+            float v1tu = m_model[index].tu,
+                v1tv = m_model[index].tv;
             index++;
-            float v2x = m_model[index].x, v2y = m_model[index].y, v2z = m_model[index].z;
-            float v2tu = m_model[index].tu, v2tv = m_model[index].tv;
+            float v2x = m_model[index].x,
+                v2y = m_model[index].y,
+                v2z = m_model[index].z;
+            float v2tu = m_model[index].tu,
+                v2tv = m_model[index].tv;
             index++;
-            float v3x = m_model[index].x, v3y = m_model[index].y, v3z = m_model[index].z;
-            float v3tu = m_model[index].tu, v3tv = m_model[index].tv;
+            float v3x = m_model[index].x,
+                v3y = m_model[index].y,
+                v3z = m_model[index].z;
+            float v3tu = m_model[index].tu,
+                v3tv = m_model[index].tv;
             index++;
 
             // Calculate tangent and binormal.
             CalculateTangentBinormal(
-                v1x, v1y, v1z, v1tu, v1tv,
-                v2x, v2y, v2z, v2tu, v2tv,
-                v3x, v3y, v3z, v3tu, v3tv,
-                out float tanX, out float tanY, out float tanZ,
-                out float binX, out float binY, out float binZ);
+                v1x,
+                v1y,
+                v1z,
+                v1tu,
+                v1tv,
+                v2x,
+                v2y,
+                v2z,
+                v2tu,
+                v2tv,
+                v3x,
+                v3y,
+                v3z,
+                v3tu,
+                v3tv,
+                out float tanX,
+                out float tanY,
+                out float tanZ,
+                out float binX,
+                out float binY,
+                out float binZ
+            );
 
             // Store tangent and binormal for all three vertices of this face.
-            m_model[index - 1].tx = tanX; m_model[index - 1].ty = tanY; m_model[index - 1].tz = tanZ;
-            m_model[index - 1].bx = binX; m_model[index - 1].by = binY; m_model[index - 1].bz = binZ;
-            m_model[index - 2].tx = tanX; m_model[index - 2].ty = tanY; m_model[index - 2].tz = tanZ;
-            m_model[index - 2].bx = binX; m_model[index - 2].by = binY; m_model[index - 2].bz = binZ;
-            m_model[index - 3].tx = tanX; m_model[index - 3].ty = tanY; m_model[index - 3].tz = tanZ;
-            m_model[index - 3].bx = binX; m_model[index - 3].by = binY; m_model[index - 3].bz = binZ;
+            m_model[index - 1].tx = tanX;
+            m_model[index - 1].ty = tanY;
+            m_model[index - 1].tz = tanZ;
+            m_model[index - 1].bx = binX;
+            m_model[index - 1].by = binY;
+            m_model[index - 1].bz = binZ;
+            m_model[index - 2].tx = tanX;
+            m_model[index - 2].ty = tanY;
+            m_model[index - 2].tz = tanZ;
+            m_model[index - 2].bx = binX;
+            m_model[index - 2].by = binY;
+            m_model[index - 2].bz = binZ;
+            m_model[index - 3].tx = tanX;
+            m_model[index - 3].ty = tanY;
+            m_model[index - 3].tz = tanZ;
+            m_model[index - 3].bx = binX;
+            m_model[index - 3].by = binY;
+            m_model[index - 3].bz = binZ;
         }
     }
 
     private static void CalculateTangentBinormal(
-        float v1x, float v1y, float v1z, float v1tu, float v1tv,
-        float v2x, float v2y, float v2z, float v2tu, float v2tv,
-        float v3x, float v3y, float v3z, float v3tu, float v3tv,
-        out float tanX, out float tanY, out float tanZ,
-        out float binX, out float binY, out float binZ)
+        float v1x,
+        float v1y,
+        float v1z,
+        float v1tu,
+        float v1tv,
+        float v2x,
+        float v2y,
+        float v2z,
+        float v2tu,
+        float v2tv,
+        float v3x,
+        float v3y,
+        float v3z,
+        float v3tu,
+        float v3tv,
+        out float tanX,
+        out float tanY,
+        out float tanZ,
+        out float binX,
+        out float binY,
+        out float binZ
+    )
     {
         // Two edge vectors.
-        float e1x = v2x - v1x, e1y = v2y - v1y, e1z = v2z - v1z;
-        float e2x = v3x - v1x, e2y = v3y - v1y, e2z = v3z - v1z;
+        float e1x = v2x - v1x,
+            e1y = v2y - v1y,
+            e1z = v2z - v1z;
+        float e2x = v3x - v1x,
+            e2y = v3y - v1y,
+            e2z = v3z - v1z;
 
         // Texture space vectors.
-        float du1 = v2tu - v1tu, dv1 = v2tv - v1tv;
-        float du2 = v3tu - v1tu, dv2 = v3tv - v1tv;
+        float du1 = v2tu - v1tu,
+            dv1 = v2tv - v1tv;
+        float du2 = v3tu - v1tu,
+            dv2 = v3tv - v1tv;
 
         float den = 1.0f / (du1 * dv2 - du2 * dv1);
 
@@ -187,11 +289,15 @@ public class Model
 
         // Normalize tangent.
         float len = MathF.Sqrt(tanX * tanX + tanY * tanY + tanZ * tanZ);
-        tanX /= len; tanY /= len; tanZ /= len;
+        tanX /= len;
+        tanY /= len;
+        tanZ /= len;
 
         // Normalize binormal.
         len = MathF.Sqrt(binX * binX + binY * binY + binZ * binZ);
-        binX /= len; binY /= len; binZ /= len;
+        binX /= len;
+        binY /= len;
+        binZ /= len;
     }
 
     private unsafe bool InitializeBuffers(GL4 OpenGL)
@@ -225,8 +331,12 @@ public class Model
         m_vertexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (VertexType* p = vertices)
-            gl.BufferData(BufferTargetARB.ArrayBuffer,
-                (nuint)(sizeof(VertexType) * vertices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                (nuint)(sizeof(VertexType) * vertices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         uint stride = (uint)sizeof(VertexType);
 
@@ -236,25 +346,57 @@ public class Model
 
         // Attribute 1: texcoord (2 floats)
         gl.EnableVertexAttribArray(1);
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, (void*)(3 * sizeof(float)));
+        gl.VertexAttribPointer(
+            1,
+            2,
+            VertexAttribPointerType.Float,
+            false,
+            stride,
+            (void*)(3 * sizeof(float))
+        );
 
         // Attribute 2: normal (3 floats)
         gl.EnableVertexAttribArray(2);
-        gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, stride, (void*)(5 * sizeof(float)));
+        gl.VertexAttribPointer(
+            2,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            stride,
+            (void*)(5 * sizeof(float))
+        );
 
         // Attribute 3: tangent (3 floats)
         gl.EnableVertexAttribArray(3);
-        gl.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, stride, (void*)(8 * sizeof(float)));
+        gl.VertexAttribPointer(
+            3,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            stride,
+            (void*)(8 * sizeof(float))
+        );
 
         // Attribute 4: binormal (3 floats)
         gl.EnableVertexAttribArray(4);
-        gl.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false, stride, (void*)(11 * sizeof(float)));
+        gl.VertexAttribPointer(
+            4,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            stride,
+            (void*)(11 * sizeof(float))
+        );
 
         m_indexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
         fixed (uint* p = indices)
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer,
-                (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                (nuint)(sizeof(uint) * indices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         m_model = null; // Free raw data.
         return true;

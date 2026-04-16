@@ -19,21 +19,68 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(DirectX)) return false;
+        if (!m_FontShader.Initialize(DirectX))
+            return false;
 
         m_Font = new Font();
-        if (!m_Font.Initialize(DirectX, 0)) return false;
+        if (!m_Font.Initialize(DirectX, 0))
+            return false;
 
         m_MouseStrings = new Text[3];
         m_MouseStrings[0] = new Text();
-        if (!m_MouseStrings[0].Initialize(DirectX, screenWidth, screenHeight, 32, m_Font,
-                                           "Mouse X: 0", 10, 10, 1, 1, 1)) return false;
+        if (
+            !m_MouseStrings[0]
+                .Initialize(
+                    DirectX,
+                    screenWidth,
+                    screenHeight,
+                    32,
+                    m_Font,
+                    "Mouse X: 0",
+                    10,
+                    10,
+                    1,
+                    1,
+                    1
+                )
+        )
+            return false;
         m_MouseStrings[1] = new Text();
-        if (!m_MouseStrings[1].Initialize(DirectX, screenWidth, screenHeight, 32, m_Font,
-                                           "Mouse Y: 0", 10, 35, 1, 1, 1)) return false;
+        if (
+            !m_MouseStrings[1]
+                .Initialize(
+                    DirectX,
+                    screenWidth,
+                    screenHeight,
+                    32,
+                    m_Font,
+                    "Mouse Y: 0",
+                    10,
+                    35,
+                    1,
+                    1,
+                    1
+                )
+        )
+            return false;
         m_MouseStrings[2] = new Text();
-        if (!m_MouseStrings[2].Initialize(DirectX, screenWidth, screenHeight, 32, m_Font,
-                                           "Mouse Button: No", 10, 60, 1, 1, 1)) return false;
+        if (
+            !m_MouseStrings[2]
+                .Initialize(
+                    DirectX,
+                    screenWidth,
+                    screenHeight,
+                    32,
+                    m_Font,
+                    "Mouse Button: No",
+                    10,
+                    60,
+                    1,
+                    1,
+                    1
+                )
+        )
+            return false;
 
         return true;
     }
@@ -41,7 +88,8 @@ public class GraphicsFramework
     public void Shutdown()
     {
         if (m_MouseStrings != null)
-            foreach (var t in m_MouseStrings) t?.Shutdown();
+            foreach (var t in m_MouseStrings)
+                t?.Shutdown();
         m_Font?.Shutdown();
         m_FontShader?.Shutdown();
         m_MouseStrings = null;
@@ -53,10 +101,24 @@ public class GraphicsFramework
 
     public bool Frame(int mouseX, int mouseY, bool mouseDown)
     {
-        if (!m_MouseStrings[0].UpdateText(m_DirectX, m_Font, $"Mouse X: {mouseX}", 10, 10, 1, 1, 1)) return false;
-        if (!m_MouseStrings[1].UpdateText(m_DirectX, m_Font, $"Mouse Y: {mouseY}", 10, 35, 1, 1, 1)) return false;
-        if (!m_MouseStrings[2].UpdateText(m_DirectX, m_Font,
-            mouseDown ? "Mouse Button: Yes" : "Mouse Button: No", 10, 60, 1, 1, 1)) return false;
+        if (!m_MouseStrings[0].UpdateText(m_DirectX, m_Font, $"Mouse X: {mouseX}", 10, 10, 1, 1, 1))
+            return false;
+        if (!m_MouseStrings[1].UpdateText(m_DirectX, m_Font, $"Mouse Y: {mouseY}", 10, 35, 1, 1, 1))
+            return false;
+        if (
+            !m_MouseStrings[2]
+                .UpdateText(
+                    m_DirectX,
+                    m_Font,
+                    mouseDown ? "Mouse Button: Yes" : "Mouse Button: No",
+                    10,
+                    60,
+                    1,
+                    1,
+                    1
+                )
+        )
+            return false;
         return Render();
     }
 
@@ -76,8 +138,16 @@ public class GraphicsFramework
         for (int i = 0; i < 3; i++)
         {
             m_MouseStrings[i].Render(m_DirectX);
-            if (!m_FontShader.Render(m_DirectX, m_MouseStrings[i].GetIndexCount(), world, view, ortho,
-                                      m_MouseStrings[i].GetPixelColor()))
+            if (
+                !m_FontShader.Render(
+                    m_DirectX,
+                    m_MouseStrings[i].GetIndexCount(),
+                    world,
+                    view,
+                    ortho,
+                    m_MouseStrings[i].GetPixelColor()
+                )
+            )
                 return false;
         }
 

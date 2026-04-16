@@ -23,16 +23,20 @@ public class GraphicsFramework
             return false;
 
         m_FogShader = new FogShader();
-        if (!m_FogShader.Initialize(OpenGL)) return false;
+        if (!m_FogShader.Initialize(OpenGL))
+            return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_FogShader?.Shutdown(m_OpenGL); m_FogShader = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
-        m_Camera = null; m_OpenGL = null;
+        m_FogShader?.Shutdown(m_OpenGL);
+        m_FogShader = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame()
@@ -59,7 +63,9 @@ public class GraphicsFramework
         m_FogShader.SetShader(m_OpenGL);
         m_Model.SetTexture(m_OpenGL, 0);
 
-        if (!m_FogShader.SetShaderParameters(m_OpenGL, world, view, projection, fogStart, fogEnd, 0))
+        if (
+            !m_FogShader.SetShaderParameters(m_OpenGL, world, view, projection, fogStart, fogEnd, 0)
+        )
             return false;
 
         m_Model.Render(m_OpenGL);

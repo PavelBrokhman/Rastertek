@@ -25,13 +25,22 @@ public class GraphicsFramework
 
         // Create and initialize the normal map shader.
         m_NormalMapShader = new NormalMapShader();
-        if (!m_NormalMapShader.Initialize(OpenGL)) return false;
+        if (!m_NormalMapShader.Initialize(OpenGL))
+            return false;
 
         // Create and initialize the model with color texture and normal map.
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/Cube.txt",
-            "Data/stone01.tga", TEXTURE_UNIT_COLOR,
-            "Data/normal01.tga", TEXTURE_UNIT_NORMAL)) return false;
+        if (
+            !m_Model.Initialize(
+                OpenGL,
+                "Models/Cube.txt",
+                "Data/stone01.tga",
+                TEXTURE_UNIT_COLOR,
+                "Data/normal01.tga",
+                TEXTURE_UNIT_NORMAL
+            )
+        )
+            return false;
 
         // Create and initialize the light.
         m_Light = new Light();
@@ -44,9 +53,12 @@ public class GraphicsFramework
     public void Shutdown()
     {
         m_Light = null;
-        m_NormalMapShader?.Shutdown(m_OpenGL); m_NormalMapShader = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
-        m_Camera = null; m_OpenGL = null;
+        m_NormalMapShader?.Shutdown(m_OpenGL);
+        m_NormalMapShader = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame()
@@ -79,9 +91,19 @@ public class GraphicsFramework
         // Set textures.
         m_Model.SetTextures(m_OpenGL, TEXTURE_UNIT_COLOR, TEXTURE_UNIT_NORMAL);
 
-        if (!m_NormalMapShader.SetShaderParameters(m_OpenGL, world, view, projection,
-            lightDirection, diffuseColor,
-            (int)TEXTURE_UNIT_COLOR, (int)TEXTURE_UNIT_NORMAL)) return false;
+        if (
+            !m_NormalMapShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                lightDirection,
+                diffuseColor,
+                (int)TEXTURE_UNIT_COLOR,
+                (int)TEXTURE_UNIT_NORMAL
+            )
+        )
+            return false;
 
         // Render model.
         m_Model.Render(m_OpenGL);

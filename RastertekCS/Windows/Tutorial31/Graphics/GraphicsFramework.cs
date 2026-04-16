@@ -9,9 +9,13 @@ public class GraphicsFramework
 
     private DX11 m_DirectX;
     private Camera m_Camera;
-    private Model m_GroundModel, m_WallModel, m_BathModel, m_WaterModel;
+    private Model m_GroundModel,
+        m_WallModel,
+        m_BathModel,
+        m_WaterModel;
     private Light m_Light;
-    private RenderTexture m_RefractionTexture, m_ReflectionTexture;
+    private RenderTexture m_RefractionTexture,
+        m_ReflectionTexture;
     private LightShader m_LightShader;
     private RefractionShader m_RefractionShader;
     private WaterShader m_WaterShader;
@@ -28,16 +32,20 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_GroundModel = new Model();
-        if (!m_GroundModel.Initialize(DirectX, "Models/ground.txt", "Data/ground01.tga", true)) return false;
+        if (!m_GroundModel.Initialize(DirectX, "Models/ground.txt", "Data/ground01.tga", true))
+            return false;
 
         m_WallModel = new Model();
-        if (!m_WallModel.Initialize(DirectX, "Models/wall.txt", "Data/wall01.tga", true)) return false;
+        if (!m_WallModel.Initialize(DirectX, "Models/wall.txt", "Data/wall01.tga", true))
+            return false;
 
         m_BathModel = new Model();
-        if (!m_BathModel.Initialize(DirectX, "Models/bath.txt", "Data/marble01.tga", true)) return false;
+        if (!m_BathModel.Initialize(DirectX, "Models/bath.txt", "Data/marble01.tga", true))
+            return false;
 
         m_WaterModel = new Model();
-        if (!m_WaterModel.Initialize(DirectX, "Models/water.txt", "Data/water01.tga", true)) return false;
+        if (!m_WaterModel.Initialize(DirectX, "Models/water.txt", "Data/water01.tga", true))
+            return false;
 
         m_Light = new Light();
         m_Light.SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
@@ -45,19 +53,40 @@ public class GraphicsFramework
         m_Light.SetDirection(0.0f, -1.0f, 0.5f);
 
         m_RefractionTexture = new RenderTexture();
-        if (!m_RefractionTexture.Initialize(DirectX, screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) return false;
+        if (
+            !m_RefractionTexture.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                SCREEN_DEPTH,
+                SCREEN_NEAR
+            )
+        )
+            return false;
 
         m_ReflectionTexture = new RenderTexture();
-        if (!m_ReflectionTexture.Initialize(DirectX, screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR)) return false;
+        if (
+            !m_ReflectionTexture.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                SCREEN_DEPTH,
+                SCREEN_NEAR
+            )
+        )
+            return false;
 
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(DirectX)) return false;
+        if (!m_LightShader.Initialize(DirectX))
+            return false;
 
         m_RefractionShader = new RefractionShader();
-        if (!m_RefractionShader.Initialize(DirectX)) return false;
+        if (!m_RefractionShader.Initialize(DirectX))
+            return false;
 
         m_WaterShader = new WaterShader();
-        if (!m_WaterShader.Initialize(DirectX)) return false;
+        if (!m_WaterShader.Initialize(DirectX))
+            return false;
 
         return true;
     }
@@ -89,10 +118,13 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_waterTranslation += 0.001f;
-        if (m_waterTranslation > 1.0f) m_waterTranslation -= 1.0f;
+        if (m_waterTranslation > 1.0f)
+            m_waterTranslation -= 1.0f;
 
-        if (!RenderRefractionToTexture()) return false;
-        if (!RenderReflectionToTexture()) return false;
+        if (!RenderRefractionToTexture())
+            return false;
+        if (!RenderReflectionToTexture())
+            return false;
         return Render();
     }
 
@@ -108,8 +140,20 @@ public class GraphicsFramework
         var world = Matrix4X4.CreateTranslation(0.0f, 2.0f, 0.0f);
 
         m_BathModel.Render(m_DirectX);
-        if (!m_RefractionShader.Render(m_DirectX, m_BathModel.GetIndexCount(), world, view, projection,
-            m_BathModel.GetTextureView(), m_Light.Direction, m_Light.DiffuseColor, m_Light.AmbientColor, clipPlane))
+        if (
+            !m_RefractionShader.Render(
+                m_DirectX,
+                m_BathModel.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_BathModel.GetTextureView(),
+                m_Light.Direction,
+                m_Light.DiffuseColor,
+                m_Light.AmbientColor,
+                clipPlane
+            )
+        )
             return false;
 
         m_DirectX.SetBackBufferRenderTarget();
@@ -128,8 +172,19 @@ public class GraphicsFramework
         var world = Matrix4X4.CreateTranslation(0.0f, 6.0f, 8.0f);
 
         m_WallModel.Render(m_DirectX);
-        if (!m_LightShader.Render(m_DirectX, m_WallModel.GetIndexCount(), world, reflectionView, projection,
-            m_WallModel.GetTextureView(), m_Light.Direction, m_Light.DiffuseColor, m_Light.AmbientColor))
+        if (
+            !m_LightShader.Render(
+                m_DirectX,
+                m_WallModel.GetIndexCount(),
+                world,
+                reflectionView,
+                projection,
+                m_WallModel.GetTextureView(),
+                m_Light.Direction,
+                m_Light.DiffuseColor,
+                m_Light.AmbientColor
+            )
+        )
             return false;
 
         m_DirectX.SetBackBufferRenderTarget();
@@ -146,30 +201,73 @@ public class GraphicsFramework
 
         var world = Matrix4X4.CreateTranslation(0.0f, 1.0f, 0.0f);
         m_GroundModel.Render(m_DirectX);
-        if (!m_LightShader.Render(m_DirectX, m_GroundModel.GetIndexCount(), world, view, projection,
-            m_GroundModel.GetTextureView(), m_Light.Direction, m_Light.DiffuseColor, m_Light.AmbientColor))
+        if (
+            !m_LightShader.Render(
+                m_DirectX,
+                m_GroundModel.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_GroundModel.GetTextureView(),
+                m_Light.Direction,
+                m_Light.DiffuseColor,
+                m_Light.AmbientColor
+            )
+        )
             return false;
 
         world = Matrix4X4.CreateTranslation(0.0f, 6.0f, 8.0f);
         m_WallModel.Render(m_DirectX);
-        if (!m_LightShader.Render(m_DirectX, m_WallModel.GetIndexCount(), world, view, projection,
-            m_WallModel.GetTextureView(), m_Light.Direction, m_Light.DiffuseColor, m_Light.AmbientColor))
+        if (
+            !m_LightShader.Render(
+                m_DirectX,
+                m_WallModel.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_WallModel.GetTextureView(),
+                m_Light.Direction,
+                m_Light.DiffuseColor,
+                m_Light.AmbientColor
+            )
+        )
             return false;
 
         world = Matrix4X4.CreateTranslation(0.0f, 2.0f, 0.0f);
         m_BathModel.Render(m_DirectX);
-        if (!m_LightShader.Render(m_DirectX, m_BathModel.GetIndexCount(), world, view, projection,
-            m_BathModel.GetTextureView(), m_Light.Direction, m_Light.DiffuseColor, m_Light.AmbientColor))
+        if (
+            !m_LightShader.Render(
+                m_DirectX,
+                m_BathModel.GetIndexCount(),
+                world,
+                view,
+                projection,
+                m_BathModel.GetTextureView(),
+                m_Light.Direction,
+                m_Light.DiffuseColor,
+                m_Light.AmbientColor
+            )
+        )
             return false;
 
         var reflectionView = m_Camera.GetReflectionViewMatrix();
         world = Matrix4X4.CreateTranslation(0.0f, m_waterHeight, 0.0f);
         m_WaterModel.Render(m_DirectX);
-        if (!m_WaterShader.Render(m_DirectX, m_WaterModel.GetIndexCount(), world, view, projection, reflectionView,
-            m_ReflectionTexture.GetShaderResourceView(),
-            m_RefractionTexture.GetShaderResourceView(),
-            m_WaterModel.GetTextureView(),
-            m_waterTranslation, 0.01f))
+        if (
+            !m_WaterShader.Render(
+                m_DirectX,
+                m_WaterModel.GetIndexCount(),
+                world,
+                view,
+                projection,
+                reflectionView,
+                m_ReflectionTexture.GetShaderResourceView(),
+                m_RefractionTexture.GetShaderResourceView(),
+                m_WaterModel.GetTextureView(),
+                m_waterTranslation,
+                0.01f
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

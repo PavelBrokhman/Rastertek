@@ -19,10 +19,12 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
+            return false;
 
         m_FogShader = new FogShader();
-        if (!m_FogShader.Initialize(DirectX)) return false;
+        if (!m_FogShader.Initialize(DirectX))
+            return false;
 
         return true;
     }
@@ -40,7 +42,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f) m_rotation += MathF.Tau;
+        if (m_rotation < 0.0f)
+            m_rotation += MathF.Tau;
         return Render();
     }
 
@@ -55,8 +58,17 @@ public class GraphicsFramework
         m_Model.Render(m_DirectX);
         m_Model.SetTexture(m_DirectX, 0);
 
-        if (!m_FogShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection,
-            0.0f, 10.0f))
+        if (
+            !m_FogShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world,
+                view,
+                projection,
+                0.0f,
+                10.0f
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

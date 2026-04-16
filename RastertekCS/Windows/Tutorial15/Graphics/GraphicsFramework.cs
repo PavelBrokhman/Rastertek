@@ -22,18 +22,34 @@ public class GraphicsFramework
         m_Camera.Render();
 
         m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(DirectX)) return false;
+        if (!m_FontShader.Initialize(DirectX))
+            return false;
 
         m_Font = new Font();
-        if (!m_Font.Initialize(DirectX, 0)) return false;
+        if (!m_Font.Initialize(DirectX, 0))
+            return false;
 
         m_Fps = new Fps();
         m_Fps.Initialize();
         m_previousFps = -1;
 
         m_FpsString = new Text();
-        if (!m_FpsString.Initialize(DirectX, screenWidth, screenHeight, 32, m_Font,
-                                     "Fps: 0", 10, 10, 0.0f, 1.0f, 0.0f)) return false;
+        if (
+            !m_FpsString.Initialize(
+                DirectX,
+                screenWidth,
+                screenHeight,
+                32,
+                m_Font,
+                "Fps: 0",
+                10,
+                10,
+                0.0f,
+                1.0f,
+                0.0f
+            )
+        )
+            return false;
 
         return true;
     }
@@ -53,7 +69,8 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        if (!UpdateFps()) return false;
+        if (!UpdateFps())
+            return false;
         return Render();
     }
 
@@ -61,15 +78,34 @@ public class GraphicsFramework
     {
         m_Fps.Frame();
         int fps = m_Fps.GetFps();
-        if (m_previousFps == fps) return true;
+        if (m_previousFps == fps)
+            return true;
         m_previousFps = fps;
 
-        if (fps > 99999) fps = 99999;
+        if (fps > 99999)
+            fps = 99999;
 
-        float r, g, b;
-        if (fps >= 60) { r = 0.0f; g = 1.0f; b = 0.0f; }
-        else if (fps >= 30) { r = 1.0f; g = 1.0f; b = 0.0f; }
-        else { r = 1.0f; g = 0.0f; b = 0.0f; }
+        float r,
+            g,
+            b;
+        if (fps >= 60)
+        {
+            r = 0.0f;
+            g = 1.0f;
+            b = 0.0f;
+        }
+        else if (fps >= 30)
+        {
+            r = 1.0f;
+            g = 1.0f;
+            b = 0.0f;
+        }
+        else
+        {
+            r = 1.0f;
+            g = 0.0f;
+            b = 0.0f;
+        }
 
         return m_FpsString.UpdateText(m_DirectX, m_Font, $"Fps: {fps}", 10, 10, r, g, b);
     }
@@ -88,8 +124,16 @@ public class GraphicsFramework
         m_Font.SetTexture(m_DirectX, 0);
 
         m_FpsString.Render(m_DirectX);
-        if (!m_FontShader.Render(m_DirectX, m_FpsString.GetIndexCount(), world, view, ortho,
-                                  m_FpsString.GetPixelColor()))
+        if (
+            !m_FontShader.Render(
+                m_DirectX,
+                m_FpsString.GetIndexCount(),
+                world,
+                view,
+                ortho,
+                m_FpsString.GetPixelColor()
+            )
+        )
             return false;
 
         m_DirectX.DisableAlphaBlending();

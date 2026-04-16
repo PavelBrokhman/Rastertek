@@ -20,9 +20,7 @@ public class GraphicsClass
         return true;
     }
 
-    public void Shutdown()
-    {
-    }
+    public void Shutdown() { }
 
     public bool Frame()
     {

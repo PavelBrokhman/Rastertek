@@ -29,8 +29,14 @@ public unsafe class DirectXClass
 
     private bool m_vsyncEnabled;
 
-    public bool Initialize(IWindow window, int screenWidth, int screenHeight,
-                           float screenDepth, float screenNear, bool vsync)
+    public bool Initialize(
+        IWindow window,
+        int screenWidth,
+        int screenHeight,
+        float screenDepth,
+        float screenNear,
+        bool vsync
+    )
     {
         m_vsyncEnabled = vsync;
         m_d3d11 = D3D11.GetApi();
@@ -65,7 +71,7 @@ public unsafe class DirectXClass
                 RefreshRate = new Rational(0, 1),
                 Format = Format.FormatR8G8B8A8Unorm,
                 ScanlineOrdering = ModeScanlineOrder.Unspecified,
-                Scaling = ModeScaling.Unspecified
+                Scaling = ModeScaling.Unspecified,
             },
             SampleDesc = new SampleDesc(1, 0),
             BufferUsage = DXGI.UsageRenderTargetOutput,
@@ -73,7 +79,7 @@ public unsafe class DirectXClass
             OutputWindow = hwnd,
             Windowed = true,
             SwapEffect = SwapEffect.Discard,
-            Flags = 0
+            Flags = 0,
         };
 
         // Create the device, device context, and swap chain.
@@ -85,11 +91,18 @@ public unsafe class DirectXClass
             m_d3d11.CreateDeviceAndSwapChain(
                 (IDXGIAdapter*)null,
                 D3DDriverType.Hardware,
-                0, 0,
-                &featureLevel, 1,
+                0,
+                0,
+                &featureLevel,
+                1,
                 D3D11.SdkVersion,
                 &swapChainDesc,
-                &pSwapChain, &pDevice, null, &pDeviceContext));
+                &pSwapChain,
+                &pDevice,
+                null,
+                &pDeviceContext
+            )
+        );
         m_swapChain = pSwapChain;
         m_device = pDevice;
         m_deviceContext = pDeviceContext;
@@ -97,9 +110,11 @@ public unsafe class DirectXClass
         // Get the back buffer and create a render target view.
         ComPtr<ID3D11Texture2D> backBuffer = default;
         SilkMarshal.ThrowHResult(
-            m_swapChain.GetBuffer(0, SilkMarshal.GuidPtrOf<ID3D11Texture2D>(), (void**)&backBuffer));
+            m_swapChain.GetBuffer(0, SilkMarshal.GuidPtrOf<ID3D11Texture2D>(), (void**)&backBuffer)
+        );
         SilkMarshal.ThrowHResult(
-            m_device.CreateRenderTargetView(backBuffer, null, ref m_renderTargetView));
+            m_device.CreateRenderTargetView(backBuffer, null, ref m_renderTargetView)
+        );
         backBuffer.Release();
 
         // Create the depth/stencil buffer.
@@ -114,10 +129,11 @@ public unsafe class DirectXClass
             Usage = Usage.Default,
             BindFlags = (uint)BindFlag.DepthStencil,
             CPUAccessFlags = 0,
-            MiscFlags = 0
+            MiscFlags = 0,
         };
         SilkMarshal.ThrowHResult(
-            m_device.CreateTexture2D(&depthBufferDesc, null, ref m_depthStencilBuffer));
+            m_device.CreateTexture2D(&depthBufferDesc, null, ref m_depthStencilBuffer)
+        );
 
         // Create the depth stencil state.
         var depthStencilDesc = new DepthStencilDesc
@@ -133,18 +149,19 @@ public unsafe class DirectXClass
                 StencilFailOp = StencilOp.Keep,
                 StencilDepthFailOp = StencilOp.Incr,
                 StencilPassOp = StencilOp.Keep,
-                StencilFunc = ComparisonFunc.Always
+                StencilFunc = ComparisonFunc.Always,
             },
             BackFace = new DepthStencilopDesc
             {
                 StencilFailOp = StencilOp.Keep,
                 StencilDepthFailOp = StencilOp.Decr,
                 StencilPassOp = StencilOp.Keep,
-                StencilFunc = ComparisonFunc.Always
-            }
+                StencilFunc = ComparisonFunc.Always,
+            },
         };
         SilkMarshal.ThrowHResult(
-            m_device.CreateDepthStencilState(&depthStencilDesc, ref m_depthStencilState));
+            m_device.CreateDepthStencilState(&depthStencilDesc, ref m_depthStencilState)
+        );
         m_deviceContext.OMSetDepthStencilState(m_depthStencilState, 1);
 
         // Create the depth stencil view.
@@ -152,10 +169,15 @@ public unsafe class DirectXClass
         {
             Format = Format.FormatD24UnormS8Uint,
             ViewDimension = DsvDimension.Texture2D,
-            Texture2D = new Tex2DDsv { MipSlice = 0 }
+            Texture2D = new Tex2DDsv { MipSlice = 0 },
         };
         SilkMarshal.ThrowHResult(
-            m_device.CreateDepthStencilView(m_depthStencilBuffer, &depthStencilViewDesc, ref m_depthStencilView));
+            m_device.CreateDepthStencilView(
+                m_depthStencilBuffer,
+                &depthStencilViewDesc,
+                ref m_depthStencilView
+            )
+        );
 
         // Bind the render target view and depth stencil view.
         var rtv = m_renderTargetView.GetPinnableReference();
@@ -173,10 +195,9 @@ public unsafe class DirectXClass
             FrontCounterClockwise = false,
             MultisampleEnable = false,
             ScissorEnable = false,
-            SlopeScaledDepthBias = 0.0f
+            SlopeScaledDepthBias = 0.0f,
         };
-        SilkMarshal.ThrowHResult(
-            m_device.CreateRasterizerState(&rasterDesc, ref m_rasterState));
+        SilkMarshal.ThrowHResult(m_device.CreateRasterizerState(&rasterDesc, ref m_rasterState));
         m_deviceContext.RSSetState(m_rasterState);
 
         // Set the viewport.
@@ -187,7 +208,7 @@ public unsafe class DirectXClass
             Width = screenWidth,
             Height = screenHeight,
             MinDepth = 0.0f,
-            MaxDepth = 1.0f
+            MaxDepth = 1.0f,
         };
         m_deviceContext.RSSetViewports(1, &viewport);
 
@@ -220,8 +241,7 @@ public unsafe class DirectXClass
     {
         float* color = stackalloc float[4] { red, green, blue, alpha };
         m_deviceContext.ClearRenderTargetView(m_renderTargetView, color);
-        m_deviceContext.ClearDepthStencilView(m_depthStencilView,
-            (uint)ClearFlag.Depth, 1.0f, 0);
+        m_deviceContext.ClearDepthStencilView(m_depthStencilView, (uint)ClearFlag.Depth, 1.0f, 0);
     }
 
     public void EndScene()
@@ -230,6 +250,8 @@ public unsafe class DirectXClass
     }
 
     public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+
     public string GetVideoCardInfo() => m_videoCardDescription;
 }

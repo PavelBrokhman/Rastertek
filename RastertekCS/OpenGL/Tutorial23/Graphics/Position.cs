@@ -7,7 +7,11 @@ public class Position
     private float m_leftTurnSpeed;
     private float m_rightTurnSpeed;
 
-    public void SetFrameTime(float time) { m_frameTime = time; }
+    public void SetFrameTime(float time)
+    {
+        m_frameTime = time;
+    }
+
     public float GetRotation() => m_rotationY;
 
     public void TurnLeft(bool keyDown)

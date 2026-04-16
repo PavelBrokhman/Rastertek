@@ -26,27 +26,44 @@ public class TextureShader
 
     public void SetShader(GL4 OpenGL) => OpenGL.Gl.UseProgram(m_shaderProgram);
 
-    public bool SetShaderParameters(GL4 OpenGL,
-        Matrix4X4<float> worldMatrix, Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix,
-        int textureUnit)
+    public bool SetShaderParameters(
+        GL4 OpenGL,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
+        Matrix4X4<float> projectionMatrix,
+        int textureUnit
+    )
     {
         var gl = OpenGL.Gl;
 
         int location = gl.GetUniformLocation(m_shaderProgram, "worldMatrix");
-        if (location == -1) return false;
-        unsafe { gl.UniformMatrix4(location, 1, false, (float*)&worldMatrix); }
+        if (location == -1)
+            return false;
+        unsafe
+        {
+            gl.UniformMatrix4(location, 1, false, (float*)&worldMatrix);
+        }
 
         location = gl.GetUniformLocation(m_shaderProgram, "viewMatrix");
-        if (location == -1) return false;
-        unsafe { gl.UniformMatrix4(location, 1, false, (float*)&viewMatrix); }
+        if (location == -1)
+            return false;
+        unsafe
+        {
+            gl.UniformMatrix4(location, 1, false, (float*)&viewMatrix);
+        }
 
         location = gl.GetUniformLocation(m_shaderProgram, "projectionMatrix");
-        if (location == -1) return false;
-        unsafe { gl.UniformMatrix4(location, 1, false, (float*)&projectionMatrix); }
+        if (location == -1)
+            return false;
+        unsafe
+        {
+            gl.UniformMatrix4(location, 1, false, (float*)&projectionMatrix);
+        }
 
         // Привязываем sampler2D к нужному texture unit.
         location = gl.GetUniformLocation(m_shaderProgram, "shaderTexture");
-        if (location == -1) return false;
+        if (location == -1)
+            return false;
         gl.Uniform1(location, textureUnit);
 
         return true;
@@ -62,12 +79,14 @@ public class TextureShader
         m_vertexShader = gl.CreateShader(ShaderType.VertexShader);
         gl.ShaderSource(m_vertexShader, vsSource);
         gl.CompileShader(m_vertexShader);
-        if (!CheckShaderCompile(gl, m_vertexShader, vsFilename)) return false;
+        if (!CheckShaderCompile(gl, m_vertexShader, vsFilename))
+            return false;
 
         m_fragmentShader = gl.CreateShader(ShaderType.FragmentShader);
         gl.ShaderSource(m_fragmentShader, psSource);
         gl.CompileShader(m_fragmentShader);
-        if (!CheckShaderCompile(gl, m_fragmentShader, psFilename)) return false;
+        if (!CheckShaderCompile(gl, m_fragmentShader, psFilename))
+            return false;
 
         m_shaderProgram = gl.CreateProgram();
         gl.AttachShader(m_shaderProgram, m_vertexShader);

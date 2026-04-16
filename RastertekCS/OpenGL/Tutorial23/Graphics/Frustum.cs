@@ -8,7 +8,8 @@ public class Frustum
 
     public Frustum()
     {
-        for (int i = 0; i < 6; i++) m_planes[i] = new float[4];
+        for (int i = 0; i < 6; i++)
+            m_planes[i] = new float[4];
     }
 
     public void ConstructFrustum(Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix)
@@ -65,7 +66,10 @@ public class Frustum
     {
         for (int i = 0; i < 6; i++)
         {
-            if (m_planes[i][0] * x + m_planes[i][1] * y + m_planes[i][2] * z + m_planes[i][3] < 0.0f)
+            if (
+                m_planes[i][0] * x + m_planes[i][1] * y + m_planes[i][2] * z + m_planes[i][3]
+                < 0.0f
+            )
                 return false;
         }
         return true;
@@ -75,7 +79,13 @@ public class Frustum
     {
         for (int i = 0; i < 6; i++)
         {
-            if (m_planes[i][0] * xCenter + m_planes[i][1] * yCenter + m_planes[i][2] * zCenter + m_planes[i][3] < -radius)
+            if (
+                m_planes[i][0] * xCenter
+                    + m_planes[i][1] * yCenter
+                    + m_planes[i][2] * zCenter
+                    + m_planes[i][3]
+                < -radius
+            )
                 return false;
         }
         return true;
@@ -85,31 +95,150 @@ public class Frustum
     {
         for (int i = 0; i < 6; i++)
         {
-            if (m_planes[i][0] * (xCenter - radius) + m_planes[i][1] * (yCenter - radius) + m_planes[i][2] * (zCenter - radius) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + radius) + m_planes[i][1] * (yCenter - radius) + m_planes[i][2] * (zCenter - radius) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter - radius) + m_planes[i][1] * (yCenter + radius) + m_planes[i][2] * (zCenter - radius) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + radius) + m_planes[i][1] * (yCenter + radius) + m_planes[i][2] * (zCenter - radius) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter - radius) + m_planes[i][1] * (yCenter - radius) + m_planes[i][2] * (zCenter + radius) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + radius) + m_planes[i][1] * (yCenter - radius) + m_planes[i][2] * (zCenter + radius) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter - radius) + m_planes[i][1] * (yCenter + radius) + m_planes[i][2] * (zCenter + radius) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + radius) + m_planes[i][1] * (yCenter + radius) + m_planes[i][2] * (zCenter + radius) + m_planes[i][3] >= 0.0f) continue;
+            if (
+                m_planes[i][0] * (xCenter - radius)
+                    + m_planes[i][1] * (yCenter - radius)
+                    + m_planes[i][2] * (zCenter - radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + radius)
+                    + m_planes[i][1] * (yCenter - radius)
+                    + m_planes[i][2] * (zCenter - radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter - radius)
+                    + m_planes[i][1] * (yCenter + radius)
+                    + m_planes[i][2] * (zCenter - radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + radius)
+                    + m_planes[i][1] * (yCenter + radius)
+                    + m_planes[i][2] * (zCenter - radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter - radius)
+                    + m_planes[i][1] * (yCenter - radius)
+                    + m_planes[i][2] * (zCenter + radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + radius)
+                    + m_planes[i][1] * (yCenter - radius)
+                    + m_planes[i][2] * (zCenter + radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter - radius)
+                    + m_planes[i][1] * (yCenter + radius)
+                    + m_planes[i][2] * (zCenter + radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + radius)
+                    + m_planes[i][1] * (yCenter + radius)
+                    + m_planes[i][2] * (zCenter + radius)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
             return false;
         }
         return true;
     }
 
-    public bool CheckRectangle(float xCenter, float yCenter, float zCenter, float xSize, float ySize, float zSize)
+    public bool CheckRectangle(
+        float xCenter,
+        float yCenter,
+        float zCenter,
+        float xSize,
+        float ySize,
+        float zSize
+    )
     {
         for (int i = 0; i < 6; i++)
         {
-            if (m_planes[i][0] * (xCenter - xSize) + m_planes[i][1] * (yCenter - ySize) + m_planes[i][2] * (zCenter - zSize) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + xSize) + m_planes[i][1] * (yCenter - ySize) + m_planes[i][2] * (zCenter - zSize) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter - xSize) + m_planes[i][1] * (yCenter + ySize) + m_planes[i][2] * (zCenter - zSize) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter - xSize) + m_planes[i][1] * (yCenter - ySize) + m_planes[i][2] * (zCenter + zSize) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + xSize) + m_planes[i][1] * (yCenter + ySize) + m_planes[i][2] * (zCenter - zSize) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + xSize) + m_planes[i][1] * (yCenter - ySize) + m_planes[i][2] * (zCenter + zSize) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter - xSize) + m_planes[i][1] * (yCenter + ySize) + m_planes[i][2] * (zCenter + zSize) + m_planes[i][3] >= 0.0f) continue;
-            if (m_planes[i][0] * (xCenter + xSize) + m_planes[i][1] * (yCenter + ySize) + m_planes[i][2] * (zCenter + zSize) + m_planes[i][3] >= 0.0f) continue;
+            if (
+                m_planes[i][0] * (xCenter - xSize)
+                    + m_planes[i][1] * (yCenter - ySize)
+                    + m_planes[i][2] * (zCenter - zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + xSize)
+                    + m_planes[i][1] * (yCenter - ySize)
+                    + m_planes[i][2] * (zCenter - zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter - xSize)
+                    + m_planes[i][1] * (yCenter + ySize)
+                    + m_planes[i][2] * (zCenter - zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter - xSize)
+                    + m_planes[i][1] * (yCenter - ySize)
+                    + m_planes[i][2] * (zCenter + zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + xSize)
+                    + m_planes[i][1] * (yCenter + ySize)
+                    + m_planes[i][2] * (zCenter - zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + xSize)
+                    + m_planes[i][1] * (yCenter - ySize)
+                    + m_planes[i][2] * (zCenter + zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter - xSize)
+                    + m_planes[i][1] * (yCenter + ySize)
+                    + m_planes[i][2] * (zCenter + zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
+            if (
+                m_planes[i][0] * (xCenter + xSize)
+                    + m_planes[i][1] * (yCenter + ySize)
+                    + m_planes[i][2] * (zCenter + zSize)
+                    + m_planes[i][3]
+                >= 0.0f
+            )
+                continue;
             return false;
         }
         return true;

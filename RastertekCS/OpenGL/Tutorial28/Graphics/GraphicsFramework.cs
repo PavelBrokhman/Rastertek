@@ -21,16 +21,20 @@ public class GraphicsFramework
             return false;
 
         m_TranslateShader = new TranslateShader();
-        if (!m_TranslateShader.Initialize(OpenGL)) return false;
+        if (!m_TranslateShader.Initialize(OpenGL))
+            return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_TranslateShader?.Shutdown(m_OpenGL); m_TranslateShader = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
-        m_Camera = null; m_OpenGL = null;
+        m_TranslateShader?.Shutdown(m_OpenGL);
+        m_TranslateShader = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     public bool Frame()
@@ -53,7 +57,16 @@ public class GraphicsFramework
         m_TranslateShader.SetShader(m_OpenGL);
         m_Model.SetTexture(m_OpenGL, 0);
 
-        if (!m_TranslateShader.SetShaderParameters(m_OpenGL, world, view, projection, textureTranslation, 0))
+        if (
+            !m_TranslateShader.SetShaderParameters(
+                m_OpenGL,
+                world,
+                view,
+                projection,
+                textureTranslation,
+                0
+            )
+        )
             return false;
 
         m_Model.Render(m_OpenGL);

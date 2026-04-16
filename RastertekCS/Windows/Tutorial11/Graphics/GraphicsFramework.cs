@@ -19,10 +19,12 @@ public class GraphicsFramework
         m_Camera.SetRotation(15.0f, 0.0f, 0.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Plane.txt", "Data/Stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Models/Plane.txt", "Data/Stone01.tga", true))
+            return false;
 
         m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(DirectX)) return false;
+        if (!m_LightShader.Initialize(DirectX))
+            return false;
 
         m_Lights = new Light[LightShader.NUM_LIGHTS];
         m_Lights[0] = new Light();
@@ -73,15 +75,29 @@ public class GraphicsFramework
         {
             var p = m_Lights[i].GetPosition();
             var c = m_Lights[i].GetDiffuseColor();
-            positions[i * 3 + 0] = p[0]; positions[i * 3 + 1] = p[1]; positions[i * 3 + 2] = p[2];
-            colors[i * 4 + 0] = c[0]; colors[i * 4 + 1] = c[1]; colors[i * 4 + 2] = c[2]; colors[i * 4 + 3] = c[3];
+            positions[i * 3 + 0] = p[0];
+            positions[i * 3 + 1] = p[1];
+            positions[i * 3 + 2] = p[2];
+            colors[i * 4 + 0] = c[0];
+            colors[i * 4 + 1] = c[1];
+            colors[i * 4 + 2] = c[2];
+            colors[i * 4 + 3] = c[3];
         }
 
         m_Model.Render(m_DirectX);
         m_Model.SetTexture(m_DirectX, 0);
 
-        if (!m_LightShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection,
-            positions, colors))
+        if (
+            !m_LightShader.Render(
+                m_DirectX,
+                m_Model.GetIndexCount(),
+                world,
+                view,
+                projection,
+                positions,
+                colors
+            )
+        )
             return false;
 
         m_DirectX.EndScene();

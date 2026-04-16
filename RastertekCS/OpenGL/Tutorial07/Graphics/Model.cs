@@ -1,5 +1,5 @@
-using Silk.NET.OpenGL;
 using System.Globalization;
+using Silk.NET.OpenGL;
 
 namespace RastertekCS.OpenGL.Tutorial07.Graphics;
 
@@ -7,16 +7,26 @@ public class Model
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
     }
 
     private struct ModelType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
     }
 
     private uint m_vertexArrayId;
@@ -27,13 +37,19 @@ public class Model
     private ModelType[] m_model;
     private Texture m_Texture;
 
-    public unsafe bool Initialize(GL4 OpenGL, string modelFilename, string textureFilename,
-                                   uint textureUnit, bool wrap)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        string modelFilename,
+        string textureFilename,
+        uint textureUnit,
+        bool wrap
+    )
     {
         var gl = OpenGL.Gl;
 
         // Загружаем геометрию из текстового файла.
-        if (!LoadModel(modelFilename)) return false;
+        if (!LoadModel(modelFilename))
+            return false;
 
         // Инициализируем GL-буферы из загруженной геометрии.
         var vertices = new VertexType[m_vertexCount];
@@ -58,31 +74,62 @@ public class Model
         m_vertexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (VertexType* p = vertices)
-            gl.BufferData(BufferTargetARB.ArrayBuffer,
-                (nuint)(sizeof(VertexType) * vertices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                (nuint)(sizeof(VertexType) * vertices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         gl.EnableVertexAttribArray(0);
         gl.EnableVertexAttribArray(1);
         gl.EnableVertexAttribArray(2);
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)0);
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(3 * sizeof(float)));
-        gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(5 * sizeof(float)));
+        gl.VertexAttribPointer(
+            0,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)0
+        );
+        gl.VertexAttribPointer(
+            1,
+            2,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(3 * sizeof(float))
+        );
+        gl.VertexAttribPointer(
+            2,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(5 * sizeof(float))
+        );
 
         m_indexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
         fixed (uint* p = indices)
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer,
-                (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                (nuint)(sizeof(uint) * indices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         m_Texture = new Texture();
-        if (!m_Texture.Initialize(OpenGL, textureFilename, textureUnit, wrap)) return false;
+        if (!m_Texture.Initialize(OpenGL, textureFilename, textureUnit, wrap))
+            return false;
 
         return true;
     }
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture?.Shutdown(OpenGL); m_Texture = null;
+        m_Texture?.Shutdown(OpenGL);
+        m_Texture = null;
         var gl = OpenGL.Gl;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
@@ -100,7 +147,12 @@ public class Model
     {
         var gl = OpenGL.Gl;
         gl.BindVertexArray(m_vertexArrayId);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)m_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.DrawElements(
+            PrimitiveType.Triangles,
+            (uint)m_indexCount,
+            DrawElementsType.UnsignedInt,
+            (void*)0
+        );
     }
 
     public int GetIndexCount() => m_indexCount;
@@ -117,17 +169,27 @@ public class Model
         int idx = 0;
 
         // Первая непустая строка "Vertex Count: N".
-        while (idx < lines.Length && !lines[idx].StartsWith("Vertex Count", StringComparison.OrdinalIgnoreCase)) idx++;
-        if (idx >= lines.Length) return false;
+        while (
+            idx < lines.Length
+            && !lines[idx].StartsWith("Vertex Count", StringComparison.OrdinalIgnoreCase)
+        )
+            idx++;
+        if (idx >= lines.Length)
+            return false;
         var parts = lines[idx].Split(':');
-        if (parts.Length < 2) return false;
+        if (parts.Length < 2)
+            return false;
         m_vertexCount = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
         m_indexCount = m_vertexCount;
         m_model = new ModelType[m_vertexCount];
         idx++;
 
         // Пропускаем до "Data:" и дальше — до первой строки с числами.
-        while (idx < lines.Length && !lines[idx].Trim().StartsWith("Data", StringComparison.OrdinalIgnoreCase)) idx++;
+        while (
+            idx < lines.Length
+            && !lines[idx].Trim().StartsWith("Data", StringComparison.OrdinalIgnoreCase)
+        )
+            idx++;
         idx++;
 
         int vi = 0;
@@ -135,9 +197,11 @@ public class Model
         {
             var line = lines[idx].Trim();
             idx++;
-            if (line.Length == 0) continue;
+            if (line.Length == 0)
+                continue;
             var tokens = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (tokens.Length < 8) continue;
+            if (tokens.Length < 8)
+                continue;
             m_model[vi].x = float.Parse(tokens[0], CultureInfo.InvariantCulture);
             m_model[vi].y = float.Parse(tokens[1], CultureInfo.InvariantCulture);
             m_model[vi].z = float.Parse(tokens[2], CultureInfo.InvariantCulture);

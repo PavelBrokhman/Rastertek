@@ -6,31 +6,54 @@ public class Model
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
-        public float tx, ty, tz;
-        public float bx, by, bz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
+        public float tx,
+            ty,
+            tz;
+        public float bx,
+            by,
+            bz;
     }
 
     private struct ModelType
     {
-        public float x, y, z;
-        public float tu, tv;
-        public float nx, ny, nz;
-        public float tx, ty, tz;
-        public float bx, by, bz;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
+        public float nx,
+            ny,
+            nz;
+        public float tx,
+            ty,
+            tz;
+        public float bx,
+            by,
+            bz;
     }
 
     private struct TempVertexType
     {
-        public float x, y, z;
-        public float tu, tv;
+        public float x,
+            y,
+            z;
+        public float tu,
+            tv;
     }
 
     private struct VectorType
     {
-        public float x, y, z;
+        public float x,
+            y,
+            z;
     }
 
     private uint m_vertexArrayId;
@@ -42,21 +65,31 @@ public class Model
     private Texture m_Texture2;
     private ModelType[] m_model;
 
-    public unsafe bool Initialize(GL4 OpenGL, string modelFilename,
-        string textureFilename1, bool wrap1,
-        string textureFilename2, bool wrap2)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        string modelFilename,
+        string textureFilename1,
+        bool wrap1,
+        string textureFilename2,
+        bool wrap2
+    )
     {
-        if (!LoadModel(modelFilename)) return false;
+        if (!LoadModel(modelFilename))
+            return false;
         CalculateModelVectors();
-        if (!InitializeBuffers(OpenGL)) return false;
-        if (!LoadTextures(OpenGL, textureFilename1, wrap1, textureFilename2, wrap2)) return false;
+        if (!InitializeBuffers(OpenGL))
+            return false;
+        if (!LoadTextures(OpenGL, textureFilename1, wrap1, textureFilename2, wrap2))
+            return false;
         return true;
     }
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture2?.Shutdown(OpenGL); m_Texture2 = null;
-        m_Texture1?.Shutdown(OpenGL); m_Texture1 = null;
+        m_Texture2?.Shutdown(OpenGL);
+        m_Texture2 = null;
+        m_Texture1?.Shutdown(OpenGL);
+        m_Texture1 = null;
         ShutdownBuffers(OpenGL);
         m_model = null;
     }
@@ -65,7 +98,12 @@ public class Model
     {
         var gl = OpenGL.Gl;
         gl.BindVertexArray(m_vertexArrayId);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)m_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.DrawElements(
+            PrimitiveType.Triangles,
+            (uint)m_indexCount,
+            DrawElementsType.UnsignedInt,
+            (void*)0
+        );
     }
 
     public void SetTexture1(GL4 OpenGL, uint textureUnit)
@@ -80,7 +118,11 @@ public class Model
 
     private bool LoadModel(string filename)
     {
-        if (!File.Exists(filename)) { Console.WriteLine($"Model file not found: {filename}"); return false; }
+        if (!File.Exists(filename))
+        {
+            Console.WriteLine($"Model file not found: {filename}");
+            return false;
+        }
         var lines = File.ReadAllLines(filename);
 
         int vertexCount = 0;
@@ -96,7 +138,8 @@ public class Model
                 break;
             }
         }
-        if (vertexCount == 0 || dataStart < 0) return false;
+        if (vertexCount == 0 || dataStart < 0)
+            return false;
 
         m_vertexCount = vertexCount;
         m_indexCount = vertexCount;
@@ -106,9 +149,11 @@ public class Model
         for (int i = dataStart; i < lines.Length && vi < vertexCount; i++)
         {
             var line = lines[i].Trim();
-            if (string.IsNullOrEmpty(line)) continue;
+            if (string.IsNullOrEmpty(line))
+                continue;
             var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 8) continue;
+            if (parts.Length < 8)
+                continue;
 
             m_model[vi].x = float.Parse(parts[0]);
             m_model[vi].y = float.Parse(parts[1]);
@@ -131,38 +176,74 @@ public class Model
 
         for (int i = 0; i < faceCount; i++)
         {
-            TempVertexType vertex1, vertex2, vertex3;
+            TempVertexType vertex1,
+                vertex2,
+                vertex3;
 
-            vertex1.x = m_model[index].x; vertex1.y = m_model[index].y; vertex1.z = m_model[index].z;
-            vertex1.tu = m_model[index].tu; vertex1.tv = m_model[index].tv;
+            vertex1.x = m_model[index].x;
+            vertex1.y = m_model[index].y;
+            vertex1.z = m_model[index].z;
+            vertex1.tu = m_model[index].tu;
+            vertex1.tv = m_model[index].tv;
             index++;
 
-            vertex2.x = m_model[index].x; vertex2.y = m_model[index].y; vertex2.z = m_model[index].z;
-            vertex2.tu = m_model[index].tu; vertex2.tv = m_model[index].tv;
+            vertex2.x = m_model[index].x;
+            vertex2.y = m_model[index].y;
+            vertex2.z = m_model[index].z;
+            vertex2.tu = m_model[index].tu;
+            vertex2.tv = m_model[index].tv;
             index++;
 
-            vertex3.x = m_model[index].x; vertex3.y = m_model[index].y; vertex3.z = m_model[index].z;
-            vertex3.tu = m_model[index].tu; vertex3.tv = m_model[index].tv;
+            vertex3.x = m_model[index].x;
+            vertex3.y = m_model[index].y;
+            vertex3.z = m_model[index].z;
+            vertex3.tu = m_model[index].tu;
+            vertex3.tv = m_model[index].tv;
             index++;
 
-            CalculateTangentBinormal(vertex1, vertex2, vertex3, out VectorType tangent, out VectorType binormal);
+            CalculateTangentBinormal(
+                vertex1,
+                vertex2,
+                vertex3,
+                out VectorType tangent,
+                out VectorType binormal
+            );
 
-            m_model[index - 1].tx = tangent.x; m_model[index - 1].ty = tangent.y; m_model[index - 1].tz = tangent.z;
-            m_model[index - 1].bx = binormal.x; m_model[index - 1].by = binormal.y; m_model[index - 1].bz = binormal.z;
+            m_model[index - 1].tx = tangent.x;
+            m_model[index - 1].ty = tangent.y;
+            m_model[index - 1].tz = tangent.z;
+            m_model[index - 1].bx = binormal.x;
+            m_model[index - 1].by = binormal.y;
+            m_model[index - 1].bz = binormal.z;
 
-            m_model[index - 2].tx = tangent.x; m_model[index - 2].ty = tangent.y; m_model[index - 2].tz = tangent.z;
-            m_model[index - 2].bx = binormal.x; m_model[index - 2].by = binormal.y; m_model[index - 2].bz = binormal.z;
+            m_model[index - 2].tx = tangent.x;
+            m_model[index - 2].ty = tangent.y;
+            m_model[index - 2].tz = tangent.z;
+            m_model[index - 2].bx = binormal.x;
+            m_model[index - 2].by = binormal.y;
+            m_model[index - 2].bz = binormal.z;
 
-            m_model[index - 3].tx = tangent.x; m_model[index - 3].ty = tangent.y; m_model[index - 3].tz = tangent.z;
-            m_model[index - 3].bx = binormal.x; m_model[index - 3].by = binormal.y; m_model[index - 3].bz = binormal.z;
+            m_model[index - 3].tx = tangent.x;
+            m_model[index - 3].ty = tangent.y;
+            m_model[index - 3].tz = tangent.z;
+            m_model[index - 3].bx = binormal.x;
+            m_model[index - 3].by = binormal.y;
+            m_model[index - 3].bz = binormal.z;
         }
     }
 
-    private static void CalculateTangentBinormal(TempVertexType vertex1, TempVertexType vertex2, TempVertexType vertex3,
-        out VectorType tangent, out VectorType binormal)
+    private static void CalculateTangentBinormal(
+        TempVertexType vertex1,
+        TempVertexType vertex2,
+        TempVertexType vertex3,
+        out VectorType tangent,
+        out VectorType binormal
+    )
     {
-        float[] vector1 = new float[3], vector2 = new float[3];
-        float[] tuVector = new float[2], tvVector = new float[2];
+        float[] vector1 = new float[3],
+            vector2 = new float[3];
+        float[] tuVector = new float[2],
+            tvVector = new float[2];
 
         vector1[0] = vertex2.x - vertex1.x;
         vector1[1] = vertex2.y - vertex1.y;
@@ -188,11 +269,19 @@ public class Model
         binormal.y = (tuVector[0] * vector2[1] - tuVector[1] * vector1[1]) * den;
         binormal.z = (tuVector[0] * vector2[2] - tuVector[1] * vector1[2]) * den;
 
-        float length = MathF.Sqrt(tangent.x * tangent.x + tangent.y * tangent.y + tangent.z * tangent.z);
-        tangent.x /= length; tangent.y /= length; tangent.z /= length;
+        float length = MathF.Sqrt(
+            tangent.x * tangent.x + tangent.y * tangent.y + tangent.z * tangent.z
+        );
+        tangent.x /= length;
+        tangent.y /= length;
+        tangent.z /= length;
 
-        length = MathF.Sqrt(binormal.x * binormal.x + binormal.y * binormal.y + binormal.z * binormal.z);
-        binormal.x /= length; binormal.y /= length; binormal.z /= length;
+        length = MathF.Sqrt(
+            binormal.x * binormal.x + binormal.y * binormal.y + binormal.z * binormal.z
+        );
+        binormal.x /= length;
+        binormal.y /= length;
+        binormal.z /= length;
     }
 
     private unsafe bool InitializeBuffers(GL4 OpenGL)
@@ -226,39 +315,77 @@ public class Model
         m_vertexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (VertexType* p = vertices)
-            gl.BufferData(BufferTargetARB.ArrayBuffer,
-                (nuint)(sizeof(VertexType) * vertices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                (nuint)(sizeof(VertexType) * vertices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         // Attribute 0: position (3 floats)
         gl.EnableVertexAttribArray(0);
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false,
-            (uint)sizeof(VertexType), (void*)0);
+        gl.VertexAttribPointer(
+            0,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)0
+        );
 
         // Attribute 1: texcoord (2 floats)
         gl.EnableVertexAttribArray(1);
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false,
-            (uint)sizeof(VertexType), (void*)(3 * sizeof(float)));
+        gl.VertexAttribPointer(
+            1,
+            2,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(3 * sizeof(float))
+        );
 
         // Attribute 2: normal (3 floats)
         gl.EnableVertexAttribArray(2);
-        gl.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false,
-            (uint)sizeof(VertexType), (void*)(5 * sizeof(float)));
+        gl.VertexAttribPointer(
+            2,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(5 * sizeof(float))
+        );
 
         // Attribute 3: tangent (3 floats)
         gl.EnableVertexAttribArray(3);
-        gl.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false,
-            (uint)sizeof(VertexType), (void*)(8 * sizeof(float)));
+        gl.VertexAttribPointer(
+            3,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(8 * sizeof(float))
+        );
 
         // Attribute 4: binormal (3 floats)
         gl.EnableVertexAttribArray(4);
-        gl.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false,
-            (uint)sizeof(VertexType), (void*)(11 * sizeof(float)));
+        gl.VertexAttribPointer(
+            4,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(11 * sizeof(float))
+        );
 
         m_indexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
         fixed (uint* p = indices)
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer,
-                (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                (nuint)(sizeof(uint) * indices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
 
         return true;
     }
@@ -279,13 +406,21 @@ public class Model
         gl.DeleteVertexArray(m_vertexArrayId);
     }
 
-    private bool LoadTextures(GL4 OpenGL, string filename1, bool wrap1, string filename2, bool wrap2)
+    private bool LoadTextures(
+        GL4 OpenGL,
+        string filename1,
+        bool wrap1,
+        string filename2,
+        bool wrap2
+    )
     {
         m_Texture1 = new Texture();
-        if (!m_Texture1.Initialize(OpenGL, filename1, 0, wrap1)) return false;
+        if (!m_Texture1.Initialize(OpenGL, filename1, 0, wrap1))
+            return false;
 
         m_Texture2 = new Texture();
-        if (!m_Texture2.Initialize(OpenGL, filename2, 1, wrap2)) return false;
+        if (!m_Texture2.Initialize(OpenGL, filename2, 1, wrap2))
+            return false;
 
         return true;
     }

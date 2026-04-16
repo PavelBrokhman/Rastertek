@@ -24,9 +24,17 @@ public class GraphicsFramework
 
         // Create and initialize the model with color and normal map textures.
         m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/sphere.txt",
-            "Data/stone01.tga", true,
-            "Data/normal01.tga", true)) return false;
+        if (
+            !m_Model.Initialize(
+                OpenGL,
+                "Models/sphere.txt",
+                "Data/stone01.tga",
+                true,
+                "Data/normal01.tga",
+                true
+            )
+        )
+            return false;
 
         // Create and initialize the light.
         m_Light = new Light();
@@ -35,17 +43,21 @@ public class GraphicsFramework
 
         // Create and initialize the shader manager.
         m_ShaderManager = new ShaderManager();
-        if (!m_ShaderManager.Initialize(OpenGL)) return false;
+        if (!m_ShaderManager.Initialize(OpenGL))
+            return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_ShaderManager?.Shutdown(m_OpenGL); m_ShaderManager = null;
+        m_ShaderManager?.Shutdown(m_OpenGL);
+        m_ShaderManager = null;
         m_Light = null;
-        m_Model?.Shutdown(m_OpenGL); m_Model = null;
-        m_Camera = null; m_OpenGL = null;
+        m_Model?.Shutdown(m_OpenGL);
+        m_Model = null;
+        m_Camera = null;
+        m_OpenGL = null;
     }
 
     private float m_rotation = 360.0f;
@@ -53,7 +65,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f) m_rotation += MathF.Tau;
+        if (m_rotation < 0.0f)
+            m_rotation += MathF.Tau;
         return Render(m_rotation);
     }
 
@@ -73,8 +86,16 @@ public class GraphicsFramework
         var translateMatrix = Matrix4X4.CreateTranslation<float>(0.0f, 1.0f, 0.0f);
         var worldMatrix = rotateMatrix * translateMatrix;
 
-        if (!m_ShaderManager.RenderTextureShader(m_OpenGL, worldMatrix, view, projection,
-            (int)TEXTURE_UNIT_COLOR)) return false;
+        if (
+            !m_ShaderManager.RenderTextureShader(
+                m_OpenGL,
+                worldMatrix,
+                view,
+                projection,
+                (int)TEXTURE_UNIT_COLOR
+            )
+        )
+            return false;
         m_Model.SetTexture1(m_OpenGL, TEXTURE_UNIT_COLOR);
         m_Model.Render(m_OpenGL);
 
@@ -82,9 +103,18 @@ public class GraphicsFramework
         translateMatrix = Matrix4X4.CreateTranslation<float>(-1.5f, -1.0f, 0.0f);
         worldMatrix = rotateMatrix * translateMatrix;
 
-        if (!m_ShaderManager.RenderLightShader(m_OpenGL, worldMatrix, view, projection,
-            lightDirection, diffuseLightColor,
-            (int)TEXTURE_UNIT_COLOR)) return false;
+        if (
+            !m_ShaderManager.RenderLightShader(
+                m_OpenGL,
+                worldMatrix,
+                view,
+                projection,
+                lightDirection,
+                diffuseLightColor,
+                (int)TEXTURE_UNIT_COLOR
+            )
+        )
+            return false;
         m_Model.SetTexture1(m_OpenGL, TEXTURE_UNIT_COLOR);
         m_Model.Render(m_OpenGL);
 
@@ -92,9 +122,19 @@ public class GraphicsFramework
         translateMatrix = Matrix4X4.CreateTranslation<float>(1.5f, -1.0f, 0.0f);
         worldMatrix = rotateMatrix * translateMatrix;
 
-        if (!m_ShaderManager.RenderNormalMapShader(m_OpenGL, worldMatrix, view, projection,
-            lightDirection, diffuseLightColor,
-            (int)TEXTURE_UNIT_COLOR, (int)TEXTURE_UNIT_NORMAL)) return false;
+        if (
+            !m_ShaderManager.RenderNormalMapShader(
+                m_OpenGL,
+                worldMatrix,
+                view,
+                projection,
+                lightDirection,
+                diffuseLightColor,
+                (int)TEXTURE_UNIT_COLOR,
+                (int)TEXTURE_UNIT_NORMAL
+            )
+        )
+            return false;
         m_Model.SetTexture1(m_OpenGL, TEXTURE_UNIT_COLOR);
         m_Model.SetTexture2(m_OpenGL, TEXTURE_UNIT_NORMAL);
         m_Model.Render(m_OpenGL);

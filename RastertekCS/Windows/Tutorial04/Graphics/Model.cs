@@ -8,8 +8,12 @@ public unsafe class Model
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float r, g, b;
+        public float x,
+            y,
+            z;
+        public float r,
+            g,
+            b;
     }
 
     private ComPtr<ID3D11Buffer> m_vertexBuffer;
@@ -23,9 +27,33 @@ public unsafe class Model
 
         var vertices = new VertexType[]
         {
-            new() { x = -1.0f, y = -1.0f, z = 0.0f, r = 0.0f, g = 1.0f, b = 0.0f },
-            new() { x =  0.0f, y =  1.0f, z = 0.0f, r = 0.0f, g = 1.0f, b = 0.0f },
-            new() { x =  1.0f, y = -1.0f, z = 0.0f, r = 0.0f, g = 1.0f, b = 0.0f },
+            new()
+            {
+                x = -1.0f,
+                y = -1.0f,
+                z = 0.0f,
+                r = 0.0f,
+                g = 1.0f,
+                b = 0.0f,
+            },
+            new()
+            {
+                x = 0.0f,
+                y = 1.0f,
+                z = 0.0f,
+                r = 0.0f,
+                g = 1.0f,
+                b = 0.0f,
+            },
+            new()
+            {
+                x = 1.0f,
+                y = -1.0f,
+                z = 0.0f,
+                r = 0.0f,
+                g = 1.0f,
+                b = 0.0f,
+            },
         };
         var indices = new uint[] { 0, 1, 2 };
 
@@ -37,11 +65,14 @@ public unsafe class Model
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(VertexType) * vertices.Length),
                 BindFlags = (uint)BindFlag.VertexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer));
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+            );
         }
 
         // Create index buffer.
@@ -52,11 +83,14 @@ public unsafe class Model
                 Usage = Usage.Default,
                 ByteWidth = (uint)(sizeof(uint) * indices.Length),
                 BindFlags = (uint)BindFlag.IndexBuffer,
-                CPUAccessFlags = 0, MiscFlags = 0, StructureByteStride = 0
+                CPUAccessFlags = 0,
+                MiscFlags = 0,
+                StructureByteStride = 0,
             };
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer));
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+            );
         }
 
         return true;

@@ -6,8 +6,12 @@ public class Model
 {
     private struct VertexType
     {
-        public float x, y, z;
-        public float r, g, b;
+        public float x,
+            y,
+            z;
+        public float r,
+            g,
+            b;
     }
 
     private uint m_vertexArrayId;
@@ -22,9 +26,33 @@ public class Model
 
         var vertices = new VertexType[]
         {
-            new() { x = -1.0f, y = -1.0f, z = 0.0f, r = 0.0f, g = 1.0f, b = 0.0f },
-            new() { x =  0.0f, y =  1.0f, z = 0.0f, r = 0.0f, g = 1.0f, b = 0.0f },
-            new() { x =  1.0f, y = -1.0f, z = 0.0f, r = 0.0f, g = 1.0f, b = 0.0f },
+            new()
+            {
+                x = -1.0f,
+                y = -1.0f,
+                z = 0.0f,
+                r = 0.0f,
+                g = 1.0f,
+                b = 0.0f,
+            },
+            new()
+            {
+                x = 0.0f,
+                y = 1.0f,
+                z = 0.0f,
+                r = 0.0f,
+                g = 1.0f,
+                b = 0.0f,
+            },
+            new()
+            {
+                x = 1.0f,
+                y = -1.0f,
+                z = 0.0f,
+                r = 0.0f,
+                g = 1.0f,
+                b = 0.0f,
+            },
         };
         var indices = new uint[] { 0, 1, 2 };
 
@@ -35,21 +63,43 @@ public class Model
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
         fixed (VertexType* p = vertices)
         {
-            gl.BufferData(BufferTargetARB.ArrayBuffer,
-                (nuint)(sizeof(VertexType) * vertices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                (nuint)(sizeof(VertexType) * vertices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
         }
 
         gl.EnableVertexAttribArray(0);
         gl.EnableVertexAttribArray(1);
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)0);
-        gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(3 * sizeof(float)));
+        gl.VertexAttribPointer(
+            0,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)0
+        );
+        gl.VertexAttribPointer(
+            1,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(3 * sizeof(float))
+        );
 
         m_indexBufferId = gl.GenBuffer();
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
         fixed (uint* p = indices)
         {
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer,
-                (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
+            gl.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                (nuint)(sizeof(uint) * indices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
         }
 
         return true;
@@ -72,6 +122,11 @@ public class Model
     {
         var gl = OpenGL.Gl;
         gl.BindVertexArray(m_vertexArrayId);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)m_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.DrawElements(
+            PrimitiveType.Triangles,
+            (uint)m_indexCount,
+            DrawElementsType.UnsignedInt,
+            (void*)0
+        );
     }
 }

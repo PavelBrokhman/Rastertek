@@ -5,9 +5,12 @@ namespace RastertekCS.OpenGL.Tutorial16.Graphics;
 
 public class FontShader
 {
-    private uint m_vertexShader, m_fragmentShader, m_shaderProgram;
+    private uint m_vertexShader,
+        m_fragmentShader,
+        m_shaderProgram;
 
-    public bool Initialize(GL4 OpenGL) => InitializeShader(OpenGL, "Shaders/Font.vs", "Shaders/Font.ps");
+    public bool Initialize(GL4 OpenGL) =>
+        InitializeShader(OpenGL, "Shaders/Font.vs", "Shaders/Font.ps");
 
     public void Shutdown(GL4 OpenGL)
     {
@@ -21,27 +24,50 @@ public class FontShader
 
     public void SetShader(GL4 OpenGL) => OpenGL.Gl.UseProgram(m_shaderProgram);
 
-    public bool SetShaderParameters(GL4 OpenGL,
-        Matrix4X4<float> world, Matrix4X4<float> view, Matrix4X4<float> projection,
-        int textureUnit, float[] pixelColor)
+    public bool SetShaderParameters(
+        GL4 OpenGL,
+        Matrix4X4<float> world,
+        Matrix4X4<float> view,
+        Matrix4X4<float> projection,
+        int textureUnit,
+        float[] pixelColor
+    )
     {
         var gl = OpenGL.Gl;
         int loc;
         loc = gl.GetUniformLocation(m_shaderProgram, "worldMatrix");
-        if (loc == -1) return false;
-        unsafe { gl.UniformMatrix4(loc, 1, false, (float*)&world); }
+        if (loc == -1)
+            return false;
+        unsafe
+        {
+            gl.UniformMatrix4(loc, 1, false, (float*)&world);
+        }
         loc = gl.GetUniformLocation(m_shaderProgram, "viewMatrix");
-        if (loc == -1) return false;
-        unsafe { gl.UniformMatrix4(loc, 1, false, (float*)&view); }
+        if (loc == -1)
+            return false;
+        unsafe
+        {
+            gl.UniformMatrix4(loc, 1, false, (float*)&view);
+        }
         loc = gl.GetUniformLocation(m_shaderProgram, "projectionMatrix");
-        if (loc == -1) return false;
-        unsafe { gl.UniformMatrix4(loc, 1, false, (float*)&projection); }
+        if (loc == -1)
+            return false;
+        unsafe
+        {
+            gl.UniformMatrix4(loc, 1, false, (float*)&projection);
+        }
         loc = gl.GetUniformLocation(m_shaderProgram, "shaderTexture");
-        if (loc == -1) return false;
+        if (loc == -1)
+            return false;
         gl.Uniform1(loc, textureUnit);
         loc = gl.GetUniformLocation(m_shaderProgram, "pixelColor");
-        if (loc == -1) return false;
-        unsafe { fixed (float* p = pixelColor) gl.Uniform4(loc, 1, p); }
+        if (loc == -1)
+            return false;
+        unsafe
+        {
+            fixed (float* p = pixelColor)
+                gl.Uniform4(loc, 1, p);
+        }
         return true;
     }
 
@@ -52,13 +78,25 @@ public class FontShader
         gl.ShaderSource(m_vertexShader, File.ReadAllText(vs));
         gl.CompileShader(m_vertexShader);
         gl.GetShader(m_vertexShader, ShaderParameterName.CompileStatus, out int s1);
-        if (s1 != 1) { global::System.Console.WriteLine($"Compile {vs}: {gl.GetShaderInfoLog(m_vertexShader)}"); return false; }
+        if (s1 != 1)
+        {
+            global::System.Console.WriteLine(
+                $"Compile {vs}: {gl.GetShaderInfoLog(m_vertexShader)}"
+            );
+            return false;
+        }
 
         m_fragmentShader = gl.CreateShader(ShaderType.FragmentShader);
         gl.ShaderSource(m_fragmentShader, File.ReadAllText(ps));
         gl.CompileShader(m_fragmentShader);
         gl.GetShader(m_fragmentShader, ShaderParameterName.CompileStatus, out int s2);
-        if (s2 != 1) { global::System.Console.WriteLine($"Compile {ps}: {gl.GetShaderInfoLog(m_fragmentShader)}"); return false; }
+        if (s2 != 1)
+        {
+            global::System.Console.WriteLine(
+                $"Compile {ps}: {gl.GetShaderInfoLog(m_fragmentShader)}"
+            );
+            return false;
+        }
 
         m_shaderProgram = gl.CreateProgram();
         gl.AttachShader(m_shaderProgram, m_vertexShader);
@@ -67,7 +105,11 @@ public class FontShader
         gl.BindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
         gl.LinkProgram(m_shaderProgram);
         gl.GetProgram(m_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
-        if (ls != 1) { global::System.Console.WriteLine($"Link: {gl.GetProgramInfoLog(m_shaderProgram)}"); return false; }
+        if (ls != 1)
+        {
+            global::System.Console.WriteLine($"Link: {gl.GetProgramInfoLog(m_shaderProgram)}");
+            return false;
+        }
         return true;
     }
 }

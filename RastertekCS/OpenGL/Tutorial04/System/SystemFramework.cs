@@ -18,7 +18,8 @@ public class SystemFramework
 
     public bool Initialize()
     {
-        int screenWidth = 0, screenHeight = 0;
+        int screenWidth = 0,
+            screenHeight = 0;
         m_OpenGL = new GL4();
 
         if (!InitializeWindows(ref screenWidth, ref screenHeight))
@@ -27,10 +28,16 @@ public class SystemFramework
             return false;
         }
 
-        if (!m_OpenGL.Initialize(m_window, screenWidth, screenHeight,
-                                  SystemConfiguration.ScreenDepth,
-                                  SystemConfiguration.ScreenNear,
-                                  SystemConfiguration.VerticalSyncEnabled))
+        if (
+            !m_OpenGL.Initialize(
+                m_window,
+                screenWidth,
+                screenHeight,
+                SystemConfiguration.ScreenDepth,
+                SystemConfiguration.ScreenNear,
+                SystemConfiguration.VerticalSyncEnabled
+            )
+        )
         {
             global::System.Console.WriteLine("Не удалось инициализировать OpenGL.");
             return false;
@@ -40,7 +47,8 @@ public class SystemFramework
         m_Input.Initialize();
 
         m_Graphics = new GraphicsFramework();
-        if (!m_Graphics.Initialize(m_OpenGL)) return false;
+        if (!m_Graphics.Initialize(m_OpenGL))
+            return false;
         m_graphicsInitialized = true;
 
         return true;
@@ -56,8 +64,6 @@ public class SystemFramework
         ShutdownWindows();
     }
 
-
-
     public void Run()
     {
         m_done = false;
@@ -66,7 +72,8 @@ public class SystemFramework
 
     private bool Frame()
     {
-        if (m_Input.IsKeyDown(Key.Escape)) return false;
+        if (m_Input.IsKeyDown(Key.Escape))
+            return false;
         return m_Graphics.Frame();
     }
 
@@ -79,10 +86,16 @@ public class SystemFramework
         options.Title = "Tutorial04";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Resizable;
-        options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
+        options.WindowState = SystemConfiguration.FullScreen
+            ? WindowState.Fullscreen
+            : WindowState.Normal;
         options.VSync = SystemConfiguration.VerticalSyncEnabled;
-        options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core,
-            ContextFlags.ForwardCompatible, new APIVersion(4, 0));
+        options.API = new GraphicsAPI(
+            ContextAPI.OpenGL,
+            ContextProfile.Core,
+            ContextFlags.ForwardCompatible,
+            new APIVersion(4, 0)
+        );
 
         m_window = Window.Create(options);
         m_window.Load += OnLoad;
@@ -116,7 +129,8 @@ public class SystemFramework
 
     private void OnRender(double deltaTime)
     {
-        if (!m_graphicsInitialized) return;
+        if (!m_graphicsInitialized)
+            return;
         if (m_done || !Frame())
         {
             m_done = true;

@@ -15,10 +15,12 @@ public class GraphicsFramework
         m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
 
         m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Data/Stone01.tga", true)) return false;
+        if (!m_Model.Initialize(DirectX, "Data/Stone01.tga", true))
+            return false;
 
         m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX)) return false;
+        if (!m_TextureShader.Initialize(DirectX))
+            return false;
 
         return true;
     }

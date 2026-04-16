@@ -7,15 +7,31 @@ public class Light
     private readonly float[] m_direction = new float[3];
 
     public void SetAmbientLight(float r, float g, float b, float a)
-    { m_ambientLight[0] = r; m_ambientLight[1] = g; m_ambientLight[2] = b; m_ambientLight[3] = a; }
+    {
+        m_ambientLight[0] = r;
+        m_ambientLight[1] = g;
+        m_ambientLight[2] = b;
+        m_ambientLight[3] = a;
+    }
 
     public void SetDiffuseColor(float r, float g, float b, float a)
-    { m_diffuseColor[0] = r; m_diffuseColor[1] = g; m_diffuseColor[2] = b; m_diffuseColor[3] = a; }
+    {
+        m_diffuseColor[0] = r;
+        m_diffuseColor[1] = g;
+        m_diffuseColor[2] = b;
+        m_diffuseColor[3] = a;
+    }
 
     public void SetDirection(float x, float y, float z)
-    { m_direction[0] = x; m_direction[1] = y; m_direction[2] = z; }
+    {
+        m_direction[0] = x;
+        m_direction[1] = y;
+        m_direction[2] = z;
+    }
 
     public float[] GetAmbientLight() => m_ambientLight;
+
     public float[] GetDiffuseColor() => m_diffuseColor;
+
     public float[] GetDirection() => m_direction;
 }

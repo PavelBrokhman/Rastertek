@@ -5,11 +5,20 @@ namespace RastertekCS.OpenGL.Tutorial30.Graphics;
 
 public class RenderTexture
 {
-    private uint m_frameBufferId, m_textureId, m_depthBufferId;
-    private int m_textureWidth, m_textureHeight;
+    private uint m_frameBufferId,
+        m_textureId,
+        m_depthBufferId;
+    private int m_textureWidth,
+        m_textureHeight;
     private Matrix4X4<float> m_projectionMatrix;
 
-    public unsafe bool Initialize(GL4 OpenGL, int textureWidth, int textureHeight, float screenNear, float screenDepth)
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        int textureWidth,
+        int textureHeight,
+        float screenNear,
+        float screenDepth
+    )
     {
         var gl = OpenGL.Gl;
         m_textureWidth = textureWidth;
@@ -21,18 +30,53 @@ public class RenderTexture
         gl.ActiveTexture(TextureUnit.Texture0);
         m_textureId = gl.GenTexture();
         gl.BindTexture(TextureTarget.Texture2D, m_textureId);
-        gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)m_textureWidth, (uint)m_textureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, m_textureId, 0);
+        gl.TexImage2D(
+            TextureTarget.Texture2D,
+            0,
+            (int)InternalFormat.Rgba,
+            (uint)m_textureWidth,
+            (uint)m_textureHeight,
+            0,
+            PixelFormat.Rgba,
+            PixelType.UnsignedByte,
+            null
+        );
+        gl.TexParameter(
+            TextureTarget.Texture2D,
+            TextureParameterName.TextureMagFilter,
+            (int)TextureMagFilter.Linear
+        );
+        gl.TexParameter(
+            TextureTarget.Texture2D,
+            TextureParameterName.TextureMinFilter,
+            (int)TextureMinFilter.Linear
+        );
+        gl.FramebufferTexture2D(
+            FramebufferTarget.Framebuffer,
+            FramebufferAttachment.ColorAttachment0,
+            TextureTarget.Texture2D,
+            m_textureId,
+            0
+        );
 
         m_depthBufferId = gl.GenRenderbuffer();
         gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, m_depthBufferId);
-        gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.DepthComponent, (uint)m_textureWidth, (uint)m_textureHeight);
-        gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, m_depthBufferId);
+        gl.RenderbufferStorage(
+            RenderbufferTarget.Renderbuffer,
+            InternalFormat.DepthComponent,
+            (uint)m_textureWidth,
+            (uint)m_textureHeight
+        );
+        gl.FramebufferRenderbuffer(
+            FramebufferTarget.Framebuffer,
+            FramebufferAttachment.DepthAttachment,
+            RenderbufferTarget.Renderbuffer,
+            m_depthBufferId
+        );
 
         GLEnum[] drawBuffers = { GLEnum.ColorAttachment0 };
-        fixed (GLEnum* p = drawBuffers) gl.DrawBuffers(1, p);
+        fixed (GLEnum* p = drawBuffers)
+            gl.DrawBuffers(1, p);
 
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
@@ -71,15 +115,33 @@ public class RenderTexture
 
     public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
 
-    private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
+    private static Matrix4X4<float> PerspectiveFovLH(
+        float fov,
+        float aspect,
+        float nearZ,
+        float farZ
+    )
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);
         float w = h / aspect;
         float range = farZ / (farZ - nearZ);
         return new Matrix4X4<float>(
-            w, 0, 0, 0,
-            0, h, 0, 0,
-            0, 0, range, 1,
-            0, 0, -range * nearZ, 0);
+            w,
+            0,
+            0,
+            0,
+            0,
+            h,
+            0,
+            0,
+            0,
+            0,
+            range,
+            1,
+            0,
+            0,
+            -range * nearZ,
+            0
+        );
     }
 }
