@@ -43,39 +43,38 @@ public class GraphicsFramework
         _driver = null;
     }
 
-    public bool Frame()
+    public bool Frame() => Render();
+
+    bool Render()
     {
         _frameTime += 0.01f;
         if (_frameTime > 1000f)
             _frameTime = 0f;
-        return Render();
-    }
-
-    bool Render()
-    {
+        var worldMatrix = _driver.GetWorldMatrix();
+        var viewMatrix = _camera.GetViewMatrix();
+        var projectionMatrix = _driver.GetProjectionMatrix();
+        float[] scrollSpeeds = { 1.3f, 2.1f, 2.3f };
+        float[] scales = { 1f, 2f, 3f };
+        float[] distortion1 = { 0.1f, 0.2f };
+        float[] distortion2 = { 0.1f, 0.3f };
+        float[] distortion3 = { 0.1f, 0.1f };
+        float distortionScale = 0.8f;
+        float distortionBias = 0.5f;
         _driver.BeginScene(0, 0, 0, 1);
-        var w = _driver.GetWorldMatrix();
-        var v = _camera.GetViewMatrix();
-        var p = _driver.GetProjectionMatrix();
-        float[] ss = { 1.3f, 2.1f, 2.3f };
-        float[] sc = { 1f, 2f, 3f };
-        float[] d1 = { 0.1f, 0.2f };
-        float[] d2 = { 0.1f, 0.3f };
-        float[] d3 = { 0.1f, 0.1f };
         _driver.EnableAlphaBlending();
         _fireShader.SetShaderParameters(
             _driver,
-            w,
-            v,
-            p,
+            worldMatrix,
+            viewMatrix,
+            projectionMatrix,
             _frameTime,
-            ss,
-            sc,
-            d1,
-            d2,
-            d3,
-            0.8f,
-            0.5f
+            scrollSpeeds,
+            scales,
+            distortion1,
+            distortion2,
+            distortion3,
+            distortionScale,
+            distortionBias
         );
         _model.SetTexture1(_driver, 0);
         _model.SetTexture2(_driver, 1);

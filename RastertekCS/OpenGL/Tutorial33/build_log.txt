@@ -1,24 +1,27 @@
-============================================================ 
-Tutorial33 - 2026-04-15 22:26:11.63 
-dotnet version: 
-10.0.201
-OS: 
-
-Microsoft Windows [Version 10.0.22631.6199]
-============================================================ 
---- RESTORE --- 
+============================================================
+Tutorial33 - Thu 16 Apr 2026 01:23:07 AM EDT
+dotnet version:
+8.0.125
+OS:
+Linux pavel-ubuntu 6.8.0-107-generic #107~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Mar 18 23:40:43 UTC  x86_64 x86_64 x86_64 GNU/Linux
+============================================================
+--- RESTORE ---
   Determining projects to restore...
   All projects are up-to-date for restore.
---- BUILD --- 
-  Tutorial33 -> D:\Projects\Rastertek\RastertekCS\OpenGL\Tutorial33\bin\Debug\net8.0\Tutorial33.dll
+--- BUILD ---
+MSBuild version 17.8.49+7806cbf7b for .NET
+  Tutorial33 -> /home/pbrokhman/Projects/Rastertek/RastertekCS/OpenGL/Tutorial33/bin/Debug/net8.0/Tutorial33.dll
 
 Build succeeded.
     0 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:00:00.70
---- RUN --- 
-EXIT CODE: 0 
-============================================================ 
-Finished: 2026-04-15 22:26:16.11 
-============================================================ 
+Time Elapsed 00:00:00.72
+--- RUN ---
+Loaded Data/fire01.tga (256x256)
+Loaded Data/noise01.tga (256x256)
+Loaded Data/alpha01.tga (256x256)
+EXIT CODE: 0
+============================================================
+Finished: Thu 16 Apr 2026 01:23:20 AM EDT
+============================================================

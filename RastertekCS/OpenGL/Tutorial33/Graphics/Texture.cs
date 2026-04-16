@@ -94,10 +94,9 @@ public class Texture
         if (d.Length < off + pc * ch)
             return false;
         rgba = new byte[pc * 4];
-        bool tl = (desc & 0x20) != 0;
         for (int y = 0; y < h; y++)
         {
-            int sr = tl ? y : h - 1 - y;
+            int sr = y;
             int so = off + sr * w * ch;
             int doff = y * w * 4;
             for (int x = 0; x < w; x++)

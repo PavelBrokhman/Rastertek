@@ -1,9 +1,27 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: fire.ps
+////////////////////////////////////////////////////////////////////////////////
 #version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
 in vec2 texCoord;
 in vec2 texCoords1;
 in vec2 texCoords2;
 in vec2 texCoords3;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
 out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
 uniform sampler2D fireTexture;
 uniform sampler2D noiseTexture;
 uniform sampler2D alphaTexture;
@@ -12,24 +30,62 @@ uniform vec2 distortion2;
 uniform vec2 distortion3;
 uniform float distortionScale;
 uniform float distortionBias;
-void main(void) {
-    vec4 noise1 = texture(noiseTexture, texCoords1);
-    vec4 noise2 = texture(noiseTexture, texCoords2);
-    vec4 noise3 = texture(noiseTexture, texCoords3);
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 noise1;
+    vec4 noise2;
+    vec4 noise3;
+    vec4 finalNoise;
+    float perturb;
+    vec2 noiseCoords;
+    vec4 fireColor;
+    vec4 alphaColor;
+
+
+    // Sample the same noise texture using the three different texture coordinates to get three different noise scales.
+    noise1 = texture(noiseTexture, texCoords1);
+    noise2 = texture(noiseTexture, texCoords2);
+    noise3 = texture(noiseTexture, texCoords3);
+
+    // Move the noise from the (0, 1) range to the (-1, +1) range.
     noise1 = (noise1 - 0.5f) * 2.0f;
     noise2 = (noise2 - 0.5f) * 2.0f;
     noise3 = (noise3 - 0.5f) * 2.0f;
+
+    // Distort the three noise x and y coordinates by the three different distortion x and y values.
     noise1.xy = noise1.xy * distortion1.xy;
     noise2.xy = noise2.xy * distortion2.xy;
     noise3.xy = noise3.xy * distortion3.xy;
-    vec4 finalNoise = noise1 + noise2 + noise3;
-    float perturb = ((texCoord.y) * distortionScale) + distortionBias;
-    vec2 noiseCoords;
+
+    // Combine all three distorted noise results into a single noise result.
+    finalNoise = noise1 + noise2 + noise3;
+
+    // Perturb the input texture Y coordinates by the distortion scale and bias values.
+    // The perturbation gets stronger as you move up the texture which creates the flame flickering at the top effect.
+    perturb = ((texCoord.y) * distortionScale) + distortionBias;
+
+    // Now create the perturbed and distorted texture sampling coordinates that will be used to sample the fire color texture.
     noiseCoords.x = (finalNoise.x * perturb) + texCoord.x;
     noiseCoords.y = (finalNoise.y * perturb) + (1.0f - texCoord.y);
     noiseCoords.y = 1.0 - noiseCoords.y;
-    vec4 fireColor = texture(fireTexture, noiseCoords);
-    vec4 alphaColor = texture(alphaTexture, noiseCoords.xy);
+
+    // Sample the color from the fire texture using the perturbed and distorted texture sampling coordinates.
+    // Use the clamping sample state instead of the wrap sample state to prevent flames wrapping around.
+    fireColor = texture(fireTexture, noiseCoords);
+
+    // Sample the alpha value from the alpha texture using the perturbed and distorted texture sampling coordinates.
+    // This will be used for transparency of the fire.
+    // Use the clamping sample state instead of the wrap sample state to prevent flames wrapping around.
+    alphaColor = texture(alphaTexture, noiseCoords.xy);
+
+    // Set the alpha blending of the fire to the perturbed and distored alpha texture value.
     fireColor.a = alphaColor.r;
+
+    // Set the final output color to be the completed fire effect.
     outputColor = fireColor;
 }

@@ -39,15 +39,18 @@ public class FireShader
         var glApi = gl.Driver;
         glApi.UseProgram(_shaderProgram);
         int loc;
+        var tpWorld = GL4.MatrixTranspose(worldMatrix);
+        var tpView = GL4.MatrixTranspose(viewMatrix);
+        var tpProj = GL4.MatrixTranspose(projectionMatrix);
         loc = glApi.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc >= 0)
-            glApi.UniformMatrix4(loc, 1, false, (float*)&worldMatrix);
+            glApi.UniformMatrix4(loc, 1, false, (float*)&tpWorld);
         loc = glApi.GetUniformLocation(_shaderProgram, "viewMatrix");
         if (loc >= 0)
-            glApi.UniformMatrix4(loc, 1, false, (float*)&viewMatrix);
+            glApi.UniformMatrix4(loc, 1, false, (float*)&tpView);
         loc = glApi.GetUniformLocation(_shaderProgram, "projectionMatrix");
         if (loc >= 0)
-            glApi.UniformMatrix4(loc, 1, false, (float*)&projectionMatrix);
+            glApi.UniformMatrix4(loc, 1, false, (float*)&tpProj);
         loc = glApi.GetUniformLocation(_shaderProgram, "frameTime");
         if (loc >= 0)
             glApi.Uniform1(loc, frameTime);
