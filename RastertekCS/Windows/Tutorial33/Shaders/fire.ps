@@ -14,7 +14,8 @@ cbuffer DistortionBuffer : register(b0)
 Texture2D fireTexture  : register(t0);
 Texture2D noiseTexture : register(t1);
 Texture2D alphaTexture : register(t2);
-SamplerState SampleType : register(s0);
+SamplerState SampleTypeWrap  : register(s0);
+SamplerState SampleTypeClamp : register(s1);
 
 struct PixelInputType
 {
@@ -27,9 +28,9 @@ struct PixelInputType
 
 float4 FirePixelShader(PixelInputType input) : SV_TARGET
 {
-    float4 noise1 = noiseTexture.Sample(SampleType, input.texCoords1);
-    float4 noise2 = noiseTexture.Sample(SampleType, input.texCoords2);
-    float4 noise3 = noiseTexture.Sample(SampleType, input.texCoords3);
+    float4 noise1 = noiseTexture.Sample(SampleTypeWrap, input.texCoords1);
+    float4 noise2 = noiseTexture.Sample(SampleTypeWrap, input.texCoords2);
+    float4 noise3 = noiseTexture.Sample(SampleTypeWrap, input.texCoords3);
 
     noise1 = (noise1 - 0.5f) * 2.0f;
     noise2 = (noise2 - 0.5f) * 2.0f;
@@ -45,10 +46,10 @@ float4 FirePixelShader(PixelInputType input) : SV_TARGET
 
     float2 noiseCoords;
     noiseCoords.x = (finalNoise.x * perturb) + input.tex.x;
-    noiseCoords.y = (finalNoise.y * perturb) + (1.0f - input.tex.y);
+    noiseCoords.y = (finalNoise.y * perturb) + input.tex.y;
 
-    float4 fireColor  = fireTexture.Sample(SampleType, noiseCoords);
-    float4 alphaColor = alphaTexture.Sample(SampleType, noiseCoords);
+    float4 fireColor  = fireTexture.Sample(SampleTypeClamp, noiseCoords);
+    float4 alphaColor = alphaTexture.Sample(SampleTypeClamp, noiseCoords);
 
     fireColor.a = alphaColor.r;
 

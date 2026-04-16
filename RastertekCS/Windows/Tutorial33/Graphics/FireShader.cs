@@ -38,14 +38,16 @@ public unsafe class FireShader
     private ComPtr<ID3D11Buffer> m_matrixBuffer;
     private ComPtr<ID3D11Buffer> m_noiseBuffer;
     private ComPtr<ID3D11Buffer> m_distortionBuffer;
-    private ComPtr<ID3D11SamplerState> m_sampleState;
+    private ComPtr<ID3D11SamplerState> m_sampleStateWrap;
+    private ComPtr<ID3D11SamplerState> m_sampleStateClamp;
 
     public bool Initialize(DX11 DirectX) =>
         InitializeShader(DirectX, "Shaders/fire.vs", "Shaders/fire.ps");
 
     public void Shutdown()
     {
-        m_sampleState.Release();
+        m_sampleStateClamp.Release();
+        m_sampleStateWrap.Release();
         m_distortionBuffer.Release();
         m_noiseBuffer.Release();
         m_matrixBuffer.Release();
@@ -146,7 +148,12 @@ public unsafe class FireShader
             MipLODBias = 0, MaxAnisotropy = 1, ComparisonFunc = ComparisonFunc.Always,
             MinLOD = 0, MaxLOD = float.MaxValue
         };
-        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_sampleState));
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_sampleStateWrap));
+
+        samplerDesc.AddressU = TextureAddressMode.Clamp;
+        samplerDesc.AddressV = TextureAddressMode.Clamp;
+        samplerDesc.AddressW = TextureAddressMode.Clamp;
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_sampleStateClamp));
 
         return true;
     }
@@ -205,8 +212,10 @@ public unsafe class FireShader
         context.IASetInputLayout(m_layout);
         context.VSSetShader(m_vertexShader, null, 0);
         context.PSSetShader(m_pixelShader, null, 0);
-        var smp = m_sampleState.GetPinnableReference();
-        context.PSSetSamplers(0, 1, &smp);
+        var smpWrap  = m_sampleStateWrap.GetPinnableReference();
+        var smpClamp = m_sampleStateClamp.GetPinnableReference();
+        context.PSSetSamplers(0, 1, &smpWrap);
+        context.PSSetSamplers(1, 1, &smpClamp);
         context.DrawIndexed((uint)indexCount, 0, 0);
     }
 }
