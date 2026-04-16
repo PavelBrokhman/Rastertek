@@ -28,4 +28,16 @@
     <None Include="..\..\Assets\Models\square.txt" Link="Models\square.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <Target Name="LogAssetSync" AfterTargets="Build">
+    <Message Importance="high" Text="--- Asset sync check ($(OutDir)) ---" />
+    <Message Importance="high" Text="fire01.tga   : src=$(ProjectDir)..\..\Assets\Data\fire01.tga" />
+    <Message Importance="high" Text="noise01.tga  : src=$(ProjectDir)..\..\Assets\Data\noise01.tga" />
+    <Message Importance="high" Text="alpha01.tga  : src=$(ProjectDir)..\..\Assets\Data\alpha01.tga" />
+    <Message Importance="high" Text="square.txt   : src=$(ProjectDir)..\..\Assets\Models\square.txt" />
+    <ItemGroup>
+      <_AssetOut Include="$(OutDir)Data\fire01.tga;$(OutDir)Data\noise01.tga;$(OutDir)Data\alpha01.tga;$(OutDir)Models\square.txt;$(OutDir)Shaders\fire.vs;$(OutDir)Shaders\fire.ps" />
+    </ItemGroup>
+    <Message Importance="high" Text="OUT: %(_AssetOut.Identity)  [exists=%(_AssetOut.Exists)  bytes=%(_AssetOut.FileSize)]" />
+  </Target>
+
 </Project>
