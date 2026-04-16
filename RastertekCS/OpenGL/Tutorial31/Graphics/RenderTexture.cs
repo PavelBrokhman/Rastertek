@@ -61,8 +61,8 @@ public class RenderTexture
         gl.RenderbufferStorage(
             RenderbufferTarget.Renderbuffer,
             InternalFormat.DepthComponent,
-            (uint)tw,
-            (uint)th
+            (uint)textureWidth,
+            (uint)textureHeight
         );
         gl.FramebufferRenderbuffer(
             FramebufferTarget.Framebuffer,
