@@ -96,7 +96,7 @@ public class Texture
         rgba = new byte[pc * 4];
         for (int y = 0; y < h; y++)
         {
-            int sr = y;
+            int sr = h - 1 - y;
             int so = off + sr * w * ch;
             int doff = y * w * 4;
             for (int x = 0; x < w; x++)

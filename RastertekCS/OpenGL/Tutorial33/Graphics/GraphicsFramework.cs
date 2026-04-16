@@ -67,7 +67,7 @@ public class GraphicsFramework
             worldMatrix,
             viewMatrix,
             projectionMatrix,
-            _frameTime,
+            -_frameTime,
             scrollSpeeds,
             scales,
             distortion1,
