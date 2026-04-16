@@ -25,7 +25,7 @@ public class FireShader
         GL4 gl,
         Matrix4X4<float> worldMatrix,
         Matrix4X4<float> viewMatrix,
-        Matrix4X4<float> p,
+        Matrix4X4<float> projectionMatrix,
         float frameTime,
         float[] scrollSpeeds,
         float[] scales,
