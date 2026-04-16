@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>RastertekCS.Windows.Tutorial33</RootNamespace>
+    <AssemblyName>Tutorial33</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Direct3D.Compilers" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.DXGI" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.23.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.23.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Shaders\fire.vs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Shaders\fire.ps" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\fire01.tga"   Link="Data\fire01.tga"   CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\noise01.tga"  Link="Data\noise01.tga"  CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\alpha01.tga"  Link="Data\alpha01.tga"  CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Models\square.txt" Link="Models\square.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
