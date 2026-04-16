@@ -5,20 +5,20 @@ namespace RastertekCS.OpenGL.Tutorial31.Graphics;
 
 public class WaterShader
 {
-    private uint m_vs,
-        m_fs,
-        m_prog;
+    private uint _vertexShader,
+        _fragmentShader,
+        _shaderProgram;
 
     public bool Initialize(GL4 gl) => Init(gl, "Shaders/water.vs", "Shaders/water.ps");
 
     public void Shutdown(GL4 gl)
     {
         var g = gl.Gl;
-        g.DetachShader(m_prog, m_vs);
-        g.DetachShader(m_prog, m_fs);
-        g.DeleteShader(m_vs);
-        g.DeleteShader(m_fs);
-        g.DeleteProgram(m_prog);
+        g.DetachShader(_shaderProgram, _vertexShader);
+        g.DetachShader(_shaderProgram, _fragmentShader);
+        g.DeleteShader(_vertexShader);
+        g.DeleteShader(_fragmentShader);
+        g.DeleteProgram(_shaderProgram);
     }
 
     public unsafe bool SetShaderParameters(
@@ -32,33 +32,33 @@ public class WaterShader
     )
     {
         var g = gl.Gl;
-        g.UseProgram(m_prog);
+        g.UseProgram(_shaderProgram);
         int loc;
-        loc = g.GetUniformLocation(m_prog, "worldMatrix");
+        loc = g.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc >= 0)
             g.UniformMatrix4(loc, 1, false, (float*)&world);
-        loc = g.GetUniformLocation(m_prog, "viewMatrix");
+        loc = g.GetUniformLocation(_shaderProgram, "viewMatrix");
         if (loc >= 0)
             g.UniformMatrix4(loc, 1, false, (float*)&view);
-        loc = g.GetUniformLocation(m_prog, "projectionMatrix");
+        loc = g.GetUniformLocation(_shaderProgram, "projectionMatrix");
         if (loc >= 0)
             g.UniformMatrix4(loc, 1, false, (float*)&proj);
-        loc = g.GetUniformLocation(m_prog, "reflectionMatrix");
+        loc = g.GetUniformLocation(_shaderProgram, "reflectionMatrix");
         if (loc >= 0)
             g.UniformMatrix4(loc, 1, false, (float*)&reflection);
-        loc = g.GetUniformLocation(m_prog, "normalTexture");
+        loc = g.GetUniformLocation(_shaderProgram, "normalTexture");
         if (loc >= 0)
             g.Uniform1(loc, 0);
-        loc = g.GetUniformLocation(m_prog, "refractionTexture");
+        loc = g.GetUniformLocation(_shaderProgram, "refractionTexture");
         if (loc >= 0)
             g.Uniform1(loc, 1);
-        loc = g.GetUniformLocation(m_prog, "reflectionTexture");
+        loc = g.GetUniformLocation(_shaderProgram, "reflectionTexture");
         if (loc >= 0)
             g.Uniform1(loc, 2);
-        loc = g.GetUniformLocation(m_prog, "waterTranslation");
+        loc = g.GetUniformLocation(_shaderProgram, "waterTranslation");
         if (loc >= 0)
             g.Uniform1(loc, waterTrans);
-        loc = g.GetUniformLocation(m_prog, "reflectRefractScale");
+        loc = g.GetUniformLocation(_shaderProgram, "reflectRefractScale");
         if (loc >= 0)
             g.Uniform1(loc, reflRefScale);
         return true;
@@ -67,34 +67,34 @@ public class WaterShader
     private bool Init(GL4 gl, string vsf, string psf)
     {
         var g = gl.Gl;
-        m_vs = g.CreateShader(ShaderType.VertexShader);
-        g.ShaderSource(m_vs, File.ReadAllText(vsf));
-        g.CompileShader(m_vs);
-        g.GetShader(m_vs, ShaderParameterName.CompileStatus, out int s);
+        _vertexShader = g.CreateShader(ShaderType.VertexShader);
+        g.ShaderSource(_vertexShader, File.ReadAllText(vsf));
+        g.CompileShader(_vertexShader);
+        g.GetShader(_vertexShader, ShaderParameterName.CompileStatus, out int s);
         if (s != 1)
         {
-            Console.WriteLine($"VS: {g.GetShaderInfoLog(m_vs)}");
+            Console.WriteLine($"VS: {g.GetShaderInfoLog(_vertexShader)}");
             return false;
         }
-        m_fs = g.CreateShader(ShaderType.FragmentShader);
-        g.ShaderSource(m_fs, File.ReadAllText(psf));
-        g.CompileShader(m_fs);
-        g.GetShader(m_fs, ShaderParameterName.CompileStatus, out s);
+        _fragmentShader = g.CreateShader(ShaderType.FragmentShader);
+        g.ShaderSource(_fragmentShader, File.ReadAllText(psf));
+        g.CompileShader(_fragmentShader);
+        g.GetShader(_fragmentShader, ShaderParameterName.CompileStatus, out s);
         if (s != 1)
         {
-            Console.WriteLine($"PS: {g.GetShaderInfoLog(m_fs)}");
+            Console.WriteLine($"PS: {g.GetShaderInfoLog(_fragmentShader)}");
             return false;
         }
-        m_prog = g.CreateProgram();
-        g.AttachShader(m_prog, m_vs);
-        g.AttachShader(m_prog, m_fs);
-        g.BindAttribLocation(m_prog, 0, "inputPosition");
-        g.BindAttribLocation(m_prog, 1, "inputTexCoord");
-        g.LinkProgram(m_prog);
-        g.GetProgram(m_prog, ProgramPropertyARB.LinkStatus, out int ls);
+        _shaderProgram = g.CreateProgram();
+        g.AttachShader(_shaderProgram, _vertexShader);
+        g.AttachShader(_shaderProgram, _fragmentShader);
+        g.BindAttribLocation(_shaderProgram, 0, "inputPosition");
+        g.BindAttribLocation(_shaderProgram, 1, "inputTexCoord");
+        g.LinkProgram(_shaderProgram);
+        g.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
         if (ls != 1)
         {
-            Console.WriteLine($"Link: {g.GetProgramInfoLog(m_prog)}");
+            Console.WriteLine($"Link: {g.GetProgramInfoLog(_shaderProgram)}");
             return false;
         }
         return true;

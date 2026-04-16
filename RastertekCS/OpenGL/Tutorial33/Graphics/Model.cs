@@ -16,13 +16,13 @@ public class Model
             nz;
     }
 
-    private uint m_vao,
-        m_vbo,
-        m_ibo;
-    private int m_vc,
-        m_ic;
-    private Texture[] m_tex;
-    private float[] m_md;
+    private uint _vertexArrayId,
+        _vertexBufferId,
+        _indexBufferId;
+    private int _vertexCount,
+        _inputContext;
+    private Texture[] _textures;
+    private float[] _modelData;
 
     public unsafe bool Initialize(
         GL4 gl,
@@ -39,23 +39,23 @@ public class Model
             return false;
         if (!InitBuf(gl))
             return false;
-        m_tex = new Texture[3];
+        _textures = new Texture[3];
         if (t1 != null)
         {
-            m_tex[0] = new Texture();
-            if (!m_tex[0].Initialize(gl, t1, 0, w1))
+            _textures[0] = new Texture();
+            if (!_textures[0].Initialize(gl, t1, 0, w1))
                 return false;
         }
         if (t2 != null)
         {
-            m_tex[1] = new Texture();
-            if (!m_tex[1].Initialize(gl, t2, 0, w2))
+            _textures[1] = new Texture();
+            if (!_textures[1].Initialize(gl, t2, 0, w2))
                 return false;
         }
         if (t3 != null)
         {
-            m_tex[2] = new Texture();
-            if (!m_tex[2].Initialize(gl, t3, 0, w3))
+            _textures[2] = new Texture();
+            if (!_textures[2].Initialize(gl, t3, 0, w3))
                 return false;
         }
         return true;
@@ -63,21 +63,21 @@ public class Model
 
     public void Shutdown(GL4 gl)
     {
-        if (m_tex != null)
+        if (_textures != null)
         {
-            foreach (var t in m_tex)
+            foreach (var t in _textures)
                 t?.Shutdown(gl);
-            m_tex = null;
+            _textures = null;
         }
         ShutBuf(gl);
     }
 
     public unsafe void Render(GL4 gl)
     {
-        gl.Gl.BindVertexArray(m_vao);
+        gl.Gl.BindVertexArray(_vertexArrayId);
         gl.Gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_ic,
+            (uint)_inputContext,
             DrawElementsType.UnsignedInt,
             (void*)0
         );
@@ -85,17 +85,17 @@ public class Model
 
     public void SetTexture1(GL4 gl, uint tu)
     {
-        m_tex?[0]?.SetTexture(gl, tu);
+        _textures?[0]?.SetTexture(gl, tu);
     }
 
     public void SetTexture2(GL4 gl, uint tu)
     {
-        m_tex?[1]?.SetTexture(gl, tu);
+        _textures?[1]?.SetTexture(gl, tu);
     }
 
     public void SetTexture3(GL4 gl, uint tu)
     {
-        m_tex?[2]?.SetTexture(gl, tu);
+        _textures?[2]?.SetTexture(gl, tu);
     }
 
     bool LoadModel(string fn)
@@ -118,9 +118,9 @@ public class Model
         }
         if (vc == 0 || ds < 0)
             return false;
-        m_vc = vc;
-        m_ic = vc;
-        m_md = new float[vc * 8];
+        _vertexCount = vc;
+        _inputContext = vc;
+        _modelData = new float[vc * 8];
         int vi = 0;
         for (int i = ds; i < lines.Length && vi < vc; i++)
         {
@@ -131,14 +131,14 @@ public class Model
             if (p.Length < 8)
                 continue;
             int o = vi * 8;
-            m_md[o] = float.Parse(p[0]);
-            m_md[o + 1] = float.Parse(p[1]);
-            m_md[o + 2] = float.Parse(p[2]);
-            m_md[o + 3] = float.Parse(p[3]);
-            m_md[o + 4] = float.Parse(p[4]);
-            m_md[o + 5] = float.Parse(p[5]);
-            m_md[o + 6] = float.Parse(p[6]);
-            m_md[o + 7] = float.Parse(p[7]);
+            _modelData[o] = float.Parse(p[0]);
+            _modelData[o + 1] = float.Parse(p[1]);
+            _modelData[o + 2] = float.Parse(p[2]);
+            _modelData[o + 3] = float.Parse(p[3]);
+            _modelData[o + 4] = float.Parse(p[4]);
+            _modelData[o + 5] = float.Parse(p[5]);
+            _modelData[o + 6] = float.Parse(p[6]);
+            _modelData[o + 7] = float.Parse(p[7]);
             vi++;
         }
         return vi == vc;
@@ -147,25 +147,25 @@ public class Model
     unsafe bool InitBuf(GL4 gl)
     {
         var g = gl.Gl;
-        var v = new VT[m_vc];
-        var idx = new uint[m_ic];
-        for (int i = 0; i < m_vc; i++)
+        var v = new VT[_vertexCount];
+        var idx = new uint[_inputContext];
+        for (int i = 0; i < _vertexCount; i++)
         {
             int o = i * 8;
-            v[i].x = m_md[o];
-            v[i].y = m_md[o + 1];
-            v[i].z = m_md[o + 2];
-            v[i].tu = m_md[o + 3];
-            v[i].tv = m_md[o + 4];
-            v[i].nx = m_md[o + 5];
-            v[i].ny = m_md[o + 6];
-            v[i].nz = m_md[o + 7];
+            v[i].x = _modelData[o];
+            v[i].y = _modelData[o + 1];
+            v[i].z = _modelData[o + 2];
+            v[i].tu = _modelData[o + 3];
+            v[i].tv = _modelData[o + 4];
+            v[i].nx = _modelData[o + 5];
+            v[i].ny = _modelData[o + 6];
+            v[i].nz = _modelData[o + 7];
             idx[i] = (uint)i;
         }
-        m_vao = g.GenVertexArray();
-        g.BindVertexArray(m_vao);
-        m_vbo = g.GenBuffer();
-        g.BindBuffer(BufferTargetARB.ArrayBuffer, m_vbo);
+        _vertexArrayId = g.GenVertexArray();
+        g.BindVertexArray(_vertexArrayId);
+        _vertexBufferId = g.GenBuffer();
+        g.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VT* p = v)
             g.BufferData(
                 BufferTargetARB.ArrayBuffer,
@@ -200,8 +200,8 @@ public class Model
             (uint)sizeof(VT),
             (void*)(5 * sizeof(float))
         );
-        m_ibo = g.GenBuffer();
-        g.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_ibo);
+        _indexBufferId = g.GenBuffer();
+        g.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = idx)
             g.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
@@ -209,7 +209,7 @@ public class Model
                 p,
                 BufferUsageARB.StaticDraw
             );
-        m_md = null;
+        _modelData = null;
         return true;
     }
 
@@ -220,10 +220,10 @@ public class Model
         g.DisableVertexAttribArray(1);
         g.DisableVertexAttribArray(2);
         g.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        g.DeleteBuffer(m_vbo);
+        g.DeleteBuffer(_vertexBufferId);
         g.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        g.DeleteBuffer(m_ibo);
+        g.DeleteBuffer(_indexBufferId);
         g.BindVertexArray(0);
-        g.DeleteVertexArray(m_vao);
+        g.DeleteVertexArray(_vertexArrayId);
     }
 }

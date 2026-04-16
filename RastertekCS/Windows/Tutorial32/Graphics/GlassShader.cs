@@ -23,24 +23,24 @@ public unsafe class GlassShader
             padding3;
     }
 
-    private ComPtr<ID3D11VertexShader> m_vertexShader;
-    private ComPtr<ID3D11PixelShader> m_pixelShader;
-    private ComPtr<ID3D11InputLayout> m_layout;
-    private ComPtr<ID3D11Buffer> m_matrixBuffer;
-    private ComPtr<ID3D11Buffer> m_refractionScaleBuffer;
-    private ComPtr<ID3D11SamplerState> m_sampleState;
+    private ComPtr<ID3D11VertexShader> _vertexShader;
+    private ComPtr<ID3D11PixelShader> _pixelShader;
+    private ComPtr<ID3D11InputLayout> _layout;
+    private ComPtr<ID3D11Buffer> _matrixBuffer;
+    private ComPtr<ID3D11Buffer> _refractionScaleBuffer;
+    private ComPtr<ID3D11SamplerState> _sampleState;
 
     public bool Initialize(DX11 DirectX) =>
         InitializeShader(DirectX, "Shaders/glass.vs", "Shaders/glass.ps");
 
     public void Shutdown()
     {
-        m_sampleState.Release();
-        m_refractionScaleBuffer.Release();
-        m_matrixBuffer.Release();
-        m_layout.Release();
-        m_pixelShader.Release();
-        m_vertexShader.Release();
+        _sampleState.Release();
+        _refractionScaleBuffer.Release();
+        _matrixBuffer.Release();
+        _layout.Release();
+        _pixelShader.Release();
+        _vertexShader.Release();
     }
 
     public bool Render(
@@ -102,7 +102,7 @@ public unsafe class GlassShader
                 vsBlob.GetBufferPointer(),
                 vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_vertexShader
+                ref _vertexShader
             )
         );
 
@@ -130,7 +130,7 @@ public unsafe class GlassShader
                 psBlob.GetBufferPointer(),
                 psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_pixelShader
+                ref _pixelShader
             )
         );
 
@@ -177,7 +177,7 @@ public unsafe class GlassShader
                     (uint)layoutDesc.Length,
                     vsBlob.GetBufferPointer(),
                     vsBlob.GetBufferSize(),
-                    ref m_layout
+                    ref _layout
                 )
             );
         SilkMarshal.Free(posName);
@@ -195,7 +195,7 @@ public unsafe class GlassShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref _matrixBuffer));
 
         var refScaleDesc = new BufferDesc
         {
@@ -207,7 +207,7 @@ public unsafe class GlassShader
             StructureByteStride = 0,
         };
         SilkMarshal.ThrowHResult(
-            device.CreateBuffer(&refScaleDesc, null, ref m_refractionScaleBuffer)
+            device.CreateBuffer(&refScaleDesc, null, ref _refractionScaleBuffer)
         );
 
         var samplerDesc = new SamplerDesc
@@ -222,7 +222,7 @@ public unsafe class GlassShader
             MinLOD = 0,
             MaxLOD = float.MaxValue,
         };
-        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_sampleState));
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref _sampleState));
 
         return true;
     }
@@ -244,21 +244,21 @@ public unsafe class GlassShader
         projection = Matrix4X4.Transpose(projection);
 
         MappedSubresource mr;
-        SilkMarshal.ThrowHResult(context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mr));
+        SilkMarshal.ThrowHResult(context.Map(_matrixBuffer, 0, Map.WriteDiscard, 0, &mr));
         var mp = (MatrixBufferType*)mr.PData;
         mp->world = world;
         mp->view = view;
         mp->projection = projection;
-        context.Unmap(m_matrixBuffer, 0);
-        var mcb = m_matrixBuffer.GetPinnableReference();
+        context.Unmap(_matrixBuffer, 0);
+        var mcb = _matrixBuffer.GetPinnableReference();
         context.VSSetConstantBuffers(0, 1, &mcb);
 
-        SilkMarshal.ThrowHResult(context.Map(m_refractionScaleBuffer, 0, Map.WriteDiscard, 0, &mr));
+        SilkMarshal.ThrowHResult(context.Map(_refractionScaleBuffer, 0, Map.WriteDiscard, 0, &mr));
         var rp = (RefractionScaleBufferType*)mr.PData;
         rp->refractionScale = refractionScale;
         rp->padding1 = rp->padding2 = rp->padding3 = 0;
-        context.Unmap(m_refractionScaleBuffer, 0);
-        var rcb = m_refractionScaleBuffer.GetPinnableReference();
+        context.Unmap(_refractionScaleBuffer, 0);
+        var rcb = _refractionScaleBuffer.GetPinnableReference();
         context.PSSetConstantBuffers(0, 1, &rcb);
 
         var ct = colorTexture.GetPinnableReference();
@@ -274,10 +274,10 @@ public unsafe class GlassShader
     private void RenderShader(DX11 DirectX, int indexCount)
     {
         var context = DirectX.DeviceContext;
-        context.IASetInputLayout(m_layout);
-        context.VSSetShader(m_vertexShader, null, 0);
-        context.PSSetShader(m_pixelShader, null, 0);
-        var smp = m_sampleState.GetPinnableReference();
+        context.IASetInputLayout(_layout);
+        context.VSSetShader(_vertexShader, null, 0);
+        context.PSSetShader(_pixelShader, null, 0);
+        var smp = _sampleState.GetPinnableReference();
         context.PSSetSamplers(0, 1, &smp);
         context.DrawIndexed((uint)indexCount, 0, 0);
     }

@@ -4,24 +4,24 @@ namespace RastertekCS.Windows.Tutorial21.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private SpecMapShader m_SpecMapShader;
-    private Light m_Light;
-    private float m_rotation = MathF.Tau;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private SpecMapShader _specMapShader;
+    private Light _light;
+    private float _rotation = MathF.Tau;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
+        _camera.Render();
 
-        m_Model = new Model();
+        _model = new Model();
         if (
-            !m_Model.Initialize(
+            !_model.Initialize(
                 DirectX,
                 "Models/Cube.txt",
                 "Data/stone02.tga",
@@ -32,66 +32,66 @@ public class GraphicsFramework
         )
             return false;
 
-        m_SpecMapShader = new SpecMapShader();
-        if (!m_SpecMapShader.Initialize(DirectX))
+        _specMapShader = new SpecMapShader();
+        if (!_specMapShader.Initialize(DirectX))
             return false;
 
-        m_Light = new Light();
-        m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-        m_Light.SetDirection(0.0f, 0.0f, 1.0f);
-        m_Light.SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-        m_Light.SetSpecularPower(16.0f);
+        _light = new Light();
+        _light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+        _light.SetDirection(0.0f, 0.0f, 1.0f);
+        _light.SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+        _light.SetSpecularPower(16.0f);
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_SpecMapShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_SpecMapShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_Light = null;
-        m_DirectX = null;
+        _specMapShader?.Shutdown();
+        _model?.Shutdown();
+        _specMapShader = null;
+        _model = null;
+        _camera = null;
+        _light = null;
+        _directX = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation <= 0.0f)
-            m_rotation += MathF.Tau;
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation <= 0.0f)
+            _rotation += MathF.Tau;
         return Render();
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = Matrix4X4.CreateRotationY(m_rotation);
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
+        var world = Matrix4X4.CreateRotationY(_rotation);
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
 
-        m_Model.Render(m_DirectX);
-        m_Model.SetTextures(m_DirectX);
+        _model.Render(_directX);
+        _model.SetTextures(_directX);
 
         if (
-            !m_SpecMapShader.Render(
-                m_DirectX,
-                m_Model.GetIndexCount(),
+            !_specMapShader.Render(
+                _directX,
+                _model.GetIndexCount(),
                 world,
                 view,
                 projection,
-                m_Light.GetDirection(),
-                m_Light.GetDiffuseColor(),
-                m_Camera.GetPosition(),
-                m_Light.GetSpecularColor(),
-                m_Light.GetSpecularPower()
+                _light.GetDirection(),
+                _light.GetDiffuseColor(),
+                _camera.GetPosition(),
+                _light.GetSpecularColor(),
+                _light.GetSpecularPower()
             )
         )
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

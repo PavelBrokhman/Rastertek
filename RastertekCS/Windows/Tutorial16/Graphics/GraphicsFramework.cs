@@ -4,38 +4,38 @@ namespace RastertekCS.Windows.Tutorial16.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private FontShader m_FontShader;
-    private Font m_Font;
-    private Text[] m_MouseStrings;
+    private DX11 _directX;
+    private Camera _camera;
+    private FontShader _fontShader;
+    private Font _font;
+    private Text[] _mouseStrings;
 
     public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(DirectX))
+        _fontShader = new FontShader();
+        if (!_fontShader.Initialize(DirectX))
             return false;
 
-        m_Font = new Font();
-        if (!m_Font.Initialize(DirectX, 0))
+        _font = new Font();
+        if (!_font.Initialize(DirectX, 0))
             return false;
 
-        m_MouseStrings = new Text[3];
-        m_MouseStrings[0] = new Text();
+        _mouseStrings = new Text[3];
+        _mouseStrings[0] = new Text();
         if (
-            !m_MouseStrings[0]
+            !_mouseStrings[0]
                 .Initialize(
                     DirectX,
                     screenWidth,
                     screenHeight,
                     32,
-                    m_Font,
+                    _font,
                     "Mouse X: 0",
                     10,
                     10,
@@ -45,15 +45,15 @@ public class GraphicsFramework
                 )
         )
             return false;
-        m_MouseStrings[1] = new Text();
+        _mouseStrings[1] = new Text();
         if (
-            !m_MouseStrings[1]
+            !_mouseStrings[1]
                 .Initialize(
                     DirectX,
                     screenWidth,
                     screenHeight,
                     32,
-                    m_Font,
+                    _font,
                     "Mouse Y: 0",
                     10,
                     35,
@@ -63,15 +63,15 @@ public class GraphicsFramework
                 )
         )
             return false;
-        m_MouseStrings[2] = new Text();
+        _mouseStrings[2] = new Text();
         if (
-            !m_MouseStrings[2]
+            !_mouseStrings[2]
                 .Initialize(
                     DirectX,
                     screenWidth,
                     screenHeight,
                     32,
-                    m_Font,
+                    _font,
                     "Mouse Button: No",
                     10,
                     60,
@@ -87,29 +87,29 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        if (m_MouseStrings != null)
-            foreach (var t in m_MouseStrings)
+        if (_mouseStrings != null)
+            foreach (var t in _mouseStrings)
                 t?.Shutdown();
-        m_Font?.Shutdown();
-        m_FontShader?.Shutdown();
-        m_MouseStrings = null;
-        m_Font = null;
-        m_FontShader = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _font?.Shutdown();
+        _fontShader?.Shutdown();
+        _mouseStrings = null;
+        _font = null;
+        _fontShader = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame(int mouseX, int mouseY, bool mouseDown)
     {
-        if (!m_MouseStrings[0].UpdateText(m_DirectX, m_Font, $"Mouse X: {mouseX}", 10, 10, 1, 1, 1))
+        if (!_mouseStrings[0].UpdateText(_directX, _font, $"Mouse X: {mouseX}", 10, 10, 1, 1, 1))
             return false;
-        if (!m_MouseStrings[1].UpdateText(m_DirectX, m_Font, $"Mouse Y: {mouseY}", 10, 35, 1, 1, 1))
+        if (!_mouseStrings[1].UpdateText(_directX, _font, $"Mouse Y: {mouseY}", 10, 35, 1, 1, 1))
             return false;
         if (
-            !m_MouseStrings[2]
+            !_mouseStrings[2]
                 .UpdateText(
-                    m_DirectX,
-                    m_Font,
+                    _directX,
+                    _font,
                     mouseDown ? "Mouse Button: Yes" : "Mouse Button: No",
                     10,
                     60,
@@ -124,37 +124,37 @@ public class GraphicsFramework
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = m_DirectX.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var ortho = m_DirectX.GetOrthoMatrix();
+        var world = _directX.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var ortho = _directX.GetOrthoMatrix();
 
-        m_DirectX.TurnZBufferOff();
-        m_DirectX.EnableAlphaBlending();
+        _directX.TurnZBufferOff();
+        _directX.EnableAlphaBlending();
 
-        m_Font.SetTexture(m_DirectX, 0);
+        _font.SetTexture(_directX, 0);
 
         for (int i = 0; i < 3; i++)
         {
-            m_MouseStrings[i].Render(m_DirectX);
+            _mouseStrings[i].Render(_directX);
             if (
-                !m_FontShader.Render(
-                    m_DirectX,
-                    m_MouseStrings[i].GetIndexCount(),
+                !_fontShader.Render(
+                    _directX,
+                    _mouseStrings[i].GetIndexCount(),
                     world,
                     view,
                     ortho,
-                    m_MouseStrings[i].GetPixelColor()
+                    _mouseStrings[i].GetPixelColor()
                 )
             )
                 return false;
         }
 
-        m_DirectX.DisableAlphaBlending();
-        m_DirectX.TurnZBufferOn();
+        _directX.DisableAlphaBlending();
+        _directX.TurnZBufferOn();
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

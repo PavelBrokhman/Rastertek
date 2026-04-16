@@ -5,50 +5,50 @@ namespace RastertekCS.OpenGL.Tutorial31.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Model m_GroundModel,
-        m_WallModel,
-        m_BathModel,
-        m_WaterModel;
-    private Light m_Light;
-    private RenderTexture m_RefractionTexture,
-        m_ReflectionTexture;
-    private LightShader m_LightShader;
-    private RefractionShader m_RefractionShader;
-    private WaterShader m_WaterShader;
-    private float m_waterHeight = 2.75f,
-        m_waterTranslation;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Model _groundModel,
+        _wallModel,
+        _bathModel,
+        _waterModel;
+    private Light _light;
+    private RenderTexture _refractionTexture,
+        _reflectionTexture;
+    private LightShader _lightShader;
+    private RefractionShader _refractionShader;
+    private WaterShader _waterShader;
+    private float _waterHeight = 2.75f,
+        _waterTranslation;
 
     public bool Initialize(GL4 OpenGL, int sw, int sh)
     {
-        m_OpenGL = OpenGL;
-        m_Camera = new Camera();
-        m_Camera.SetPosition(-10, 6, -10);
-        m_Camera.SetRotation(0, 45, 0);
-        m_Camera.Render();
+        _openGL = OpenGL;
+        _camera = new Camera();
+        _camera.SetPosition(-10, 6, -10);
+        _camera.SetRotation(0, 45, 0);
+        _camera.Render();
 
-        m_GroundModel = new Model();
-        if (!m_GroundModel.Initialize(OpenGL, "Models/ground.txt", "Data/ground01.tga", true))
+        _groundModel = new Model();
+        if (!_groundModel.Initialize(OpenGL, "Models/ground.txt", "Data/ground01.tga", true))
             return false;
-        m_WallModel = new Model();
-        if (!m_WallModel.Initialize(OpenGL, "Models/wall.txt", "Data/wall01.tga", true))
+        _wallModel = new Model();
+        if (!_wallModel.Initialize(OpenGL, "Models/wall.txt", "Data/wall01.tga", true))
             return false;
-        m_BathModel = new Model();
-        if (!m_BathModel.Initialize(OpenGL, "Models/bath.txt", "Data/marble01.tga", true))
+        _bathModel = new Model();
+        if (!_bathModel.Initialize(OpenGL, "Models/bath.txt", "Data/marble01.tga", true))
             return false;
-        m_WaterModel = new Model();
-        if (!m_WaterModel.Initialize(OpenGL, "Models/water.txt", "Data/water01.tga", true))
+        _waterModel = new Model();
+        if (!_waterModel.Initialize(OpenGL, "Models/water.txt", "Data/water01.tga", true))
             return false;
 
-        m_Light = new Light();
-        m_Light.SetAmbientLight(0.15f, 0.15f, 0.15f, 1);
-        m_Light.SetDiffuseColor(1, 1, 1, 1);
-        m_Light.SetDirection(0, -1, 0.5f);
+        _light = new Light();
+        _light.SetAmbientLight(0.15f, 0.15f, 0.15f, 1);
+        _light.SetDiffuseColor(1, 1, 1, 1);
+        _light.SetDirection(0, -1, 0.5f);
 
-        m_RefractionTexture = new RenderTexture();
+        _refractionTexture = new RenderTexture();
         if (
-            !m_RefractionTexture.Initialize(
+            !_refractionTexture.Initialize(
                 OpenGL,
                 sw,
                 sh,
@@ -57,9 +57,9 @@ public class GraphicsFramework
             )
         )
             return false;
-        m_ReflectionTexture = new RenderTexture();
+        _reflectionTexture = new RenderTexture();
         if (
-            !m_ReflectionTexture.Initialize(
+            !_reflectionTexture.Initialize(
                 OpenGL,
                 sw,
                 sh,
@@ -69,14 +69,14 @@ public class GraphicsFramework
         )
             return false;
 
-        m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(OpenGL))
+        _lightShader = new LightShader();
+        if (!_lightShader.Initialize(OpenGL))
             return false;
-        m_RefractionShader = new RefractionShader();
-        if (!m_RefractionShader.Initialize(OpenGL))
+        _refractionShader = new RefractionShader();
+        if (!_refractionShader.Initialize(OpenGL))
             return false;
-        m_WaterShader = new WaterShader();
-        if (!m_WaterShader.Initialize(OpenGL))
+        _waterShader = new WaterShader();
+        if (!_waterShader.Initialize(OpenGL))
             return false;
 
         return true;
@@ -84,23 +84,23 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_WaterShader?.Shutdown(m_OpenGL);
-        m_RefractionShader?.Shutdown(m_OpenGL);
-        m_LightShader?.Shutdown(m_OpenGL);
-        m_ReflectionTexture?.Shutdown(m_OpenGL);
-        m_RefractionTexture?.Shutdown(m_OpenGL);
-        m_WaterModel?.Shutdown(m_OpenGL);
-        m_BathModel?.Shutdown(m_OpenGL);
-        m_WallModel?.Shutdown(m_OpenGL);
-        m_GroundModel?.Shutdown(m_OpenGL);
-        m_OpenGL = null;
+        _waterShader?.Shutdown(_openGL);
+        _refractionShader?.Shutdown(_openGL);
+        _lightShader?.Shutdown(_openGL);
+        _reflectionTexture?.Shutdown(_openGL);
+        _refractionTexture?.Shutdown(_openGL);
+        _waterModel?.Shutdown(_openGL);
+        _bathModel?.Shutdown(_openGL);
+        _wallModel?.Shutdown(_openGL);
+        _groundModel?.Shutdown(_openGL);
+        _openGL = null;
     }
 
     public bool Frame()
     {
-        m_waterTranslation += 0.001f;
-        if (m_waterTranslation > 1)
-            m_waterTranslation -= 1;
+        _waterTranslation += 0.001f;
+        if (_waterTranslation > 1)
+            _waterTranslation -= 1;
         if (!RenderRefractionToTexture())
             return false;
         if (!RenderReflectionToTexture())
@@ -110,117 +110,117 @@ public class GraphicsFramework
 
     private bool RenderRefractionToTexture()
     {
-        float[] clipPlane = { 0, -1, 0, m_waterHeight + 0.1f };
-        m_RefractionTexture.SetRenderTarget(m_OpenGL);
-        m_RefractionTexture.ClearRenderTarget(m_OpenGL, 0, 0, 0, 1);
+        float[] clipPlane = { 0, -1, 0, _waterHeight + 0.1f };
+        _refractionTexture.SetRenderTarget(_openGL);
+        _refractionTexture.ClearRenderTarget(_openGL, 0, 0, 0, 1);
         var world = Matrix4X4.CreateTranslation<float>(0, 2, 0);
-        var view = m_Camera.GetViewMatrix();
-        var proj = m_RefractionTexture.GetProjectionMatrix();
-        m_OpenGL.EnableClipping();
-        m_RefractionShader.SetShaderParameters(
-            m_OpenGL,
+        var view = _camera.GetViewMatrix();
+        var proj = _refractionTexture.GetProjectionMatrix();
+        _openGL.EnableClipping();
+        _refractionShader.SetShaderParameters(
+            _openGL,
             world,
             view,
             proj,
-            m_Light.Direction,
-            m_Light.DiffuseColor,
-            m_Light.AmbientLight,
+            _light.Direction,
+            _light.DiffuseColor,
+            _light.AmbientLight,
             clipPlane
         );
-        m_BathModel.SetTexture(m_OpenGL, 0);
-        m_BathModel.Render(m_OpenGL);
-        m_OpenGL.DisableClipping();
-        m_OpenGL.SetBackBufferRenderTarget();
-        m_OpenGL.ResetViewport();
+        _bathModel.SetTexture(_openGL, 0);
+        _bathModel.Render(_openGL);
+        _openGL.DisableClipping();
+        _openGL.SetBackBufferRenderTarget();
+        _openGL.ResetViewport();
         return true;
     }
 
     private bool RenderReflectionToTexture()
     {
-        m_ReflectionTexture.SetRenderTarget(m_OpenGL);
-        m_ReflectionTexture.ClearRenderTarget(m_OpenGL, 0, 0, 0, 1);
-        m_Camera.RenderReflection(m_waterHeight);
-        var reflView = m_Camera.GetReflectionViewMatrix();
+        _reflectionTexture.SetRenderTarget(_openGL);
+        _reflectionTexture.ClearRenderTarget(_openGL, 0, 0, 0, 1);
+        _camera.RenderReflection(_waterHeight);
+        var reflView = _camera.GetReflectionViewMatrix();
         var world = Matrix4X4.CreateTranslation<float>(0, 6, 8);
-        var proj = m_ReflectionTexture.GetProjectionMatrix();
-        m_LightShader.SetShaderParameters(
-            m_OpenGL,
+        var proj = _reflectionTexture.GetProjectionMatrix();
+        _lightShader.SetShaderParameters(
+            _openGL,
             world,
             reflView,
             proj,
-            m_Light.Direction,
-            m_Light.DiffuseColor,
-            m_Light.AmbientLight
+            _light.Direction,
+            _light.DiffuseColor,
+            _light.AmbientLight
         );
-        m_WallModel.SetTexture(m_OpenGL, 0);
-        m_WallModel.Render(m_OpenGL);
-        m_OpenGL.SetBackBufferRenderTarget();
-        m_OpenGL.ResetViewport();
+        _wallModel.SetTexture(_openGL, 0);
+        _wallModel.Render(_openGL);
+        _openGL.SetBackBufferRenderTarget();
+        _openGL.ResetViewport();
         return true;
     }
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
-        var view = m_Camera.GetViewMatrix();
-        var proj = m_OpenGL.GetProjectionMatrix();
+        _openGL.BeginScene(0, 0, 0, 1);
+        var view = _camera.GetViewMatrix();
+        var proj = _openGL.GetProjectionMatrix();
 
         var world = Matrix4X4.CreateTranslation<float>(0, 1, 0);
-        m_LightShader.SetShaderParameters(
-            m_OpenGL,
+        _lightShader.SetShaderParameters(
+            _openGL,
             world,
             view,
             proj,
-            m_Light.Direction,
-            m_Light.DiffuseColor,
-            m_Light.AmbientLight
+            _light.Direction,
+            _light.DiffuseColor,
+            _light.AmbientLight
         );
-        m_GroundModel.SetTexture(m_OpenGL, 0);
-        m_GroundModel.Render(m_OpenGL);
+        _groundModel.SetTexture(_openGL, 0);
+        _groundModel.Render(_openGL);
 
         world = Matrix4X4.CreateTranslation<float>(0, 6, 8);
-        m_LightShader.SetShaderParameters(
-            m_OpenGL,
+        _lightShader.SetShaderParameters(
+            _openGL,
             world,
             view,
             proj,
-            m_Light.Direction,
-            m_Light.DiffuseColor,
-            m_Light.AmbientLight
+            _light.Direction,
+            _light.DiffuseColor,
+            _light.AmbientLight
         );
-        m_WallModel.SetTexture(m_OpenGL, 0);
-        m_WallModel.Render(m_OpenGL);
+        _wallModel.SetTexture(_openGL, 0);
+        _wallModel.Render(_openGL);
 
         world = Matrix4X4.CreateTranslation<float>(0, 2, 0);
-        m_LightShader.SetShaderParameters(
-            m_OpenGL,
+        _lightShader.SetShaderParameters(
+            _openGL,
             world,
             view,
             proj,
-            m_Light.Direction,
-            m_Light.DiffuseColor,
-            m_Light.AmbientLight
+            _light.Direction,
+            _light.DiffuseColor,
+            _light.AmbientLight
         );
-        m_BathModel.SetTexture(m_OpenGL, 0);
-        m_BathModel.Render(m_OpenGL);
+        _bathModel.SetTexture(_openGL, 0);
+        _bathModel.Render(_openGL);
 
-        var reflView = m_Camera.GetReflectionViewMatrix();
-        world = Matrix4X4.CreateTranslation<float>(0, m_waterHeight, 0);
-        m_WaterShader.SetShaderParameters(
-            m_OpenGL,
+        var reflView = _camera.GetReflectionViewMatrix();
+        world = Matrix4X4.CreateTranslation<float>(0, _waterHeight, 0);
+        _waterShader.SetShaderParameters(
+            _openGL,
             world,
             view,
             proj,
             reflView,
-            m_waterTranslation,
+            _waterTranslation,
             0.01f
         );
-        m_RefractionTexture.SetTexture(m_OpenGL, 1);
-        m_ReflectionTexture.SetTexture(m_OpenGL, 2);
-        m_WaterModel.SetTexture(m_OpenGL, 0);
-        m_WaterModel.Render(m_OpenGL);
+        _refractionTexture.SetTexture(_openGL, 1);
+        _reflectionTexture.SetTexture(_openGL, 2);
+        _waterModel.SetTexture(_openGL, 0);
+        _waterModel.Render(_openGL);
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

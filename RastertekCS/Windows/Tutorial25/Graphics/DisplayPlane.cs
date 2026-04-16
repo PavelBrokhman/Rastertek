@@ -18,16 +18,16 @@ public unsafe class DisplayPlane
             nz;
     }
 
-    private ComPtr<ID3D11Buffer> m_vertexBuffer;
-    private ComPtr<ID3D11Buffer> m_indexBuffer;
-    private int m_vertexCount;
-    private int m_indexCount;
+    private ComPtr<ID3D11Buffer> _vertexBuffer;
+    private ComPtr<ID3D11Buffer> _indexBuffer;
+    private int _vertexCount;
+    private int _indexCount;
 
     public bool Initialize(DX11 DirectX, float width, float height)
     {
         var device = DirectX.Device;
-        m_vertexCount = 6;
-        m_indexCount = 6;
+        _vertexCount = 6;
+        _indexCount = 6;
 
         var vertices = new VertexType[]
         {
@@ -87,14 +87,14 @@ public unsafe class DisplayPlane
             var vbd = new BufferDesc
             {
                 Usage = Usage.Default,
-                ByteWidth = (uint)(sizeof(VertexType) * m_vertexCount),
+                ByteWidth = (uint)(sizeof(VertexType) * _vertexCount),
                 BindFlags = (uint)BindFlag.VertexBuffer,
                 CPUAccessFlags = 0,
                 MiscFlags = 0,
                 StructureByteStride = 0,
             };
             var vd = new SubresourceData { PSysMem = pVertices };
-            SilkMarshal.ThrowHResult(device.CreateBuffer(&vbd, &vd, ref m_vertexBuffer));
+            SilkMarshal.ThrowHResult(device.CreateBuffer(&vbd, &vd, ref _vertexBuffer));
         }
 
         fixed (uint* pIndices = indices)
@@ -102,14 +102,14 @@ public unsafe class DisplayPlane
             var ibd = new BufferDesc
             {
                 Usage = Usage.Default,
-                ByteWidth = (uint)(sizeof(uint) * m_indexCount),
+                ByteWidth = (uint)(sizeof(uint) * _indexCount),
                 BindFlags = (uint)BindFlag.IndexBuffer,
                 CPUAccessFlags = 0,
                 MiscFlags = 0,
                 StructureByteStride = 0,
             };
             var id = new SubresourceData { PSysMem = pIndices };
-            SilkMarshal.ThrowHResult(device.CreateBuffer(&ibd, &id, ref m_indexBuffer));
+            SilkMarshal.ThrowHResult(device.CreateBuffer(&ibd, &id, ref _indexBuffer));
         }
 
         return true;
@@ -117,8 +117,8 @@ public unsafe class DisplayPlane
 
     public void Shutdown()
     {
-        m_indexBuffer.Release();
-        m_vertexBuffer.Release();
+        _indexBuffer.Release();
+        _vertexBuffer.Release();
     }
 
     public void Render(DX11 DirectX)
@@ -126,11 +126,11 @@ public unsafe class DisplayPlane
         var context = DirectX.DeviceContext;
         uint stride = (uint)sizeof(VertexType);
         uint offset = 0;
-        var vb = m_vertexBuffer.GetPinnableReference();
+        var vb = _vertexBuffer.GetPinnableReference();
         context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-        context.IASetIndexBuffer(m_indexBuffer, Format.FormatR32Uint, 0);
+        context.IASetIndexBuffer(_indexBuffer, Format.FormatR32Uint, 0);
         context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 }

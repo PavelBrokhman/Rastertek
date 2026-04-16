@@ -6,26 +6,26 @@ public class GraphicsFramework
 {
     private const int BITMAP_SIZE = 256;
 
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private TextureShader m_TextureShader;
-    private Bitmap m_Bitmap;
+    private DX11 _directX;
+    private Camera _camera;
+    private TextureShader _textureShader;
+    private Bitmap _bitmap;
 
     public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(DirectX))
             return false;
 
-        m_Bitmap = new Bitmap();
+        _bitmap = new Bitmap();
         if (
-            !m_Bitmap.Initialize(
+            !_bitmap.Initialize(
                 DirectX,
                 screenWidth,
                 screenHeight,
@@ -35,43 +35,43 @@ public class GraphicsFramework
             )
         )
             return false;
-        m_Bitmap.SetRenderLocation(50, 50);
+        _bitmap.SetRenderLocation(50, 50);
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_Bitmap?.Shutdown();
-        m_TextureShader?.Shutdown();
-        m_Bitmap = null;
-        m_TextureShader = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _bitmap?.Shutdown();
+        _textureShader?.Shutdown();
+        _bitmap = null;
+        _textureShader = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame() => Render();
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = m_DirectX.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var ortho = m_DirectX.GetOrthoMatrix();
+        var world = _directX.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var ortho = _directX.GetOrthoMatrix();
 
-        m_DirectX.TurnZBufferOff();
+        _directX.TurnZBufferOff();
 
-        if (!m_Bitmap.Render(m_DirectX))
+        if (!_bitmap.Render(_directX))
             return false;
-        m_Bitmap.SetTexture(m_DirectX, 0);
+        _bitmap.SetTexture(_directX, 0);
 
-        if (!m_TextureShader.Render(m_DirectX, m_Bitmap.GetIndexCount(), world, view, ortho))
+        if (!_textureShader.Render(_directX, _bitmap.GetIndexCount(), world, view, ortho))
             return false;
 
-        m_DirectX.TurnZBufferOn();
+        _directX.TurnZBufferOn();
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

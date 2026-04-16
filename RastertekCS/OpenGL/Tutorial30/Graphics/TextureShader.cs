@@ -5,9 +5,9 @@ namespace RastertekCS.OpenGL.Tutorial30.Graphics;
 
 public class TextureShader
 {
-    private uint m_vertexShader,
-        m_fragmentShader,
-        m_shaderProgram;
+    private uint _vertexShader,
+        _fragmentShader,
+        _shaderProgram;
 
     public bool Initialize(GL4 OpenGL) =>
         InitializeShader(OpenGL, "Shaders/texture.vs", "Shaders/texture.ps");
@@ -15,11 +15,11 @@ public class TextureShader
     public void Shutdown(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.DetachShader(m_shaderProgram, m_vertexShader);
-        gl.DetachShader(m_shaderProgram, m_fragmentShader);
-        gl.DeleteShader(m_vertexShader);
-        gl.DeleteShader(m_fragmentShader);
-        gl.DeleteProgram(m_shaderProgram);
+        gl.DetachShader(_shaderProgram, _vertexShader);
+        gl.DetachShader(_shaderProgram, _fragmentShader);
+        gl.DeleteShader(_vertexShader);
+        gl.DeleteShader(_fragmentShader);
+        gl.DeleteProgram(_shaderProgram);
     }
 
     public unsafe bool SetShaderParameters(
@@ -30,18 +30,18 @@ public class TextureShader
     )
     {
         var gl = OpenGL.Gl;
-        gl.UseProgram(m_shaderProgram);
+        gl.UseProgram(_shaderProgram);
         int loc;
-        loc = gl.GetUniformLocation(m_shaderProgram, "worldMatrix");
+        loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc >= 0)
             gl.UniformMatrix4(loc, 1, false, (float*)&world);
-        loc = gl.GetUniformLocation(m_shaderProgram, "viewMatrix");
+        loc = gl.GetUniformLocation(_shaderProgram, "viewMatrix");
         if (loc >= 0)
             gl.UniformMatrix4(loc, 1, false, (float*)&view);
-        loc = gl.GetUniformLocation(m_shaderProgram, "projectionMatrix");
+        loc = gl.GetUniformLocation(_shaderProgram, "projectionMatrix");
         if (loc >= 0)
             gl.UniformMatrix4(loc, 1, false, (float*)&projection);
-        loc = gl.GetUniformLocation(m_shaderProgram, "shaderTexture");
+        loc = gl.GetUniformLocation(_shaderProgram, "shaderTexture");
         if (loc >= 0)
             gl.Uniform1(loc, 0);
         return true;
@@ -50,36 +50,36 @@ public class TextureShader
     private bool InitializeShader(GL4 OpenGL, string vsFile, string psFile)
     {
         var gl = OpenGL.Gl;
-        m_vertexShader = gl.CreateShader(ShaderType.VertexShader);
-        gl.ShaderSource(m_vertexShader, File.ReadAllText(vsFile));
-        gl.CompileShader(m_vertexShader);
-        gl.GetShader(m_vertexShader, ShaderParameterName.CompileStatus, out int s);
+        _vertexShader = gl.CreateShader(ShaderType.VertexShader);
+        gl.ShaderSource(_vertexShader, File.ReadAllText(vsFile));
+        gl.CompileShader(_vertexShader);
+        gl.GetShader(_vertexShader, ShaderParameterName.CompileStatus, out int s);
         if (s != 1)
         {
-            Console.WriteLine($"VS compile: {gl.GetShaderInfoLog(m_vertexShader)}");
+            Console.WriteLine($"VS compile: {gl.GetShaderInfoLog(_vertexShader)}");
             return false;
         }
 
-        m_fragmentShader = gl.CreateShader(ShaderType.FragmentShader);
-        gl.ShaderSource(m_fragmentShader, File.ReadAllText(psFile));
-        gl.CompileShader(m_fragmentShader);
-        gl.GetShader(m_fragmentShader, ShaderParameterName.CompileStatus, out s);
+        _fragmentShader = gl.CreateShader(ShaderType.FragmentShader);
+        gl.ShaderSource(_fragmentShader, File.ReadAllText(psFile));
+        gl.CompileShader(_fragmentShader);
+        gl.GetShader(_fragmentShader, ShaderParameterName.CompileStatus, out s);
         if (s != 1)
         {
-            Console.WriteLine($"PS compile: {gl.GetShaderInfoLog(m_fragmentShader)}");
+            Console.WriteLine($"PS compile: {gl.GetShaderInfoLog(_fragmentShader)}");
             return false;
         }
 
-        m_shaderProgram = gl.CreateProgram();
-        gl.AttachShader(m_shaderProgram, m_vertexShader);
-        gl.AttachShader(m_shaderProgram, m_fragmentShader);
-        gl.BindAttribLocation(m_shaderProgram, 0, "inputPosition");
-        gl.BindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
-        gl.LinkProgram(m_shaderProgram);
-        gl.GetProgram(m_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
+        _shaderProgram = gl.CreateProgram();
+        gl.AttachShader(_shaderProgram, _vertexShader);
+        gl.AttachShader(_shaderProgram, _fragmentShader);
+        gl.BindAttribLocation(_shaderProgram, 0, "inputPosition");
+        gl.BindAttribLocation(_shaderProgram, 1, "inputTexCoord");
+        gl.LinkProgram(_shaderProgram);
+        gl.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
         if (ls != 1)
         {
-            Console.WriteLine($"Link: {gl.GetProgramInfoLog(m_shaderProgram)}");
+            Console.WriteLine($"Link: {gl.GetProgramInfoLog(_shaderProgram)}");
             return false;
         }
         return true;

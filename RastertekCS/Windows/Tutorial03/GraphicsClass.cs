@@ -13,17 +13,17 @@ public class GraphicsClass
     public const float SCREEN_DEPTH = 1000.0f;
     public const float SCREEN_NEAR = 0.1f;
 
-    private DirectXClass m_DirectX;
+    private DirectXClass _directX;
 
     public bool Initialize(DirectXClass DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
         return true;
     }
 
     public void Shutdown()
     {
-        m_DirectX = null;
+        _directX = null;
     }
 
     public bool Frame()
@@ -33,9 +33,9 @@ public class GraphicsClass
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
 
         return true;
     }

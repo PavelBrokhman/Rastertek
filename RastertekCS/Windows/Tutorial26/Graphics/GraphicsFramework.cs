@@ -4,26 +4,26 @@ namespace RastertekCS.Windows.Tutorial26.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private FogShader m_FogShader;
-    private float m_rotation = MathF.Tau;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private FogShader _fogShader;
+    private float _rotation = MathF.Tau;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
+        _model = new Model();
+        if (!_model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
             return false;
 
-        m_FogShader = new FogShader();
-        if (!m_FogShader.Initialize(DirectX))
+        _fogShader = new FogShader();
+        if (!_fogShader.Initialize(DirectX))
             return false;
 
         return true;
@@ -31,37 +31,37 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_FogShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_FogShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _fogShader?.Shutdown();
+        _model?.Shutdown();
+        _fogShader = null;
+        _model = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f)
-            m_rotation += MathF.Tau;
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation < 0.0f)
+            _rotation += MathF.Tau;
         return Render();
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
+        _directX.BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
 
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
-        var world = Matrix4X4.CreateRotationY(m_rotation);
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
+        var world = Matrix4X4.CreateRotationY(_rotation);
 
-        m_Model.Render(m_DirectX);
-        m_Model.SetTexture(m_DirectX, 0);
+        _model.Render(_directX);
+        _model.SetTexture(_directX, 0);
 
         if (
-            !m_FogShader.Render(
-                m_DirectX,
-                m_Model.GetIndexCount(),
+            !_fogShader.Render(
+                _directX,
+                _model.GetIndexCount(),
                 world,
                 view,
                 projection,
@@ -71,7 +71,7 @@ public class GraphicsFramework
         )
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

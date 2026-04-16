@@ -16,13 +16,13 @@ public class Model
             nz;
     }
 
-    private uint m_vertexArrayId;
-    private uint m_vertexBufferId;
-    private uint m_indexBufferId;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private Texture m_Texture;
-    private float[] m_modelData;
+    private uint _vertexArrayId;
+    private uint _vertexBufferId;
+    private uint _indexBufferId;
+    private int _vertexCount;
+    private int _indexCount;
+    private Texture _texture;
+    private float[] _modelData;
 
     public unsafe bool Initialize(
         GL4 OpenGL,
@@ -36,8 +36,8 @@ public class Model
         if (!InitializeBuffers(OpenGL))
             return false;
 
-        m_Texture = new Texture();
-        if (!m_Texture.Initialize(OpenGL, textureFilename, textureUnit, true))
+        _texture = new Texture();
+        if (!_texture.Initialize(OpenGL, textureFilename, textureUnit, true))
             return false;
 
         return true;
@@ -45,18 +45,18 @@ public class Model
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture?.Shutdown(OpenGL);
-        m_Texture = null;
+        _texture?.Shutdown(OpenGL);
+        _texture = null;
         ShutdownBuffers(OpenGL);
     }
 
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.BindVertexArray(m_vertexArrayId);
+        gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_indexCount,
+            (uint)_indexCount,
             DrawElementsType.UnsignedInt,
             (void*)0
         );
@@ -64,7 +64,7 @@ public class Model
 
     public void SetTexture(GL4 OpenGL, uint textureUnit)
     {
-        m_Texture?.SetTexture(OpenGL, textureUnit);
+        _texture?.SetTexture(OpenGL, textureUnit);
     }
 
     private bool LoadModel(string filename)
@@ -92,9 +92,9 @@ public class Model
         if (vertexCount == 0 || dataStart < 0)
             return false;
 
-        m_vertexCount = vertexCount;
-        m_indexCount = vertexCount;
-        m_modelData = new float[vertexCount * 8];
+        _vertexCount = vertexCount;
+        _indexCount = vertexCount;
+        _modelData = new float[vertexCount * 8];
 
         int vi = 0;
         for (int i = dataStart; i < lines.Length && vi < vertexCount; i++)
@@ -107,14 +107,14 @@ public class Model
                 continue;
 
             int off = vi * 8;
-            m_modelData[off + 0] = float.Parse(parts[0]);
-            m_modelData[off + 1] = float.Parse(parts[1]);
-            m_modelData[off + 2] = float.Parse(parts[2]);
-            m_modelData[off + 3] = float.Parse(parts[3]);
-            m_modelData[off + 4] = float.Parse(parts[4]); // invert V
-            m_modelData[off + 5] = float.Parse(parts[5]);
-            m_modelData[off + 6] = float.Parse(parts[6]);
-            m_modelData[off + 7] = float.Parse(parts[7]);
+            _modelData[off + 0] = float.Parse(parts[0]);
+            _modelData[off + 1] = float.Parse(parts[1]);
+            _modelData[off + 2] = float.Parse(parts[2]);
+            _modelData[off + 3] = float.Parse(parts[3]);
+            _modelData[off + 4] = float.Parse(parts[4]); // invert V
+            _modelData[off + 5] = float.Parse(parts[5]);
+            _modelData[off + 6] = float.Parse(parts[6]);
+            _modelData[off + 7] = float.Parse(parts[7]);
             vi++;
         }
 
@@ -124,28 +124,28 @@ public class Model
     private unsafe bool InitializeBuffers(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        var vertices = new VertexType[m_vertexCount];
-        var indices = new uint[m_indexCount];
+        var vertices = new VertexType[_vertexCount];
+        var indices = new uint[_indexCount];
 
-        for (int i = 0; i < m_vertexCount; i++)
+        for (int i = 0; i < _vertexCount; i++)
         {
             int off = i * 8;
-            vertices[i].x = m_modelData[off + 0];
-            vertices[i].y = m_modelData[off + 1];
-            vertices[i].z = m_modelData[off + 2];
-            vertices[i].tu = m_modelData[off + 3];
-            vertices[i].tv = m_modelData[off + 4];
-            vertices[i].nx = m_modelData[off + 5];
-            vertices[i].ny = m_modelData[off + 6];
-            vertices[i].nz = m_modelData[off + 7];
+            vertices[i].x = _modelData[off + 0];
+            vertices[i].y = _modelData[off + 1];
+            vertices[i].z = _modelData[off + 2];
+            vertices[i].tu = _modelData[off + 3];
+            vertices[i].tv = _modelData[off + 4];
+            vertices[i].nx = _modelData[off + 5];
+            vertices[i].ny = _modelData[off + 6];
+            vertices[i].nz = _modelData[off + 7];
             indices[i] = (uint)i;
         }
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = vertices)
             gl.BufferData(
                 BufferTargetARB.ArrayBuffer,
@@ -184,8 +184,8 @@ public class Model
             (void*)(5 * sizeof(float))
         );
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
             gl.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
@@ -194,7 +194,7 @@ public class Model
                 BufferUsageARB.StaticDraw
             );
 
-        m_modelData = null;
+        _modelData = null;
         return true;
     }
 
@@ -205,10 +205,10 @@ public class Model
         gl.DisableVertexAttribArray(1);
         gl.DisableVertexAttribArray(2);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexArrayId);
     }
 }

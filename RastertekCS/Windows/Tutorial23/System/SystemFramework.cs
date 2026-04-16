@@ -8,20 +8,20 @@ namespace RastertekCS.Windows.Tutorial23.System;
 
 public class SystemFramework
 {
-    private IWindow m_window;
-    private IInputContext m_inputContext;
-    private DX11 m_DirectX;
-    private Input m_Input;
-    private GraphicsFramework m_Graphics;
-    private Timer m_Timer;
-    private bool m_done;
-    private bool m_graphicsInitialized;
+    private IWindow _window;
+    private IInputContext _inputContext;
+    private DX11 _directX;
+    private Input _input;
+    private GraphicsFramework _graphics;
+    private Timer _timer;
+    private bool _done;
+    private bool _graphicsInitialized;
 
     public bool Initialize()
     {
         int screenWidth = 0,
             screenHeight = 0;
-        m_DirectX = new DX11();
+        _directX = new DX11();
 
         if (!InitializeWindows(ref screenWidth, ref screenHeight))
         {
@@ -30,8 +30,8 @@ public class SystemFramework
         }
 
         if (
-            !m_DirectX.Initialize(
-                m_window,
+            !_directX.Initialize(
+                _window,
                 screenWidth,
                 screenHeight,
                 SystemConfiguration.ScreenDepth,
@@ -44,32 +44,32 @@ public class SystemFramework
             return false;
         }
 
-        m_Input = new Input();
-        m_Input.Initialize();
+        _input = new Input();
+        _input.Initialize();
 
-        m_Graphics = new GraphicsFramework();
-        if (!m_Graphics.Initialize(m_DirectX, m_Input, screenWidth, screenHeight))
+        _graphics = new GraphicsFramework();
+        if (!_graphics.Initialize(_directX, _input, screenWidth, screenHeight))
             return false;
-        m_graphicsInitialized = true;
+        _graphicsInitialized = true;
 
-        m_Timer = new Timer();
-        m_Timer.Initialize();
+        _timer = new Timer();
+        _timer.Initialize();
 
         return true;
     }
 
     public void Run()
     {
-        m_done = false;
-        m_window.Run();
+        _done = false;
+        _window.Run();
     }
 
     private bool Frame()
     {
-        if (m_Input.IsKeyDown(Key.Escape))
+        if (_input.IsKeyDown(Key.Escape))
             return false;
-        m_Timer.Frame();
-        return m_Graphics.Frame(m_Timer.GetFrameTime());
+        _timer.Frame();
+        return _graphics.Frame(_timer.GetFrameTime());
     }
 
     private bool InitializeWindows(ref int screenWidth, ref int screenHeight)
@@ -87,40 +87,40 @@ public class SystemFramework
         options.VSync = SystemConfiguration.VerticalSyncEnabled;
         options.API = GraphicsAPI.None;
 
-        m_window = Window.Create(options);
-        m_window.Load += OnLoad;
-        m_window.Render += OnRender;
-        m_window.Closing += OnClosing;
-        m_window.Initialize();
+        _window = Window.Create(options);
+        _window.Load += OnLoad;
+        _window.Render += OnRender;
+        _window.Closing += OnClosing;
+        _window.Initialize();
 
-        screenWidth = m_window.FramebufferSize.X;
-        screenHeight = m_window.FramebufferSize.Y;
+        screenWidth = _window.FramebufferSize.X;
+        screenHeight = _window.FramebufferSize.Y;
         return true;
     }
 
     private void OnLoad()
     {
-        m_inputContext = m_window.CreateInput();
-        foreach (var keyboard in m_inputContext.Keyboards)
+        _inputContext = _window.CreateInput();
+        foreach (var keyboard in _inputContext.Keyboards)
         {
-            keyboard.KeyDown += (kb, key, _) => m_Input?.KeyDown(key);
-            keyboard.KeyUp += (kb, key, _) => m_Input?.KeyUp(key);
+            keyboard.KeyDown += (kb, key, _) => _input?.KeyDown(key);
+            keyboard.KeyUp += (kb, key, _) => _input?.KeyUp(key);
         }
     }
 
     private void OnRender(double deltaTime)
     {
-        if (!m_graphicsInitialized || m_done)
+        if (!_graphicsInitialized || _done)
             return;
         if (!Frame())
         {
-            m_done = true;
-            m_window.Close();
+            _done = true;
+            _window.Close();
         }
     }
 
     private void OnClosing()
     {
-        m_done = true;
+        _done = true;
     }
 }

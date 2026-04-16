@@ -2,36 +2,36 @@ namespace RastertekCS.Windows.Tutorial09.Graphics;
 
 public class Light
 {
-    private readonly float[] m_ambientColor = new float[4];
-    private readonly float[] m_diffuseColor = new float[4];
-    private readonly float[] m_direction = new float[3];
+    private readonly float[] _ambientColor = new float[4];
+    private readonly float[] _diffuseColor = new float[4];
+    private readonly float[] _direction = new float[3];
 
     public void SetAmbientColor(float r, float g, float b, float a)
     {
-        m_ambientColor[0] = r;
-        m_ambientColor[1] = g;
-        m_ambientColor[2] = b;
-        m_ambientColor[3] = a;
+        _ambientColor[0] = r;
+        _ambientColor[1] = g;
+        _ambientColor[2] = b;
+        _ambientColor[3] = a;
     }
 
     public void SetDiffuseColor(float r, float g, float b, float a)
     {
-        m_diffuseColor[0] = r;
-        m_diffuseColor[1] = g;
-        m_diffuseColor[2] = b;
-        m_diffuseColor[3] = a;
+        _diffuseColor[0] = r;
+        _diffuseColor[1] = g;
+        _diffuseColor[2] = b;
+        _diffuseColor[3] = a;
     }
 
     public void SetDirection(float x, float y, float z)
     {
-        m_direction[0] = x;
-        m_direction[1] = y;
-        m_direction[2] = z;
+        _direction[0] = x;
+        _direction[1] = y;
+        _direction[2] = z;
     }
 
-    public float[] GetAmbientColor() => m_ambientColor;
+    public float[] GetAmbientColor() => _ambientColor;
 
-    public float[] GetDiffuseColor() => m_diffuseColor;
+    public float[] GetDiffuseColor() => _diffuseColor;
 
-    public float[] GetDirection() => m_direction;
+    public float[] GetDirection() => _direction;
 }

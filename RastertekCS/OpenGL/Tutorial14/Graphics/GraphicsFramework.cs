@@ -6,38 +6,38 @@ public class GraphicsFramework
 {
     private const uint TEXTURE_UNIT = 0;
 
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Font m_Font;
-    private FontShader m_FontShader;
-    private Text m_Text1;
-    private Text m_Text2;
-    private int m_screenWidth,
-        m_screenHeight;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Font _font;
+    private FontShader _fontShader;
+    private Text _text1;
+    private Text _text2;
+    private int _screenWidth,
+        _screenHeight;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
+        _openGL = OpenGL;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0, 0, -10);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0, 0, -10);
+        _camera.Render();
 
-        m_Font = new Font();
-        if (!m_Font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
+        _font = new Font();
+        if (!_font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
             return false;
 
-        m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(OpenGL))
+        _fontShader = new FontShader();
+        if (!_fontShader.Initialize(OpenGL))
             return false;
 
-        m_Text1 = new Text();
+        _text1 = new Text();
         if (
-            !m_Text1.Initialize(
+            !_text1.Initialize(
                 OpenGL,
-                m_Font,
+                _font,
                 "Hello",
                 10,
                 10,
@@ -51,11 +51,11 @@ public class GraphicsFramework
         )
             return false;
 
-        m_Text2 = new Text();
+        _text2 = new Text();
         if (
-            !m_Text2.Initialize(
+            !_text2.Initialize(
                 OpenGL,
-                m_Font,
+                _font,
                 "Goodbye",
                 10,
                 50,
@@ -74,70 +74,70 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_Text2?.Shutdown(m_OpenGL);
-        m_Text2 = null;
-        m_Text1?.Shutdown(m_OpenGL);
-        m_Text1 = null;
-        m_FontShader?.Shutdown(m_OpenGL);
-        m_FontShader = null;
-        m_Font?.Shutdown(m_OpenGL);
-        m_Font = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _text2?.Shutdown(_openGL);
+        _text2 = null;
+        _text1?.Shutdown(_openGL);
+        _text1 = null;
+        _fontShader?.Shutdown(_openGL);
+        _fontShader = null;
+        _font?.Shutdown(_openGL);
+        _font = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame() => Render();
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
+        _openGL.BeginScene(0, 0, 0, 1);
 
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var ortho = m_OpenGL.GetOrthoMatrix();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var ortho = _openGL.GetOrthoMatrix();
 
-        m_OpenGL.TurnZBufferOff();
+        _openGL.TurnZBufferOff();
 
-        m_OpenGL.Gl.Enable(EnableCap.Blend);
-        m_OpenGL.Gl.BlendFuncSeparate(
+        _openGL.Gl.Enable(EnableCap.Blend);
+        _openGL.Gl.BlendFuncSeparate(
             BlendingFactor.SrcAlpha,
             BlendingFactor.OneMinusSrcAlpha,
             BlendingFactor.One,
             BlendingFactor.Zero
         );
 
-        m_FontShader.SetShader(m_OpenGL);
-        m_Font.SetTexture(m_OpenGL, TEXTURE_UNIT);
+        _fontShader.SetShader(_openGL);
+        _font.SetTexture(_openGL, TEXTURE_UNIT);
 
         if (
-            !m_FontShader.SetShaderParameters(
-                m_OpenGL,
+            !_fontShader.SetShaderParameters(
+                _openGL,
                 world,
                 view,
                 ortho,
                 (int)TEXTURE_UNIT,
-                m_Text1.GetPixelColor()
+                _text1.GetPixelColor()
             )
         )
             return false;
-        m_Text1.Render(m_OpenGL);
+        _text1.Render(_openGL);
 
         if (
-            !m_FontShader.SetShaderParameters(
-                m_OpenGL,
+            !_fontShader.SetShaderParameters(
+                _openGL,
                 world,
                 view,
                 ortho,
                 (int)TEXTURE_UNIT,
-                m_Text2.GetPixelColor()
+                _text2.GetPixelColor()
             )
         )
             return false;
-        m_Text2.Render(m_OpenGL);
+        _text2.Render(_openGL);
 
-        m_OpenGL.Gl.Disable(EnableCap.Blend);
-        m_OpenGL.TurnZBufferOn();
-        m_OpenGL.EndScene();
+        _openGL.Gl.Disable(EnableCap.Blend);
+        _openGL.TurnZBufferOn();
+        _openGL.EndScene();
         return true;
     }
 }

@@ -5,24 +5,24 @@ namespace RastertekCS.OpenGL.Tutorial32.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 m_gl;
-    private Camera m_cam;
-    private Model m_model,
-        m_winModel;
-    private RenderTexture m_rt;
-    private TextureShader m_texShader;
-    private GlassShader m_glassShader;
-    private float m_rotation = 360f;
+    private GL4 _gl;
+    private Camera _camera;
+    private Model _model,
+        _windowModel;
+    private RenderTexture _renderTexture;
+    private TextureShader _textureShader;
+    private GlassShader _glassShader;
+    private float _rotation = 360f;
 
     public bool Initialize(GL4 gl, int sw, int sh)
     {
-        m_gl = gl;
-        m_cam = new Camera();
-        m_cam.SetPosition(0, 0, -5);
-        m_cam.Render();
-        m_model = new Model();
+        _gl = gl;
+        _camera = new Camera();
+        _camera.SetPosition(0, 0, -5);
+        _camera.Render();
+        _model = new Model();
         if (
-            !m_model.Initialize(
+            !_model.Initialize(
                 gl,
                 "Models/Cube.txt",
                 "Data/stone01.tga",
@@ -32,9 +32,9 @@ public class GraphicsFramework
             )
         )
             return false;
-        m_winModel = new Model();
+        _windowModel = new Model();
         if (
-            !m_winModel.Initialize(
+            !_windowModel.Initialize(
                 gl,
                 "Models/square.txt",
                 "Data/glass01.tga",
@@ -44,9 +44,9 @@ public class GraphicsFramework
             )
         )
             return false;
-        m_rt = new RenderTexture();
+        _renderTexture = new RenderTexture();
         if (
-            !m_rt.Initialize(
+            !_renderTexture.Initialize(
                 gl,
                 sw,
                 sh,
@@ -55,66 +55,66 @@ public class GraphicsFramework
             )
         )
             return false;
-        m_texShader = new TextureShader();
-        if (!m_texShader.Initialize(gl))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(gl))
             return false;
-        m_glassShader = new GlassShader();
-        if (!m_glassShader.Initialize(gl))
+        _glassShader = new GlassShader();
+        if (!_glassShader.Initialize(gl))
             return false;
         return true;
     }
 
     public void Shutdown()
     {
-        m_glassShader?.Shutdown(m_gl);
-        m_texShader?.Shutdown(m_gl);
-        m_rt?.Shutdown(m_gl);
-        m_winModel?.Shutdown(m_gl);
-        m_model?.Shutdown(m_gl);
-        m_gl = null;
+        _glassShader?.Shutdown(_gl);
+        _textureShader?.Shutdown(_gl);
+        _renderTexture?.Shutdown(_gl);
+        _windowModel?.Shutdown(_gl);
+        _model?.Shutdown(_gl);
+        _gl = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f;
-        if (m_rotation <= 0)
-            m_rotation += 360f;
-        if (!RenderToTex(m_rotation))
+        _rotation -= 0.0174532925f;
+        if (_rotation <= 0)
+            _rotation += 360f;
+        if (!RenderToTex(_rotation))
             return false;
-        return Render(m_rotation);
+        return Render(_rotation);
     }
 
     bool RenderToTex(float rot)
     {
-        m_rt.SetRenderTarget(m_gl);
-        m_rt.ClearRenderTarget(m_gl, 0, 0, 0, 1);
+        _renderTexture.SetRenderTarget(_gl);
+        _renderTexture.ClearRenderTarget(_gl, 0, 0, 0, 1);
         var w = Matrix4X4.CreateRotationY<float>(rot);
-        var v = m_cam.GetViewMatrix();
-        var p = m_gl.GetProjectionMatrix();
-        m_texShader.SetShaderParameters(m_gl, w, v, p);
-        m_model.SetTexture1(m_gl, 0);
-        m_model.Render(m_gl);
-        m_gl.SetBackBufferRenderTarget();
-        m_gl.ResetViewport();
+        var v = _camera.GetViewMatrix();
+        var p = _gl.GetProjectionMatrix();
+        _textureShader.SetShaderParameters(_gl, w, v, p);
+        _model.SetTexture1(_gl, 0);
+        _model.Render(_gl);
+        _gl.SetBackBufferRenderTarget();
+        _gl.ResetViewport();
         return true;
     }
 
     bool Render(float rot)
     {
-        m_gl.BeginScene(0, 0, 0, 1);
-        var v = m_cam.GetViewMatrix();
-        var p = m_gl.GetProjectionMatrix();
+        _gl.BeginScene(0, 0, 0, 1);
+        var v = _camera.GetViewMatrix();
+        var p = _gl.GetProjectionMatrix();
         var w = Matrix4X4.CreateRotationY<float>(rot);
-        m_texShader.SetShaderParameters(m_gl, w, v, p);
-        m_model.SetTexture1(m_gl, 0);
-        m_model.Render(m_gl);
+        _textureShader.SetShaderParameters(_gl, w, v, p);
+        _model.SetTexture1(_gl, 0);
+        _model.Render(_gl);
         w = Matrix4X4.CreateTranslation<float>(0, 0, -1.5f);
-        m_glassShader.SetShaderParameters(m_gl, w, v, p, 0.01f);
-        m_rt.SetTexture(m_gl, 2);
-        m_winModel.SetTexture1(m_gl, 0);
-        m_winModel.SetTexture2(m_gl, 1);
-        m_winModel.Render(m_gl);
-        m_gl.EndScene();
+        _glassShader.SetShaderParameters(_gl, w, v, p, 0.01f);
+        _renderTexture.SetTexture(_gl, 2);
+        _windowModel.SetTexture1(_gl, 0);
+        _windowModel.SetTexture2(_gl, 1);
+        _windowModel.Render(_gl);
+        _gl.EndScene();
         return true;
     }
 }

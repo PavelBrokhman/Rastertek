@@ -13,9 +13,9 @@ public class Font
         public int Size;
     }
 
-    private FontType[] m_Font;
-    private Texture m_Texture;
-    private float m_fontHeight;
+    private FontType[] _font;
+    private Texture _texture;
+    private float _fontHeight;
 
     public bool Initialize(
         GL4 OpenGL,
@@ -30,8 +30,8 @@ public class Font
         if (!LoadFontData(fontDataFile))
             return false;
 
-        m_Texture = new Texture();
-        if (!m_Texture.Initialize(OpenGL, fontTextureFile, textureUnit, false))
+        _texture = new Texture();
+        if (!_texture.Initialize(OpenGL, fontTextureFile, textureUnit, false))
             return false;
 
         return true;
@@ -39,15 +39,15 @@ public class Font
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture?.Shutdown(OpenGL);
-        m_Texture = null;
-        m_Font = null;
+        _texture?.Shutdown(OpenGL);
+        _texture = null;
+        _font = null;
     }
 
     public void SetTexture(GL4 OpenGL, uint textureUnit) =>
-        m_Texture?.SetTexture(OpenGL, textureUnit);
+        _texture?.SetTexture(OpenGL, textureUnit);
 
-    public float GetFontHeight() => m_fontHeight;
+    public float GetFontHeight() => _fontHeight;
 
     public int GetSentencePixelLength(string sentence)
     {
@@ -55,8 +55,8 @@ public class Font
         foreach (char c in sentence)
         {
             int idx = c - 32;
-            if (idx >= 0 && idx < m_Font.Length)
-                length += m_Font[idx].Size;
+            if (idx >= 0 && idx < _font.Length)
+                length += _font[idx].Size;
         }
         return length;
     }
@@ -67,19 +67,19 @@ public class Font
         foreach (char c in sentence)
         {
             int letter = c - 32;
-            if (letter < 0 || letter >= m_Font.Length)
+            if (letter < 0 || letter >= _font.Length)
                 letter = 0;
 
             if (c != ' ')
             {
                 float left = drawX;
-                float right = drawX + m_Font[letter].Size;
+                float right = drawX + _font[letter].Size;
                 float top = drawY;
-                float bottom = drawY - m_fontHeight;
-                float tl = m_Font[letter].Left;
-                float tr = m_Font[letter].Right;
-                float tt = m_Font[letter].Top;
-                float tb = m_Font[letter].Bottom;
+                float bottom = drawY - _fontHeight;
+                float tl = _font[letter].Left;
+                float tr = _font[letter].Right;
+                float tt = _font[letter].Top;
+                float tb = _font[letter].Bottom;
 
                 // Tri 1
                 vertices[idx++] = left;
@@ -115,15 +115,15 @@ public class Font
                 vertices[idx++] = tb;
             }
 
-            drawX += m_Font[letter].Size + 1.0f;
+            drawX += _font[letter].Size + 1.0f;
         }
     }
 
     private bool LoadFontData(string filename)
     {
         var lines = File.ReadAllLines(filename);
-        m_Font = new FontType[95]; // ASCII 32-126
-        m_fontHeight = 32.0f;
+        _font = new FontType[95]; // ASCII 32-126
+        _fontHeight = 32.0f;
 
         foreach (var line in lines)
         {
@@ -136,11 +136,11 @@ public class Font
                 continue;
             // Format: "ascii char left right size" or "ascii left right size" (for space)
             int off = t.Length >= 5 ? 2 : 1;
-            m_Font[idx].Left = float.Parse(t[off], CultureInfo.InvariantCulture);
-            m_Font[idx].Right = float.Parse(t[off + 1], CultureInfo.InvariantCulture);
-            m_Font[idx].Size = int.Parse(t[off + 2], CultureInfo.InvariantCulture);
-            m_Font[idx].Top = 0.0f;
-            m_Font[idx].Bottom = 1.0f;
+            _font[idx].Left = float.Parse(t[off], CultureInfo.InvariantCulture);
+            _font[idx].Right = float.Parse(t[off + 1], CultureInfo.InvariantCulture);
+            _font[idx].Size = int.Parse(t[off + 2], CultureInfo.InvariantCulture);
+            _font[idx].Top = 0.0f;
+            _font[idx].Bottom = 1.0f;
         }
         return true;
     }

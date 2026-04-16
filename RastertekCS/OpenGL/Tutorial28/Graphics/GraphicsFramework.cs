@@ -2,26 +2,26 @@ namespace RastertekCS.OpenGL.Tutorial28.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Model m_Model;
-    private TranslateShader m_TranslateShader;
-    private float m_textureTranslation;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Model _model;
+    private TranslateShader _translateShader;
+    private float _textureTranslation;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
+        _openGL = OpenGL;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0, 0, -5);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0, 0, -5);
+        _camera.Render();
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/square.txt", "Data/stone01.tga", 0, true))
+        _model = new Model();
+        if (!_model.Initialize(OpenGL, "Models/square.txt", "Data/stone01.tga", 0, true))
             return false;
 
-        m_TranslateShader = new TranslateShader();
-        if (!m_TranslateShader.Initialize(OpenGL))
+        _translateShader = new TranslateShader();
+        if (!_translateShader.Initialize(OpenGL))
             return false;
 
         return true;
@@ -29,37 +29,37 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_TranslateShader?.Shutdown(m_OpenGL);
-        m_TranslateShader = null;
-        m_Model?.Shutdown(m_OpenGL);
-        m_Model = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _translateShader?.Shutdown(_openGL);
+        _translateShader = null;
+        _model?.Shutdown(_openGL);
+        _model = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame()
     {
-        m_textureTranslation += 0.01f;
-        if (m_textureTranslation > 1.0f)
-            m_textureTranslation -= 1.0f;
+        _textureTranslation += 0.01f;
+        if (_textureTranslation > 1.0f)
+            _textureTranslation -= 1.0f;
 
-        return Render(m_textureTranslation);
+        return Render(_textureTranslation);
     }
 
     private bool Render(float textureTranslation)
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
+        _openGL.BeginScene(0, 0, 0, 1);
 
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_OpenGL.GetProjectionMatrix();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _openGL.GetProjectionMatrix();
 
-        m_TranslateShader.SetShader(m_OpenGL);
-        m_Model.SetTexture(m_OpenGL, 0);
+        _translateShader.SetShader(_openGL);
+        _model.SetTexture(_openGL, 0);
 
         if (
-            !m_TranslateShader.SetShaderParameters(
-                m_OpenGL,
+            !_translateShader.SetShaderParameters(
+                _openGL,
                 world,
                 view,
                 projection,
@@ -69,9 +69,9 @@ public class GraphicsFramework
         )
             return false;
 
-        m_Model.Render(m_OpenGL);
+        _model.Render(_openGL);
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

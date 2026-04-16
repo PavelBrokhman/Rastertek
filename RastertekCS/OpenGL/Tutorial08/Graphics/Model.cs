@@ -29,13 +29,13 @@ public class Model
             nz;
     }
 
-    private uint m_vertexArrayId;
-    private uint m_vertexBufferId;
-    private uint m_indexBufferId;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private ModelType[] m_model;
-    private Texture m_Texture;
+    private uint _vertexArrayId;
+    private uint _vertexBufferId;
+    private uint _indexBufferId;
+    private int _vertexCount;
+    private int _indexCount;
+    private ModelType[] _model;
+    private Texture _texture;
 
     public unsafe bool Initialize(
         GL4 OpenGL,
@@ -52,27 +52,27 @@ public class Model
             return false;
 
         // Инициализируем GL-буферы из загруженной геометрии.
-        var vertices = new VertexType[m_vertexCount];
-        var indices = new uint[m_indexCount];
-        for (int i = 0; i < m_vertexCount; i++)
+        var vertices = new VertexType[_vertexCount];
+        var indices = new uint[_indexCount];
+        for (int i = 0; i < _vertexCount; i++)
         {
-            vertices[i].x = m_model[i].x;
-            vertices[i].y = m_model[i].y;
-            vertices[i].z = m_model[i].z;
-            vertices[i].tu = m_model[i].tu;
+            vertices[i].x = _model[i].x;
+            vertices[i].y = _model[i].y;
+            vertices[i].z = _model[i].z;
+            vertices[i].tu = _model[i].tu;
             // Инвертируем tv — OpenGL начинает UV снизу-слева, а файл — сверху-слева.
-            vertices[i].tv = m_model[i].tv;
-            vertices[i].nx = m_model[i].nx;
-            vertices[i].ny = m_model[i].ny;
-            vertices[i].nz = m_model[i].nz;
+            vertices[i].tv = _model[i].tv;
+            vertices[i].nx = _model[i].nx;
+            vertices[i].ny = _model[i].ny;
+            vertices[i].nz = _model[i].nz;
             indices[i] = (uint)i;
         }
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = vertices)
             gl.BufferData(
                 BufferTargetARB.ArrayBuffer,
@@ -109,8 +109,8 @@ public class Model
             (void*)(5 * sizeof(float))
         );
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
             gl.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
@@ -119,8 +119,8 @@ public class Model
                 BufferUsageARB.StaticDraw
             );
 
-        m_Texture = new Texture();
-        if (!m_Texture.Initialize(OpenGL, textureFilename, textureUnit, wrap))
+        _texture = new Texture();
+        if (!_texture.Initialize(OpenGL, textureFilename, textureUnit, wrap))
             return false;
 
         return true;
@@ -128,34 +128,34 @@ public class Model
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture?.Shutdown(OpenGL);
-        m_Texture = null;
+        _texture?.Shutdown(OpenGL);
+        _texture = null;
         var gl = OpenGL.Gl;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.DisableVertexAttribArray(2);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexArrayId);
         ReleaseModel();
     }
 
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.BindVertexArray(m_vertexArrayId);
+        gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_indexCount,
+            (uint)_indexCount,
             DrawElementsType.UnsignedInt,
             (void*)0
         );
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 
     private bool LoadModel(string filename)
     {
@@ -179,9 +179,9 @@ public class Model
         var parts = lines[idx].Split(':');
         if (parts.Length < 2)
             return false;
-        m_vertexCount = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
-        m_indexCount = m_vertexCount;
-        m_model = new ModelType[m_vertexCount];
+        _vertexCount = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
+        _indexCount = _vertexCount;
+        _model = new ModelType[_vertexCount];
         idx++;
 
         // Пропускаем до "Data:" и дальше — до первой строки с числами.
@@ -193,7 +193,7 @@ public class Model
         idx++;
 
         int vi = 0;
-        while (idx < lines.Length && vi < m_vertexCount)
+        while (idx < lines.Length && vi < _vertexCount)
         {
             var line = lines[idx].Trim();
             idx++;
@@ -202,18 +202,18 @@ public class Model
             var tokens = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             if (tokens.Length < 8)
                 continue;
-            m_model[vi].x = float.Parse(tokens[0], CultureInfo.InvariantCulture);
-            m_model[vi].y = float.Parse(tokens[1], CultureInfo.InvariantCulture);
-            m_model[vi].z = float.Parse(tokens[2], CultureInfo.InvariantCulture);
-            m_model[vi].tu = float.Parse(tokens[3], CultureInfo.InvariantCulture);
-            m_model[vi].tv = float.Parse(tokens[4], CultureInfo.InvariantCulture);
-            m_model[vi].nx = float.Parse(tokens[5], CultureInfo.InvariantCulture);
-            m_model[vi].ny = float.Parse(tokens[6], CultureInfo.InvariantCulture);
-            m_model[vi].nz = float.Parse(tokens[7], CultureInfo.InvariantCulture);
+            _model[vi].x = float.Parse(tokens[0], CultureInfo.InvariantCulture);
+            _model[vi].y = float.Parse(tokens[1], CultureInfo.InvariantCulture);
+            _model[vi].z = float.Parse(tokens[2], CultureInfo.InvariantCulture);
+            _model[vi].tu = float.Parse(tokens[3], CultureInfo.InvariantCulture);
+            _model[vi].tv = float.Parse(tokens[4], CultureInfo.InvariantCulture);
+            _model[vi].nx = float.Parse(tokens[5], CultureInfo.InvariantCulture);
+            _model[vi].ny = float.Parse(tokens[6], CultureInfo.InvariantCulture);
+            _model[vi].nz = float.Parse(tokens[7], CultureInfo.InvariantCulture);
             vi++;
         }
-        return vi == m_vertexCount;
+        return vi == _vertexCount;
     }
 
-    private void ReleaseModel() => m_model = null;
+    private void ReleaseModel() => _model = null;
 }

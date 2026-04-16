@@ -4,25 +4,25 @@ namespace RastertekCS.Windows.Tutorial13.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private TextureShader m_TextureShader;
-    private Sprite m_Sprite;
+    private DX11 _directX;
+    private Camera _camera;
+    private TextureShader _textureShader;
+    private Sprite _sprite;
 
     public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(DirectX))
             return false;
 
-        m_Sprite = new Sprite();
-        if (!m_Sprite.Initialize(DirectX, screenWidth, screenHeight, "Data/Sprite.txt", 50, 50))
+        _sprite = new Sprite();
+        if (!_sprite.Initialize(DirectX, screenWidth, screenHeight, "Data/Sprite.txt", 50, 50))
             return false;
 
         return true;
@@ -30,40 +30,40 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_Sprite?.Shutdown();
-        m_TextureShader?.Shutdown();
-        m_Sprite = null;
-        m_TextureShader = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _sprite?.Shutdown();
+        _textureShader?.Shutdown();
+        _sprite = null;
+        _textureShader = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame(float frameTimeMs)
     {
-        m_Sprite.Update(frameTimeMs);
+        _sprite.Update(frameTimeMs);
         return Render();
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = m_DirectX.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var ortho = m_DirectX.GetOrthoMatrix();
+        var world = _directX.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var ortho = _directX.GetOrthoMatrix();
 
-        m_DirectX.TurnZBufferOff();
+        _directX.TurnZBufferOff();
 
-        if (!m_Sprite.Render(m_DirectX))
+        if (!_sprite.Render(_directX))
             return false;
-        m_Sprite.SetTexture(m_DirectX, 0);
+        _sprite.SetTexture(_directX, 0);
 
-        if (!m_TextureShader.Render(m_DirectX, m_Sprite.GetIndexCount(), world, view, ortho))
+        if (!_textureShader.Render(_directX, _sprite.GetIndexCount(), world, view, ortho))
             return false;
 
-        m_DirectX.TurnZBufferOn();
+        _directX.TurnZBufferOn();
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

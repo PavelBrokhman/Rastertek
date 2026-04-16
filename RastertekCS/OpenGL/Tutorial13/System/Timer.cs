@@ -4,26 +4,26 @@ namespace RastertekCS.OpenGL.Tutorial13.System;
 
 public class Timer
 {
-    private readonly Stopwatch m_stopwatch = new();
-    private long m_previousTicks;
-    private float m_frameTime;
+    private readonly Stopwatch _stopwatch = new();
+    private long _previousTicks;
+    private float _frameTime;
 
     public void Initialize()
     {
-        m_stopwatch.Start();
-        m_previousTicks = m_stopwatch.ElapsedTicks;
-        m_frameTime = 0;
+        _stopwatch.Start();
+        _previousTicks = _stopwatch.ElapsedTicks;
+        _frameTime = 0;
     }
 
     public void Frame()
     {
-        long current = m_stopwatch.ElapsedTicks;
-        long delta = current - m_previousTicks;
-        m_previousTicks = current;
-        m_frameTime = (float)delta / Stopwatch.Frequency * 1000.0f;
+        long current = _stopwatch.ElapsedTicks;
+        long delta = current - _previousTicks;
+        _previousTicks = current;
+        _frameTime = (float)delta / Stopwatch.Frequency * 1000.0f;
     }
 
-    public float GetTime() => m_frameTime / 1000.0f;
+    public float GetTime() => _frameTime / 1000.0f;
 
-    public int GetFrameTime() => (int)m_frameTime;
+    public int GetFrameTime() => (int)_frameTime;
 }

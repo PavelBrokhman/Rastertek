@@ -6,22 +6,22 @@ public class GraphicsFramework
     private const uint TEXTURE_UNIT_2 = 1;
     private const uint TEXTURE_UNIT_3 = 2;
 
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Model m_Model;
-    private AlphaMapShader m_AlphaMapShader;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Model _model;
+    private AlphaMapShader _alphaMapShader;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
+        _openGL = OpenGL;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0, 0, -5);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0, 0, -5);
+        _camera.Render();
 
-        m_Model = new Model();
+        _model = new Model();
         if (
-            !m_Model.Initialize(
+            !_model.Initialize(
                 OpenGL,
                 "Models/square.txt",
                 "Data/stone01.tga",
@@ -34,8 +34,8 @@ public class GraphicsFramework
         )
             return false;
 
-        m_AlphaMapShader = new AlphaMapShader();
-        if (!m_AlphaMapShader.Initialize(OpenGL))
+        _alphaMapShader = new AlphaMapShader();
+        if (!_alphaMapShader.Initialize(OpenGL))
             return false;
 
         return true;
@@ -43,30 +43,30 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_AlphaMapShader?.Shutdown(m_OpenGL);
-        m_AlphaMapShader = null;
-        m_Model?.Shutdown(m_OpenGL);
-        m_Model = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _alphaMapShader?.Shutdown(_openGL);
+        _alphaMapShader = null;
+        _model?.Shutdown(_openGL);
+        _model = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame() => Render();
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
+        _openGL.BeginScene(0, 0, 0, 1);
 
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_OpenGL.GetProjectionMatrix();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _openGL.GetProjectionMatrix();
 
-        m_AlphaMapShader.SetShader(m_OpenGL);
-        m_Model.SetTextures(m_OpenGL, TEXTURE_UNIT_1, TEXTURE_UNIT_2, TEXTURE_UNIT_3);
+        _alphaMapShader.SetShader(_openGL);
+        _model.SetTextures(_openGL, TEXTURE_UNIT_1, TEXTURE_UNIT_2, TEXTURE_UNIT_3);
 
         if (
-            !m_AlphaMapShader.SetShaderParameters(
-                m_OpenGL,
+            !_alphaMapShader.SetShaderParameters(
+                _openGL,
                 world,
                 view,
                 projection,
@@ -77,9 +77,9 @@ public class GraphicsFramework
         )
             return false;
 
-        m_Model.Render(m_OpenGL);
+        _model.Render(_openGL);
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

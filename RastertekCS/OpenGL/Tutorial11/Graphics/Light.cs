@@ -3,25 +3,25 @@ namespace RastertekCS.OpenGL.Tutorial11.Graphics;
 // Point light: position + diffuse color (no direction for this tutorial).
 public class Light
 {
-    private readonly float[] m_diffuseColor = new float[4];
-    private readonly float[] m_position = new float[3];
+    private readonly float[] _diffuseColor = new float[4];
+    private readonly float[] _position = new float[3];
 
     public void SetDiffuseColor(float r, float g, float b, float a)
     {
-        m_diffuseColor[0] = r;
-        m_diffuseColor[1] = g;
-        m_diffuseColor[2] = b;
-        m_diffuseColor[3] = a;
+        _diffuseColor[0] = r;
+        _diffuseColor[1] = g;
+        _diffuseColor[2] = b;
+        _diffuseColor[3] = a;
     }
 
     public void SetPosition(float x, float y, float z)
     {
-        m_position[0] = x;
-        m_position[1] = y;
-        m_position[2] = z;
+        _position[0] = x;
+        _position[1] = y;
+        _position[2] = z;
     }
 
-    public float[] GetDiffuseColor() => m_diffuseColor;
+    public float[] GetDiffuseColor() => _diffuseColor;
 
-    public float[] GetPosition() => m_position;
+    public float[] GetPosition() => _position;
 }

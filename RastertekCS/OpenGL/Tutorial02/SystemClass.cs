@@ -9,20 +9,20 @@ namespace RastertekCS.OpenGL.Tutorial02;
 
 public class SystemClass
 {
-    private IWindow m_window;
-    private IInputContext m_inputContext;
+    private IWindow _window;
+    private IInputContext _inputContext;
 
-    private OpenGLClass m_OpenGL;
-    private InputClass m_Input;
-    private GraphicsClass m_Graphics;
+    private OpenGLClass _openGL;
+    private InputClass _input;
+    private GraphicsClass _graphics;
 
-    private bool m_done;
+    private bool _done;
 
     public SystemClass()
     {
-        m_OpenGL = null;
-        m_Input = null;
-        m_Graphics = null;
+        _openGL = null;
+        _input = null;
+        _graphics = null;
     }
 
     public bool Initialize()
@@ -31,22 +31,22 @@ public class SystemClass
         int screenHeight = 0;
 
         // Создаём объект OpenGL.
-        m_OpenGL = new OpenGLClass();
+        _openGL = new OpenGLClass();
 
         // Создаём окно и инициализируем OpenGL.
-        if (!InitializeWindows(m_OpenGL, ref screenWidth, ref screenHeight))
+        if (!InitializeWindows(_openGL, ref screenWidth, ref screenHeight))
         {
             Console.WriteLine("Не удалось инициализировать окно.");
             return false;
         }
 
         // Создаём объект ввода.
-        m_Input = new InputClass();
-        m_Input.Initialize();
+        _input = new InputClass();
+        _input.Initialize();
 
         // Создаём объект графики.
-        m_Graphics = new GraphicsClass();
-        if (!m_Graphics.Initialize(m_OpenGL, m_window))
+        _graphics = new GraphicsClass();
+        if (!_graphics.Initialize(_openGL, _window))
         {
             return false;
         }
@@ -56,20 +56,20 @@ public class SystemClass
 
     public void Shutdown()
     {
-        if (m_Graphics != null)
+        if (_graphics != null)
         {
-            m_Graphics.Shutdown();
-            m_Graphics = null;
+            _graphics.Shutdown();
+            _graphics = null;
         }
 
-        if (m_Input != null)
+        if (_input != null)
         {
-            m_Input = null;
+            _input = null;
         }
 
-        if (m_OpenGL != null)
+        if (_openGL != null)
         {
-            m_OpenGL = null;
+            _openGL = null;
         }
 
         ShutdownWindows();
@@ -78,20 +78,20 @@ public class SystemClass
     public void Run()
     {
         // Запускаем главный цикл окна (Silk.NET выполняет свой цикл сообщений).
-        m_done = false;
-        m_window.Run();
+        _done = false;
+        _window.Run();
     }
 
     private bool Frame()
     {
         // Проверяем нажатие клавиши Escape.
-        if (m_Input.IsKeyDown(Key.Escape))
+        if (_input.IsKeyDown(Key.Escape))
         {
             return false;
         }
 
         // Выполняем обработку кадра.
-        if (!m_Graphics.Frame())
+        if (!_graphics.Frame())
         {
             return false;
         }
@@ -123,57 +123,57 @@ public class SystemClass
             new APIVersion(4, 0)
         );
 
-        m_window = Window.Create(options);
+        _window = Window.Create(options);
 
         // Привязываем обработчики событий окна.
-        m_window.Load += OnLoad;
-        m_window.Update += OnUpdate;
-        m_window.Render += OnRender;
-        m_window.Closing += OnClosing;
+        _window.Load += OnLoad;
+        _window.Update += OnUpdate;
+        _window.Render += OnRender;
+        _window.Closing += OnClosing;
 
         // Инициализируем окно (загружает контекст OpenGL).
-        m_window.Initialize();
+        _window.Initialize();
 
         // Сохраняем реальные размеры экрана после создания окна.
-        screenWidth = m_window.Size.X;
-        screenHeight = m_window.Size.Y;
+        screenWidth = _window.Size.X;
+        screenHeight = _window.Size.Y;
 
         return true;
     }
 
     private void ShutdownWindows()
     {
-        if (m_inputContext != null)
+        if (_inputContext != null)
         {
-            m_inputContext.Dispose();
-            m_inputContext = null;
+            _inputContext.Dispose();
+            _inputContext = null;
         }
 
-        if (m_window != null)
+        if (_window != null)
         {
-            m_window.Dispose();
-            m_window = null;
+            _window.Dispose();
+            _window = null;
         }
     }
 
     private void OnLoad()
     {
         // Создаём контекст ввода Silk.NET и подписываемся на события клавиатуры.
-        m_inputContext = m_window.CreateInput();
-        foreach (var keyboard in m_inputContext.Keyboards)
+        _inputContext = _window.CreateInput();
+        foreach (var keyboard in _inputContext.Keyboards)
         {
-            keyboard.KeyDown += (kb, key, _) => m_Input?.KeyDown(key);
-            keyboard.KeyUp += (kb, key, _) => m_Input?.KeyUp(key);
+            keyboard.KeyDown += (kb, key, _) => _input?.KeyDown(key);
+            keyboard.KeyUp += (kb, key, _) => _input?.KeyUp(key);
         }
     }
 
     private void OnUpdate(double deltaTime)
     {
         // Выполняем один кадр логики.
-        if (m_done || !Frame())
+        if (_done || !Frame())
         {
-            m_done = true;
-            m_window.Close();
+            _done = true;
+            _window.Close();
         }
     }
 
@@ -184,6 +184,6 @@ public class SystemClass
 
     private void OnClosing()
     {
-        m_done = true;
+        _done = true;
     }
 }

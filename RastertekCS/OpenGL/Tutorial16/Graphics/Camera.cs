@@ -4,35 +4,35 @@ namespace RastertekCS.OpenGL.Tutorial16.Graphics;
 
 public class Camera
 {
-    private float m_positionX,
-        m_positionY,
-        m_positionZ;
-    private float m_rotationX,
-        m_rotationY,
-        m_rotationZ;
-    private Matrix4X4<float> m_viewMatrix;
+    private float _positionX,
+        _positionY,
+        _positionZ;
+    private float _rotationX,
+        _rotationY,
+        _rotationZ;
+    private Matrix4X4<float> _viewMatrix;
 
     public void SetPosition(float x, float y, float z)
     {
-        m_positionX = x;
-        m_positionY = y;
-        m_positionZ = z;
+        _positionX = x;
+        _positionY = y;
+        _positionZ = z;
     }
 
     public void SetRotation(float x, float y, float z)
     {
-        m_rotationX = x;
-        m_rotationY = y;
-        m_rotationZ = z;
+        _rotationX = x;
+        _rotationY = y;
+        _rotationZ = z;
     }
 
-    public float[] GetPosition() => new[] { m_positionX, m_positionY, m_positionZ };
+    public float[] GetPosition() => new[] { _positionX, _positionY, _positionZ };
 
     public void Render()
     {
-        float pitch = m_rotationX * (MathF.PI / 180.0f);
-        float yaw = m_rotationY * (MathF.PI / 180.0f);
-        float roll = m_rotationZ * (MathF.PI / 180.0f);
+        float pitch = _rotationX * (MathF.PI / 180.0f);
+        float yaw = _rotationY * (MathF.PI / 180.0f);
+        float roll = _rotationZ * (MathF.PI / 180.0f);
 
         float cY = MathF.Cos(yaw),
             sY = MathF.Sin(yaw);
@@ -51,18 +51,18 @@ public class Camera
         float r21 = -sP;
         float r22 = cP * cY;
 
-        float lx = r20 + m_positionX,
-            ly = r21 + m_positionY,
-            lz = r22 + m_positionZ;
+        float lx = r20 + _positionX,
+            ly = r21 + _positionY,
+            lz = r22 + _positionZ;
         float ux = r10,
             uy = r11,
             uz = r12;
 
         BuildViewMatrixLH(
-            out m_viewMatrix,
-            m_positionX,
-            m_positionY,
-            m_positionZ,
+            out _viewMatrix,
+            _positionX,
+            _positionY,
+            _positionZ,
             lx,
             ly,
             lz,
@@ -72,7 +72,7 @@ public class Camera
         );
     }
 
-    public Matrix4X4<float> GetViewMatrix() => m_viewMatrix;
+    public Matrix4X4<float> GetViewMatrix() => _viewMatrix;
 
     private static void BuildViewMatrixLH(
         out Matrix4X4<float> m,

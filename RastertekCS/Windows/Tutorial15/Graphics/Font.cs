@@ -11,10 +11,10 @@ public class Font
         public int Size;
     }
 
-    private FontType[] m_Font;
-    private Texture m_Texture;
-    private float m_fontHeight;
-    private int m_spaceSize;
+    private FontType[] _font;
+    private Texture _texture;
+    private float _fontHeight;
+    private int _spaceSize;
 
     public bool Initialize(DX11 DirectX, int fontChoice)
     {
@@ -26,16 +26,16 @@ public class Font
             case 0:
                 fontFilename = "Data/font/font01.txt";
                 fontTextureFilename = "Data/font/font01.tga";
-                m_fontHeight = 32.0f;
-                m_spaceSize = 3;
+                _fontHeight = 32.0f;
+                _spaceSize = 3;
                 break;
         }
 
         if (!LoadFontData(fontFilename))
             return false;
 
-        m_Texture = new Texture();
-        if (!m_Texture.Initialize(DirectX, fontTextureFilename, false))
+        _texture = new Texture();
+        if (!_texture.Initialize(DirectX, fontTextureFilename, false))
             return false;
 
         return true;
@@ -43,14 +43,14 @@ public class Font
 
     public void Shutdown()
     {
-        m_Texture?.Shutdown();
-        m_Texture = null;
-        m_Font = null;
+        _texture?.Shutdown();
+        _texture = null;
+        _font = null;
     }
 
-    public void SetTexture(DX11 DirectX, uint slot) => m_Texture?.SetTexture(DirectX, slot);
+    public void SetTexture(DX11 DirectX, uint slot) => _texture?.SetTexture(DirectX, slot);
 
-    public int GetFontHeight() => (int)m_fontHeight;
+    public int GetFontHeight() => (int)_fontHeight;
 
     public int GetSentencePixelLength(string sentence)
     {
@@ -59,9 +59,9 @@ public class Font
         {
             int letter = c - 32;
             if (letter == 0)
-                length += m_spaceSize;
+                length += _spaceSize;
             else if (letter > 0 && letter < 95)
-                length += m_Font[letter].Size + 1;
+                length += _font[letter].Size + 1;
         }
         return length;
     }
@@ -78,13 +78,13 @@ public class Font
 
             if (letter == 0)
             {
-                drawX += m_spaceSize;
+                drawX += _spaceSize;
                 continue;
             }
 
-            float left = m_Font[letter].Left;
-            float right = m_Font[letter].Right;
-            int size = m_Font[letter].Size;
+            float left = _font[letter].Left;
+            float right = _font[letter].Right;
+            int size = _font[letter].Size;
 
             // Tri 1: TL, BR, BL
             vertices[index++] = drawX;
@@ -93,12 +93,12 @@ public class Font
             vertices[index++] = left;
             vertices[index++] = 0.0f;
             vertices[index++] = drawX + size;
-            vertices[index++] = drawY - m_fontHeight;
+            vertices[index++] = drawY - _fontHeight;
             vertices[index++] = 0;
             vertices[index++] = right;
             vertices[index++] = 1.0f;
             vertices[index++] = drawX;
-            vertices[index++] = drawY - m_fontHeight;
+            vertices[index++] = drawY - _fontHeight;
             vertices[index++] = 0;
             vertices[index++] = left;
             vertices[index++] = 1.0f;
@@ -114,7 +114,7 @@ public class Font
             vertices[index++] = right;
             vertices[index++] = 0.0f;
             vertices[index++] = drawX + size;
-            vertices[index++] = drawY - m_fontHeight;
+            vertices[index++] = drawY - _fontHeight;
             vertices[index++] = 0;
             vertices[index++] = right;
             vertices[index++] = 1.0f;
@@ -128,7 +128,7 @@ public class Font
         if (!File.Exists(filename))
             return false;
 
-        m_Font = new FontType[95];
+        _font = new FontType[95];
         var lines = File.ReadAllLines(filename);
         var inv = CultureInfo.InvariantCulture;
 
@@ -142,9 +142,9 @@ public class Font
             if (t.Length < 4)
                 continue;
             int off = t.Length >= 5 ? 2 : 1;
-            m_Font[i].Left = float.Parse(t[off], inv);
-            m_Font[i].Right = float.Parse(t[off + 1], inv);
-            m_Font[i].Size = int.Parse(t[off + 2], inv);
+            _font[i].Left = float.Parse(t[off], inv);
+            _font[i].Right = float.Parse(t[off + 1], inv);
+            _font[i].Size = int.Parse(t[off + 2], inv);
         }
 
         return true;

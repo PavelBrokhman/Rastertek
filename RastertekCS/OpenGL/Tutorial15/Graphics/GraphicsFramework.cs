@@ -6,38 +6,38 @@ public class GraphicsFramework
 {
     private const uint TEXTURE_UNIT = 0;
 
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Font m_Font;
-    private FontShader m_FontShader;
-    private Text m_FpsText;
-    private int m_screenWidth,
-        m_screenHeight;
-    private int m_previousFps = -1;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Font _font;
+    private FontShader _fontShader;
+    private Text _fpsText;
+    private int _screenWidth,
+        _screenHeight;
+    private int _previousFps = -1;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
+        _openGL = OpenGL;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0, 0, -10);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0, 0, -10);
+        _camera.Render();
 
-        m_Font = new Font();
-        if (!m_Font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
+        _font = new Font();
+        if (!_font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
             return false;
 
-        m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(OpenGL))
+        _fontShader = new FontShader();
+        if (!_fontShader.Initialize(OpenGL))
             return false;
 
-        m_FpsText = new Text();
+        _fpsText = new Text();
         if (
-            !m_FpsText.Initialize(
+            !_fpsText.Initialize(
                 OpenGL,
-                m_Font,
+                _font,
                 "FPS: 0",
                 10,
                 10,
@@ -56,21 +56,21 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_FpsText?.Shutdown(m_OpenGL);
-        m_FpsText = null;
-        m_FontShader?.Shutdown(m_OpenGL);
-        m_FontShader = null;
-        m_Font?.Shutdown(m_OpenGL);
-        m_Font = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _fpsText?.Shutdown(_openGL);
+        _fpsText = null;
+        _fontShader?.Shutdown(_openGL);
+        _fontShader = null;
+        _font?.Shutdown(_openGL);
+        _font = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame(int fps)
     {
-        if (fps != m_previousFps)
+        if (fps != _previousFps)
         {
-            m_previousFps = fps;
+            _previousFps = fps;
             float r = 0,
                 g = 1,
                 b = 0;
@@ -86,17 +86,17 @@ public class GraphicsFramework
                 g = 0;
                 b = 0;
             }
-            m_FpsText.UpdateText(
-                m_OpenGL,
-                m_Font,
+            _fpsText.UpdateText(
+                _openGL,
+                _font,
                 $"FPS: {fps}",
                 10,
                 10,
                 r,
                 g,
                 b,
-                m_screenWidth,
-                m_screenHeight
+                _screenWidth,
+                _screenHeight
             );
         }
         return Render();
@@ -104,40 +104,40 @@ public class GraphicsFramework
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
+        _openGL.BeginScene(0, 0, 0, 1);
 
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var ortho = m_OpenGL.GetOrthoMatrix();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var ortho = _openGL.GetOrthoMatrix();
 
-        m_OpenGL.TurnZBufferOff();
+        _openGL.TurnZBufferOff();
 
-        m_OpenGL.Gl.Enable(EnableCap.Blend);
-        m_OpenGL.Gl.BlendFuncSeparate(
+        _openGL.Gl.Enable(EnableCap.Blend);
+        _openGL.Gl.BlendFuncSeparate(
             BlendingFactor.SrcAlpha,
             BlendingFactor.OneMinusSrcAlpha,
             BlendingFactor.One,
             BlendingFactor.Zero
         );
 
-        m_FontShader.SetShader(m_OpenGL);
-        m_Font.SetTexture(m_OpenGL, TEXTURE_UNIT);
+        _fontShader.SetShader(_openGL);
+        _font.SetTexture(_openGL, TEXTURE_UNIT);
         if (
-            !m_FontShader.SetShaderParameters(
-                m_OpenGL,
+            !_fontShader.SetShaderParameters(
+                _openGL,
                 world,
                 view,
                 ortho,
                 (int)TEXTURE_UNIT,
-                m_FpsText.GetPixelColor()
+                _fpsText.GetPixelColor()
             )
         )
             return false;
-        m_FpsText.Render(m_OpenGL);
+        _fpsText.Render(_openGL);
 
-        m_OpenGL.Gl.Disable(EnableCap.Blend);
-        m_OpenGL.TurnZBufferOn();
-        m_OpenGL.EndScene();
+        _openGL.Gl.Disable(EnableCap.Blend);
+        _openGL.TurnZBufferOn();
+        _openGL.EndScene();
         return true;
     }
 }

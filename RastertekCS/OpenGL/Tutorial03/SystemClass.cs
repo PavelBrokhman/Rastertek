@@ -9,21 +9,21 @@ namespace RastertekCS.OpenGL.Tutorial03;
 
 public class SystemClass
 {
-    private IWindow m_window;
-    private IInputContext m_inputContext;
+    private IWindow _window;
+    private IInputContext _inputContext;
 
-    private OpenGLClass m_OpenGL;
-    private InputClass m_Input;
-    private GraphicsClass m_Graphics;
+    private OpenGLClass _openGL;
+    private InputClass _input;
+    private GraphicsClass _graphics;
 
-    private bool m_done;
+    private bool _done;
 
     public bool Initialize()
     {
         int screenWidth = 0;
         int screenHeight = 0;
 
-        m_OpenGL = new OpenGLClass();
+        _openGL = new OpenGLClass();
 
         if (!InitializeWindows(ref screenWidth, ref screenHeight))
         {
@@ -34,8 +34,8 @@ public class SystemClass
         // Инициализируем OpenGL (делается здесь после создания окна,
         // так как нужны screenWidth/Height и контекст окна).
         if (
-            !m_OpenGL.Initialize(
-                m_window,
+            !_openGL.Initialize(
+                _window,
                 screenWidth,
                 screenHeight,
                 GraphicsClass.SCREEN_DEPTH,
@@ -48,11 +48,11 @@ public class SystemClass
             return false;
         }
 
-        m_Input = new InputClass();
-        m_Input.Initialize();
+        _input = new InputClass();
+        _input.Initialize();
 
-        m_Graphics = new GraphicsClass();
-        if (!m_Graphics.Initialize(m_OpenGL))
+        _graphics = new GraphicsClass();
+        if (!_graphics.Initialize(_openGL))
         {
             return false;
         }
@@ -62,18 +62,18 @@ public class SystemClass
 
     public void Shutdown()
     {
-        if (m_Graphics != null)
+        if (_graphics != null)
         {
-            m_Graphics.Shutdown();
-            m_Graphics = null;
+            _graphics.Shutdown();
+            _graphics = null;
         }
 
-        m_Input = null;
+        _input = null;
 
-        if (m_OpenGL != null)
+        if (_openGL != null)
         {
-            m_OpenGL.Shutdown();
-            m_OpenGL = null;
+            _openGL.Shutdown();
+            _openGL = null;
         }
 
         ShutdownWindows();
@@ -81,18 +81,18 @@ public class SystemClass
 
     public void Run()
     {
-        m_done = false;
-        m_window.Run();
+        _done = false;
+        _window.Run();
     }
 
     private bool Frame()
     {
-        if (m_Input.IsKeyDown(Key.Escape))
+        if (_input.IsKeyDown(Key.Escape))
         {
             return false;
         }
 
-        return m_Graphics.Frame();
+        return _graphics.Frame();
     }
 
     private bool InitializeWindows(ref int screenWidth, ref int screenHeight)
@@ -115,52 +115,52 @@ public class SystemClass
             new APIVersion(4, 0)
         );
 
-        m_window = Window.Create(options);
+        _window = Window.Create(options);
 
-        m_window.Load += OnLoad;
-        m_window.Update += OnUpdate;
-        m_window.Render += OnRender;
-        m_window.Closing += OnClosing;
+        _window.Load += OnLoad;
+        _window.Update += OnUpdate;
+        _window.Render += OnRender;
+        _window.Closing += OnClosing;
 
-        m_window.Initialize();
+        _window.Initialize();
 
-        screenWidth = m_window.Size.X;
-        screenHeight = m_window.Size.Y;
+        screenWidth = _window.Size.X;
+        screenHeight = _window.Size.Y;
 
         return true;
     }
 
     private void ShutdownWindows()
     {
-        if (m_inputContext != null)
+        if (_inputContext != null)
         {
-            m_inputContext.Dispose();
-            m_inputContext = null;
+            _inputContext.Dispose();
+            _inputContext = null;
         }
 
-        if (m_window != null)
+        if (_window != null)
         {
-            m_window.Dispose();
-            m_window = null;
+            _window.Dispose();
+            _window = null;
         }
     }
 
     private void OnLoad()
     {
-        m_inputContext = m_window.CreateInput();
-        foreach (var keyboard in m_inputContext.Keyboards)
+        _inputContext = _window.CreateInput();
+        foreach (var keyboard in _inputContext.Keyboards)
         {
-            keyboard.KeyDown += (kb, key, _) => m_Input?.KeyDown(key);
-            keyboard.KeyUp += (kb, key, _) => m_Input?.KeyUp(key);
+            keyboard.KeyDown += (kb, key, _) => _input?.KeyDown(key);
+            keyboard.KeyUp += (kb, key, _) => _input?.KeyUp(key);
         }
     }
 
     private void OnUpdate(double deltaTime)
     {
-        if (m_done || !Frame())
+        if (_done || !Frame())
         {
-            m_done = true;
-            m_window.Close();
+            _done = true;
+            _window.Close();
         }
     }
 
@@ -170,11 +170,11 @@ public class SystemClass
         // требует актуального GL контекста — он как раз доступен здесь.
         // Поскольку в Tutorial 3 рендеринг только очищает экран, можем
         // вызвать Graphics.Frame() отсюда вместо OnUpdate. Переносим рендеринг.
-        m_Graphics?.Frame();
+        _graphics?.Frame();
     }
 
     private void OnClosing()
     {
-        m_done = true;
+        _done = true;
     }
 }

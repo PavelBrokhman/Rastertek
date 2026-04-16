@@ -5,23 +5,23 @@ namespace RastertekCS.OpenGL.Tutorial31.Graphics;
 
 public class RenderTexture
 {
-    private uint m_fbo,
-        m_texId,
-        m_depthId;
-    private int m_tw,
-        m_th;
-    private Matrix4X4<float> m_projMatrix;
+    private uint _frameBufferId,
+        _textureId,
+        _depthId;
+    private int _textureWidth,
+        _textureHeight;
+    private Matrix4X4<float> _projectionMatrix;
 
     public unsafe bool Initialize(GL4 OpenGL, int tw, int th, float sn, float sd)
     {
         var gl = OpenGL.Gl;
-        m_tw = tw;
-        m_th = th;
-        m_fbo = gl.GenFramebuffer();
-        gl.BindFramebuffer(FramebufferTarget.Framebuffer, m_fbo);
+        _textureWidth = tw;
+        _textureHeight = th;
+        _frameBufferId = gl.GenFramebuffer();
+        gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
         gl.ActiveTexture(TextureUnit.Texture0);
-        m_texId = gl.GenTexture();
-        gl.BindTexture(TextureTarget.Texture2D, m_texId);
+        _textureId = gl.GenTexture();
+        gl.BindTexture(TextureTarget.Texture2D, _textureId);
         gl.TexImage2D(
             TextureTarget.Texture2D,
             0,
@@ -47,11 +47,11 @@ public class RenderTexture
             FramebufferTarget.Framebuffer,
             FramebufferAttachment.ColorAttachment0,
             TextureTarget.Texture2D,
-            m_texId,
+            _textureId,
             0
         );
-        m_depthId = gl.GenRenderbuffer();
-        gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, m_depthId);
+        _depthId = gl.GenRenderbuffer();
+        gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthId);
         gl.RenderbufferStorage(
             RenderbufferTarget.Renderbuffer,
             InternalFormat.DepthComponent,
@@ -62,28 +62,28 @@ public class RenderTexture
             FramebufferTarget.Framebuffer,
             FramebufferAttachment.DepthAttachment,
             RenderbufferTarget.Renderbuffer,
-            m_depthId
+            _depthId
         );
         GLEnum[] db = { GLEnum.ColorAttachment0 };
         fixed (GLEnum* p = db)
             gl.DrawBuffers(1, p);
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        m_projMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)tw / th, sn, sd);
+        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)tw / th, sn, sd);
         return true;
     }
 
     public void Shutdown(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.DeleteRenderbuffer(m_depthId);
-        gl.DeleteTexture(m_texId);
-        gl.DeleteFramebuffer(m_fbo);
+        gl.DeleteRenderbuffer(_depthId);
+        gl.DeleteTexture(_textureId);
+        gl.DeleteFramebuffer(_frameBufferId);
     }
 
     public void SetRenderTarget(GL4 OpenGL)
     {
-        OpenGL.Gl.BindFramebuffer(FramebufferTarget.Framebuffer, m_fbo);
-        OpenGL.Gl.Viewport(0, 0, (uint)m_tw, (uint)m_th);
+        OpenGL.Gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
+        OpenGL.Gl.Viewport(0, 0, (uint)_textureWidth, (uint)_textureHeight);
     }
 
     public void ClearRenderTarget(GL4 OpenGL, float r, float g, float b, float a)
@@ -95,10 +95,10 @@ public class RenderTexture
     public void SetTexture(GL4 OpenGL, uint tu)
     {
         OpenGL.Gl.ActiveTexture(TextureUnit.Texture0 + (int)tu);
-        OpenGL.Gl.BindTexture(TextureTarget.Texture2D, m_texId);
+        OpenGL.Gl.BindTexture(TextureTarget.Texture2D, _textureId);
     }
 
-    public Matrix4X4<float> GetProjectionMatrix() => m_projMatrix;
+    public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;
 
     private static Matrix4X4<float> PerspectiveFovLH(
         float fov,

@@ -4,8 +4,8 @@ namespace RastertekCS.OpenGL.Tutorial32.Graphics;
 
 public class Texture
 {
-    private uint m_id;
-    private bool m_loaded;
+    private uint _id;
+    private bool _loaded;
 
     public unsafe bool Initialize(GL4 gl, string fn, uint tu, bool wrap)
     {
@@ -18,8 +18,8 @@ public class Texture
             return false;
         }
         g.ActiveTexture(TextureUnit.Texture0 + (int)tu);
-        m_id = g.GenTexture();
-        g.BindTexture(TextureTarget.Texture2D, m_id);
+        _id = g.GenTexture();
+        g.BindTexture(TextureTarget.Texture2D, _id);
         fixed (byte* p = px)
             g.TexImage2D(
                 TextureTarget.Texture2D,
@@ -46,25 +46,25 @@ public class Texture
             TextureParameterName.TextureMagFilter,
             (int)TextureMagFilter.Linear
         );
-        m_loaded = true;
+        _loaded = true;
         return true;
     }
 
     public void SetTexture(GL4 gl, uint tu)
     {
-        if (m_loaded)
+        if (_loaded)
         {
             gl.Gl.ActiveTexture(TextureUnit.Texture0 + (int)tu);
-            gl.Gl.BindTexture(TextureTarget.Texture2D, m_id);
+            gl.Gl.BindTexture(TextureTarget.Texture2D, _id);
         }
     }
 
     public void Shutdown(GL4 gl)
     {
-        if (m_loaded)
+        if (_loaded)
         {
-            gl.Gl.DeleteTexture(m_id);
-            m_loaded = false;
+            gl.Gl.DeleteTexture(_id);
+            _loaded = false;
         }
     }
 

@@ -4,22 +4,22 @@ namespace RastertekCS.Windows.Tutorial19.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private AlphaMapShader m_AlphaMapShader;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private AlphaMapShader _alphaMapShader;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
+        _camera.Render();
 
-        m_Model = new Model();
+        _model = new Model();
         if (
-            !m_Model.Initialize(
+            !_model.Initialize(
                 DirectX,
                 "Models/square.txt",
                 "Data/stone01.tga",
@@ -30,8 +30,8 @@ public class GraphicsFramework
         )
             return false;
 
-        m_AlphaMapShader = new AlphaMapShader();
-        if (!m_AlphaMapShader.Initialize(DirectX))
+        _alphaMapShader = new AlphaMapShader();
+        if (!_alphaMapShader.Initialize(DirectX))
             return false;
 
         return true;
@@ -39,31 +39,31 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_AlphaMapShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_AlphaMapShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _alphaMapShader?.Shutdown();
+        _model?.Shutdown();
+        _alphaMapShader = null;
+        _model = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame() => Render();
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = m_DirectX.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
+        var world = _directX.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
 
-        m_Model.Render(m_DirectX);
-        m_Model.SetTextures(m_DirectX);
+        _model.Render(_directX);
+        _model.SetTextures(_directX);
 
-        if (!m_AlphaMapShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection))
+        if (!_alphaMapShader.Render(_directX, _model.GetIndexCount(), world, view, projection))
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

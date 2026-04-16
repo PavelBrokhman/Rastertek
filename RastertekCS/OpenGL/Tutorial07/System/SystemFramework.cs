@@ -8,24 +8,24 @@ namespace RastertekCS.OpenGL.Tutorial07.System;
 
 public class SystemFramework
 {
-    private IWindow m_window;
-    private IInputContext m_inputContext;
-    private GL4 m_OpenGL;
-    private Input m_Input;
-    private GraphicsFramework m_Graphics;
-    private bool m_done;
-    private bool m_graphicsInitialized;
+    private IWindow _window;
+    private IInputContext _inputContext;
+    private GL4 _openGL;
+    private Input _input;
+    private GraphicsFramework _graphics;
+    private bool _done;
+    private bool _graphicsInitialized;
 
     public bool Initialize()
     {
         int sw = 0,
             sh = 0;
-        m_OpenGL = new GL4();
+        _openGL = new GL4();
         if (!InitializeWindows(ref sw, ref sh))
             return false;
         if (
-            !m_OpenGL.Initialize(
-                m_window,
+            !_openGL.Initialize(
+                _window,
                 sw,
                 sh,
                 SystemConfiguration.ScreenDepth,
@@ -34,36 +34,36 @@ public class SystemFramework
             )
         )
             return false;
-        m_Input = new Input();
-        m_Input.Initialize();
-        m_Graphics = new GraphicsFramework();
-        if (!m_Graphics.Initialize(m_OpenGL))
+        _input = new Input();
+        _input.Initialize();
+        _graphics = new GraphicsFramework();
+        if (!_graphics.Initialize(_openGL))
             return false;
-        m_graphicsInitialized = true;
+        _graphicsInitialized = true;
         return true;
     }
 
     public void Shutdown()
     {
-        m_Graphics?.Shutdown();
-        m_Graphics = null;
-        m_Input = null;
-        m_OpenGL?.Shutdown();
-        m_OpenGL = null;
+        _graphics?.Shutdown();
+        _graphics = null;
+        _input = null;
+        _openGL?.Shutdown();
+        _openGL = null;
         ShutdownWindows();
     }
 
     public void Run()
     {
-        m_done = false;
-        m_window.Run();
+        _done = false;
+        _window.Run();
     }
 
     private bool Frame()
     {
-        if (m_Input.IsKeyDown(Key.Escape))
+        if (_input.IsKeyDown(Key.Escape))
             return false;
-        return m_Graphics.Frame();
+        return _graphics.Frame();
     }
 
     private bool InitializeWindows(ref int sw, ref int sh)
@@ -84,52 +84,52 @@ public class SystemFramework
             ContextFlags.ForwardCompatible,
             new APIVersion(4, 0)
         );
-        m_window = Window.Create(options);
-        m_window.Load += OnLoad;
-        m_window.Render += OnRender;
-        m_window.Closing += OnClosing;
-        m_window.Initialize();
-        m_window.Title = "Tutorial07 - 3D Model Rendering (OpenGL)";
-        sw = m_window.Size.X;
-        sh = m_window.Size.Y;
+        _window = Window.Create(options);
+        _window.Load += OnLoad;
+        _window.Render += OnRender;
+        _window.Closing += OnClosing;
+        _window.Initialize();
+        _window.Title = "Tutorial07 - 3D Model Rendering (OpenGL)";
+        sw = _window.Size.X;
+        sh = _window.Size.Y;
         return true;
     }
 
     private void ShutdownWindows()
     {
-        m_inputContext?.Dispose();
-        m_inputContext = null;
-        m_window?.Dispose();
-        m_window = null;
+        _inputContext?.Dispose();
+        _inputContext = null;
+        _window?.Dispose();
+        _window = null;
     }
 
     private void OnLoad()
     {
-        m_inputContext = m_window.CreateInput();
-        foreach (var kb in m_inputContext.Keyboards)
+        _inputContext = _window.CreateInput();
+        foreach (var kb in _inputContext.Keyboards)
         {
-            kb.KeyDown += (_, key, _) => m_Input?.KeyDown(key);
-            kb.KeyUp += (_, key, _) => m_Input?.KeyUp(key);
+            kb.KeyDown += (_, key, _) => _input?.KeyDown(key);
+            kb.KeyUp += (_, key, _) => _input?.KeyUp(key);
         }
     }
 
     private void OnRender(double dt)
     {
-        if (!m_graphicsInitialized)
+        if (!_graphicsInitialized)
             return;
-        if (m_done || !Frame())
+        if (_done || !Frame())
         {
-            m_done = true;
-            m_window.Close();
+            _done = true;
+            _window.Close();
         }
     }
 
     private void OnClosing()
     {
-        m_done = true;
-        m_Graphics?.Shutdown();
-        m_Graphics = null;
-        m_OpenGL?.Shutdown();
-        m_OpenGL = null;
+        _done = true;
+        _graphics?.Shutdown();
+        _graphics = null;
+        _openGL?.Shutdown();
+        _openGL = null;
     }
 }

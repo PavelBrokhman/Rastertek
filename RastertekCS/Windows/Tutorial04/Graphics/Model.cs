@@ -16,14 +16,14 @@ public unsafe class Model
             b;
     }
 
-    private ComPtr<ID3D11Buffer> m_vertexBuffer;
-    private ComPtr<ID3D11Buffer> m_indexBuffer;
-    private int m_indexCount;
+    private ComPtr<ID3D11Buffer> _vertexBuffer;
+    private ComPtr<ID3D11Buffer> _indexBuffer;
+    private int _indexCount;
 
     public bool Initialize(DX11 DirectX)
     {
         var device = DirectX.Device;
-        m_indexCount = 3;
+        _indexCount = 3;
 
         var vertices = new VertexType[]
         {
@@ -71,7 +71,7 @@ public unsafe class Model
             };
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref _vertexBuffer)
             );
         }
 
@@ -89,7 +89,7 @@ public unsafe class Model
             };
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref _indexBuffer)
             );
         }
 
@@ -98,8 +98,8 @@ public unsafe class Model
 
     public void Shutdown()
     {
-        m_indexBuffer.Release();
-        m_vertexBuffer.Release();
+        _indexBuffer.Release();
+        _vertexBuffer.Release();
     }
 
     public void Render(DX11 DirectX)
@@ -108,11 +108,11 @@ public unsafe class Model
 
         uint stride = (uint)sizeof(VertexType);
         uint offset = 0;
-        var vb = m_vertexBuffer.GetPinnableReference();
+        var vb = _vertexBuffer.GetPinnableReference();
         context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-        context.IASetIndexBuffer(m_indexBuffer, Format.FormatR32Uint, 0);
+        context.IASetIndexBuffer(_indexBuffer, Format.FormatR32Uint, 0);
         context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 }

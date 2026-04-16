@@ -11,23 +11,23 @@ namespace RastertekCS.Windows.Tutorial03;
 
 public unsafe class DirectXClass
 {
-    private D3D11 m_d3d11;
-    private DXGI m_dxgi;
+    private D3D11 _d3d11;
+    private DXGI _dxgi;
 
-    private ComPtr<ID3D11Device> m_device;
-    private ComPtr<ID3D11DeviceContext> m_deviceContext;
-    private ComPtr<IDXGISwapChain> m_swapChain;
-    private ComPtr<ID3D11RenderTargetView> m_renderTargetView;
-    private ComPtr<ID3D11Texture2D> m_depthStencilBuffer;
-    private ComPtr<ID3D11DepthStencilState> m_depthStencilState;
-    private ComPtr<ID3D11DepthStencilView> m_depthStencilView;
-    private ComPtr<ID3D11RasterizerState> m_rasterState;
+    private ComPtr<ID3D11Device> _device;
+    private ComPtr<ID3D11DeviceContext> _deviceContext;
+    private ComPtr<IDXGISwapChain> _swapChain;
+    private ComPtr<ID3D11RenderTargetView> _renderTargetView;
+    private ComPtr<ID3D11Texture2D> _depthStencilBuffer;
+    private ComPtr<ID3D11DepthStencilState> _depthStencilState;
+    private ComPtr<ID3D11DepthStencilView> _depthStencilView;
+    private ComPtr<ID3D11RasterizerState> _rasterState;
 
-    private Matrix4X4<float> m_worldMatrix;
-    private Matrix4X4<float> m_projectionMatrix;
-    private string m_videoCardDescription;
+    private Matrix4X4<float> _worldMatrix;
+    private Matrix4X4<float> _projectionMatrix;
+    private string _videoCardDescription;
 
-    private bool m_vsyncEnabled;
+    private bool _vsyncEnabled;
 
     public bool Initialize(
         IWindow window,
@@ -38,16 +38,16 @@ public unsafe class DirectXClass
         bool vsync
     )
     {
-        m_vsyncEnabled = vsync;
-        m_d3d11 = D3D11.GetApi();
-        m_dxgi = DXGI.GetApi();
+        _vsyncEnabled = vsync;
+        _d3d11 = D3D11.GetApi();
+        _dxgi = DXGI.GetApi();
 
         // Get the native window handle.
         nint hwnd = window.Native!.Win32!.Value.Hwnd;
 
         // Create DXGI factory to enumerate adapters.
         ComPtr<IDXGIFactory> factory = default;
-        m_dxgi.CreateDXGIFactory(SilkMarshal.GuidPtrOf<IDXGIFactory>(), (void**)&factory);
+        _dxgi.CreateDXGIFactory(SilkMarshal.GuidPtrOf<IDXGIFactory>(), (void**)&factory);
 
         // Get primary adapter and its description.
         IDXGIAdapter* pAdapter = null;
@@ -56,7 +56,7 @@ public unsafe class DirectXClass
 
         AdapterDesc adapterDesc;
         adapter.GetDesc(&adapterDesc);
-        m_videoCardDescription = new string((char*)adapterDesc.Description);
+        _videoCardDescription = new string((char*)adapterDesc.Description);
 
         adapter.Release();
         factory.Release();
@@ -88,7 +88,7 @@ public unsafe class DirectXClass
         ID3D11Device* pDevice = null;
         ID3D11DeviceContext* pDeviceContext = null;
         SilkMarshal.ThrowHResult(
-            m_d3d11.CreateDeviceAndSwapChain(
+            _d3d11.CreateDeviceAndSwapChain(
                 (IDXGIAdapter*)null,
                 D3DDriverType.Hardware,
                 0,
@@ -103,17 +103,17 @@ public unsafe class DirectXClass
                 &pDeviceContext
             )
         );
-        m_swapChain = pSwapChain;
-        m_device = pDevice;
-        m_deviceContext = pDeviceContext;
+        _swapChain = pSwapChain;
+        _device = pDevice;
+        _deviceContext = pDeviceContext;
 
         // Get the back buffer and create a render target view.
         ComPtr<ID3D11Texture2D> backBuffer = default;
         SilkMarshal.ThrowHResult(
-            m_swapChain.GetBuffer(0, SilkMarshal.GuidPtrOf<ID3D11Texture2D>(), (void**)&backBuffer)
+            _swapChain.GetBuffer(0, SilkMarshal.GuidPtrOf<ID3D11Texture2D>(), (void**)&backBuffer)
         );
         SilkMarshal.ThrowHResult(
-            m_device.CreateRenderTargetView(backBuffer, null, ref m_renderTargetView)
+            _device.CreateRenderTargetView(backBuffer, null, ref _renderTargetView)
         );
         backBuffer.Release();
 
@@ -132,7 +132,7 @@ public unsafe class DirectXClass
             MiscFlags = 0,
         };
         SilkMarshal.ThrowHResult(
-            m_device.CreateTexture2D(&depthBufferDesc, null, ref m_depthStencilBuffer)
+            _device.CreateTexture2D(&depthBufferDesc, null, ref _depthStencilBuffer)
         );
 
         // Create the depth stencil state.
@@ -160,9 +160,9 @@ public unsafe class DirectXClass
             },
         };
         SilkMarshal.ThrowHResult(
-            m_device.CreateDepthStencilState(&depthStencilDesc, ref m_depthStencilState)
+            _device.CreateDepthStencilState(&depthStencilDesc, ref _depthStencilState)
         );
-        m_deviceContext.OMSetDepthStencilState(m_depthStencilState, 1);
+        _deviceContext.OMSetDepthStencilState(_depthStencilState, 1);
 
         // Create the depth stencil view.
         var depthStencilViewDesc = new DepthStencilViewDesc
@@ -172,16 +172,16 @@ public unsafe class DirectXClass
             Texture2D = new Tex2DDsv { MipSlice = 0 },
         };
         SilkMarshal.ThrowHResult(
-            m_device.CreateDepthStencilView(
-                m_depthStencilBuffer,
+            _device.CreateDepthStencilView(
+                _depthStencilBuffer,
                 &depthStencilViewDesc,
-                ref m_depthStencilView
+                ref _depthStencilView
             )
         );
 
         // Bind the render target view and depth stencil view.
-        var rtv = m_renderTargetView.GetPinnableReference();
-        m_deviceContext.OMSetRenderTargets(1, &rtv, m_depthStencilView);
+        var rtv = _renderTargetView.GetPinnableReference();
+        _deviceContext.OMSetRenderTargets(1, &rtv, _depthStencilView);
 
         // Create the rasterizer state.
         var rasterDesc = new RasterizerDesc
@@ -197,8 +197,8 @@ public unsafe class DirectXClass
             ScissorEnable = false,
             SlopeScaledDepthBias = 0.0f,
         };
-        SilkMarshal.ThrowHResult(m_device.CreateRasterizerState(&rasterDesc, ref m_rasterState));
-        m_deviceContext.RSSetState(m_rasterState);
+        SilkMarshal.ThrowHResult(_device.CreateRasterizerState(&rasterDesc, ref _rasterState));
+        _deviceContext.RSSetState(_rasterState);
 
         // Set the viewport.
         var viewport = new Viewport
@@ -210,48 +210,48 @@ public unsafe class DirectXClass
             MinDepth = 0.0f,
             MaxDepth = 1.0f,
         };
-        m_deviceContext.RSSetViewports(1, &viewport);
+        _deviceContext.RSSetViewports(1, &viewport);
 
         // Initialize matrices.
-        m_worldMatrix = Matrix4X4<float>.Identity;
+        _worldMatrix = Matrix4X4<float>.Identity;
 
         float fov = MathF.PI / 4.0f;
         float aspect = (float)screenWidth / screenHeight;
-        m_projectionMatrix = DXMath.PerspectiveFovLH(fov, aspect, screenNear, screenDepth);
+        _projectionMatrix = DXMath.PerspectiveFovLH(fov, aspect, screenNear, screenDepth);
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_deviceContext.ClearState();
-        m_rasterState.Release();
-        m_depthStencilView.Release();
-        m_depthStencilState.Release();
-        m_depthStencilBuffer.Release();
-        m_renderTargetView.Release();
-        m_swapChain.Release();
-        m_deviceContext.Release();
-        m_device.Release();
-        m_dxgi?.Dispose();
-        m_d3d11?.Dispose();
+        _deviceContext.ClearState();
+        _rasterState.Release();
+        _depthStencilView.Release();
+        _depthStencilState.Release();
+        _depthStencilBuffer.Release();
+        _renderTargetView.Release();
+        _swapChain.Release();
+        _deviceContext.Release();
+        _device.Release();
+        _dxgi?.Dispose();
+        _d3d11?.Dispose();
     }
 
     public void BeginScene(float red, float green, float blue, float alpha)
     {
         float* color = stackalloc float[4] { red, green, blue, alpha };
-        m_deviceContext.ClearRenderTargetView(m_renderTargetView, color);
-        m_deviceContext.ClearDepthStencilView(m_depthStencilView, (uint)ClearFlag.Depth, 1.0f, 0);
+        _deviceContext.ClearRenderTargetView(_renderTargetView, color);
+        _deviceContext.ClearDepthStencilView(_depthStencilView, (uint)ClearFlag.Depth, 1.0f, 0);
     }
 
     public void EndScene()
     {
-        m_swapChain.Present(m_vsyncEnabled ? 1u : 0u, 0);
+        _swapChain.Present(_vsyncEnabled ? 1u : 0u, 0);
     }
 
-    public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+    public Matrix4X4<float> GetWorldMatrix() => _worldMatrix;
 
-    public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+    public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;
 
-    public string GetVideoCardInfo() => m_videoCardDescription;
+    public string GetVideoCardInfo() => _videoCardDescription;
 }

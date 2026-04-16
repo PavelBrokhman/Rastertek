@@ -31,13 +31,13 @@ public unsafe class Model
             nz;
     }
 
-    private ComPtr<ID3D11Buffer> m_vertexBuffer;
-    private ComPtr<ID3D11Buffer> m_indexBuffer;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private ModelType[] m_model;
-    private Texture m_Texture1;
-    private Texture m_Texture2;
+    private ComPtr<ID3D11Buffer> _vertexBuffer;
+    private ComPtr<ID3D11Buffer> _indexBuffer;
+    private int _vertexCount;
+    private int _indexCount;
+    private ModelType[] _model;
+    private Texture _texture1;
+    private Texture _texture2;
 
     public bool Initialize(
         DX11 DirectX,
@@ -52,18 +52,18 @@ public unsafe class Model
         if (!LoadModel(modelFilename))
             return false;
 
-        var vertices = new VertexType[m_vertexCount];
-        var indices = new uint[m_indexCount];
-        for (int i = 0; i < m_vertexCount; i++)
+        var vertices = new VertexType[_vertexCount];
+        var indices = new uint[_indexCount];
+        for (int i = 0; i < _vertexCount; i++)
         {
-            vertices[i].x = m_model[i].x;
-            vertices[i].y = m_model[i].y;
-            vertices[i].z = m_model[i].z;
-            vertices[i].tu = m_model[i].tu;
-            vertices[i].tv = m_model[i].tv;
-            vertices[i].nx = m_model[i].nx;
-            vertices[i].ny = m_model[i].ny;
-            vertices[i].nz = m_model[i].nz;
+            vertices[i].x = _model[i].x;
+            vertices[i].y = _model[i].y;
+            vertices[i].z = _model[i].z;
+            vertices[i].tu = _model[i].tu;
+            vertices[i].tv = _model[i].tv;
+            vertices[i].nx = _model[i].nx;
+            vertices[i].ny = _model[i].ny;
+            vertices[i].nz = _model[i].nz;
             indices[i] = (uint)i;
         }
 
@@ -80,7 +80,7 @@ public unsafe class Model
             };
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref _vertexBuffer)
             );
         }
 
@@ -97,15 +97,15 @@ public unsafe class Model
             };
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref _indexBuffer)
             );
         }
 
-        m_Texture1 = new Texture();
-        if (!m_Texture1.Initialize(DirectX, textureFilename1, wrap))
+        _texture1 = new Texture();
+        if (!_texture1.Initialize(DirectX, textureFilename1, wrap))
             return false;
-        m_Texture2 = new Texture();
-        if (!m_Texture2.Initialize(DirectX, textureFilename2, wrap))
+        _texture2 = new Texture();
+        if (!_texture2.Initialize(DirectX, textureFilename2, wrap))
             return false;
 
         return true;
@@ -113,13 +113,13 @@ public unsafe class Model
 
     public void Shutdown()
     {
-        m_Texture1?.Shutdown();
-        m_Texture2?.Shutdown();
-        m_Texture1 = null;
-        m_Texture2 = null;
-        m_indexBuffer.Release();
-        m_vertexBuffer.Release();
-        m_model = null;
+        _texture1?.Shutdown();
+        _texture2?.Shutdown();
+        _texture1 = null;
+        _texture2 = null;
+        _indexBuffer.Release();
+        _vertexBuffer.Release();
+        _model = null;
     }
 
     public void Render(DX11 DirectX)
@@ -128,19 +128,19 @@ public unsafe class Model
 
         uint stride = (uint)sizeof(VertexType);
         uint offset = 0;
-        var vb = m_vertexBuffer.GetPinnableReference();
+        var vb = _vertexBuffer.GetPinnableReference();
         context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-        context.IASetIndexBuffer(m_indexBuffer, Format.FormatR32Uint, 0);
+        context.IASetIndexBuffer(_indexBuffer, Format.FormatR32Uint, 0);
         context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
     }
 
     public void SetTextures(DX11 DirectX)
     {
-        m_Texture1.SetTexture(DirectX, 0);
-        m_Texture2.SetTexture(DirectX, 1);
+        _texture1.SetTexture(DirectX, 0);
+        _texture2.SetTexture(DirectX, 1);
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 
     private bool LoadModel(string filename)
     {
@@ -163,9 +163,9 @@ public unsafe class Model
         var parts = lines[idx].Split(':');
         if (parts.Length < 2)
             return false;
-        m_vertexCount = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
-        m_indexCount = m_vertexCount;
-        m_model = new ModelType[m_vertexCount];
+        _vertexCount = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
+        _indexCount = _vertexCount;
+        _model = new ModelType[_vertexCount];
         idx++;
 
         while (
@@ -176,7 +176,7 @@ public unsafe class Model
         idx++;
 
         int vi = 0;
-        while (idx < lines.Length && vi < m_vertexCount)
+        while (idx < lines.Length && vi < _vertexCount)
         {
             var line = lines[idx].Trim();
             idx++;
@@ -185,16 +185,16 @@ public unsafe class Model
             var tokens = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             if (tokens.Length < 8)
                 continue;
-            m_model[vi].x = float.Parse(tokens[0], CultureInfo.InvariantCulture);
-            m_model[vi].y = float.Parse(tokens[1], CultureInfo.InvariantCulture);
-            m_model[vi].z = float.Parse(tokens[2], CultureInfo.InvariantCulture);
-            m_model[vi].tu = float.Parse(tokens[3], CultureInfo.InvariantCulture);
-            m_model[vi].tv = float.Parse(tokens[4], CultureInfo.InvariantCulture);
-            m_model[vi].nx = float.Parse(tokens[5], CultureInfo.InvariantCulture);
-            m_model[vi].ny = float.Parse(tokens[6], CultureInfo.InvariantCulture);
-            m_model[vi].nz = float.Parse(tokens[7], CultureInfo.InvariantCulture);
+            _model[vi].x = float.Parse(tokens[0], CultureInfo.InvariantCulture);
+            _model[vi].y = float.Parse(tokens[1], CultureInfo.InvariantCulture);
+            _model[vi].z = float.Parse(tokens[2], CultureInfo.InvariantCulture);
+            _model[vi].tu = float.Parse(tokens[3], CultureInfo.InvariantCulture);
+            _model[vi].tv = float.Parse(tokens[4], CultureInfo.InvariantCulture);
+            _model[vi].nx = float.Parse(tokens[5], CultureInfo.InvariantCulture);
+            _model[vi].ny = float.Parse(tokens[6], CultureInfo.InvariantCulture);
+            _model[vi].nz = float.Parse(tokens[7], CultureInfo.InvariantCulture);
             vi++;
         }
-        return vi == m_vertexCount;
+        return vi == _vertexCount;
     }
 }

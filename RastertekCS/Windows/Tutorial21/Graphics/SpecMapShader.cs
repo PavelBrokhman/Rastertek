@@ -39,12 +39,12 @@ public unsafe class SpecMapShader
             lightDirZ;
     }
 
-    private ComPtr<ID3D11VertexShader> m_vertexShader;
-    private ComPtr<ID3D11PixelShader> m_pixelShader;
-    private ComPtr<ID3D11InputLayout> m_layout;
-    private ComPtr<ID3D11Buffer> m_matrixBuffer;
-    private ComPtr<ID3D11Buffer> m_cameraBuffer;
-    private ComPtr<ID3D11Buffer> m_lightBuffer;
+    private ComPtr<ID3D11VertexShader> _vertexShader;
+    private ComPtr<ID3D11PixelShader> _pixelShader;
+    private ComPtr<ID3D11InputLayout> _layout;
+    private ComPtr<ID3D11Buffer> _matrixBuffer;
+    private ComPtr<ID3D11Buffer> _cameraBuffer;
+    private ComPtr<ID3D11Buffer> _lightBuffer;
 
     public bool Initialize(DX11 DirectX)
     {
@@ -53,12 +53,12 @@ public unsafe class SpecMapShader
 
     public void Shutdown()
     {
-        m_lightBuffer.Release();
-        m_cameraBuffer.Release();
-        m_matrixBuffer.Release();
-        m_layout.Release();
-        m_pixelShader.Release();
-        m_vertexShader.Release();
+        _lightBuffer.Release();
+        _cameraBuffer.Release();
+        _matrixBuffer.Release();
+        _layout.Release();
+        _pixelShader.Release();
+        _vertexShader.Release();
     }
 
     public bool Render(
@@ -127,7 +127,7 @@ public unsafe class SpecMapShader
                 vsBlob.GetBufferPointer(),
                 vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_vertexShader
+                ref _vertexShader
             )
         );
 
@@ -158,7 +158,7 @@ public unsafe class SpecMapShader
                 psBlob.GetBufferPointer(),
                 psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_pixelShader
+                ref _pixelShader
             )
         );
 
@@ -230,7 +230,7 @@ public unsafe class SpecMapShader
                     (uint)layoutDesc.Length,
                     vsBlob.GetBufferPointer(),
                     vsBlob.GetBufferSize(),
-                    ref m_layout
+                    ref _layout
                 )
             );
         }
@@ -252,7 +252,7 @@ public unsafe class SpecMapShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref _matrixBuffer));
 
         var cameraBufferDesc = new BufferDesc
         {
@@ -263,7 +263,7 @@ public unsafe class SpecMapShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&cameraBufferDesc, null, ref m_cameraBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&cameraBufferDesc, null, ref _cameraBuffer));
 
         var lightBufferDesc = new BufferDesc
         {
@@ -274,7 +274,7 @@ public unsafe class SpecMapShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&lightBufferDesc, null, ref m_lightBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&lightBufferDesc, null, ref _lightBuffer));
 
         return true;
     }
@@ -299,32 +299,32 @@ public unsafe class SpecMapShader
 
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
         var mp = (MatrixBufferType*)mappedResource.PData;
         mp->world = worldMatrix;
         mp->view = viewMatrix;
         mp->projection = projectionMatrix;
-        context.Unmap(m_matrixBuffer, 0);
+        context.Unmap(_matrixBuffer, 0);
 
-        var mcb = m_matrixBuffer.GetPinnableReference();
+        var mcb = _matrixBuffer.GetPinnableReference();
         context.VSSetConstantBuffers(0, 1, &mcb);
 
         SilkMarshal.ThrowHResult(
-            context.Map(m_cameraBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_cameraBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
         var cp = (CameraBufferType*)mappedResource.PData;
         cp->camX = cameraPosition[0];
         cp->camY = cameraPosition[1];
         cp->camZ = cameraPosition[2];
         cp->padding = 0;
-        context.Unmap(m_cameraBuffer, 0);
+        context.Unmap(_cameraBuffer, 0);
 
-        var ccb = m_cameraBuffer.GetPinnableReference();
+        var ccb = _cameraBuffer.GetPinnableReference();
         context.VSSetConstantBuffers(1, 1, &ccb);
 
         SilkMarshal.ThrowHResult(
-            context.Map(m_lightBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_lightBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
         var lp = (LightBufferType*)mappedResource.PData;
         lp->diffuseR = diffuseColor[0];
@@ -339,9 +339,9 @@ public unsafe class SpecMapShader
         lp->lightDirX = lightDirection[0];
         lp->lightDirY = lightDirection[1];
         lp->lightDirZ = lightDirection[2];
-        context.Unmap(m_lightBuffer, 0);
+        context.Unmap(_lightBuffer, 0);
 
-        var lcb = m_lightBuffer.GetPinnableReference();
+        var lcb = _lightBuffer.GetPinnableReference();
         context.PSSetConstantBuffers(0, 1, &lcb);
 
         return true;
@@ -350,9 +350,9 @@ public unsafe class SpecMapShader
     private void RenderShader(DX11 DirectX, int indexCount)
     {
         var context = DirectX.DeviceContext;
-        context.IASetInputLayout(m_layout);
-        context.VSSetShader(m_vertexShader, null, 0);
-        context.PSSetShader(m_pixelShader, null, 0);
+        context.IASetInputLayout(_layout);
+        context.VSSetShader(_vertexShader, null, 0);
+        context.PSSetShader(_pixelShader, null, 0);
         context.DrawIndexed((uint)indexCount, 0, 0);
     }
 }

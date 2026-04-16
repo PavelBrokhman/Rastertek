@@ -4,27 +4,27 @@ namespace RastertekCS.Windows.Tutorial27.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private ClipPlaneShader m_ClipPlaneShader;
-    private readonly float[] m_clipPlane = new float[] { 0.0f, -1.0f, 0.0f, 0.0f };
-    private float m_rotation = MathF.Tau;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private ClipPlaneShader _clipPlaneShader;
+    private readonly float[] _clipPlane = new float[] { 0.0f, -1.0f, 0.0f, 0.0f };
+    private float _rotation = MathF.Tau;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
+        _model = new Model();
+        if (!_model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
             return false;
 
-        m_ClipPlaneShader = new ClipPlaneShader();
-        if (!m_ClipPlaneShader.Initialize(DirectX))
+        _clipPlaneShader = new ClipPlaneShader();
+        if (!_clipPlaneShader.Initialize(DirectX))
             return false;
 
         return true;
@@ -32,46 +32,46 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_ClipPlaneShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_ClipPlaneShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _clipPlaneShader?.Shutdown();
+        _model?.Shutdown();
+        _clipPlaneShader = null;
+        _model = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation <= 0.0f)
-            m_rotation += MathF.Tau;
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation <= 0.0f)
+            _rotation += MathF.Tau;
         return Render();
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = Matrix4X4.CreateRotationY(m_rotation);
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
+        var world = Matrix4X4.CreateRotationY(_rotation);
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
 
-        m_Model.Render(m_DirectX);
-        m_Model.SetTexture(m_DirectX, 0);
+        _model.Render(_directX);
+        _model.SetTexture(_directX, 0);
 
         if (
-            !m_ClipPlaneShader.Render(
-                m_DirectX,
-                m_Model.GetIndexCount(),
+            !_clipPlaneShader.Render(
+                _directX,
+                _model.GetIndexCount(),
                 world,
                 view,
                 projection,
-                m_clipPlane
+                _clipPlane
             )
         )
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

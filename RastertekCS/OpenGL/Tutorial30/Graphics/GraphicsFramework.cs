@@ -5,41 +5,41 @@ namespace RastertekCS.OpenGL.Tutorial30.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Model m_CubeModel,
-        m_FloorModel;
-    private TextureShader m_TextureShader;
-    private ReflectionShader m_ReflectionShader;
-    private RenderTexture m_RenderTexture;
-    private float m_rotation = 360.0f;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Model _cubeModel,
+        _floorModel;
+    private TextureShader _textureShader;
+    private ReflectionShader _reflectionShader;
+    private RenderTexture _renderTexture;
+    private float _rotation = 360.0f;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0, 0, -10);
-        m_Camera.Render();
+        _openGL = OpenGL;
+        _camera = new Camera();
+        _camera.SetPosition(0, 0, -10);
+        _camera.Render();
 
-        m_CubeModel = new Model();
-        if (!m_CubeModel.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga", true))
+        _cubeModel = new Model();
+        if (!_cubeModel.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga", true))
             return false;
 
-        m_FloorModel = new Model();
-        if (!m_FloorModel.Initialize(OpenGL, "Models/floor.txt", "Data/blue01.tga", true))
+        _floorModel = new Model();
+        if (!_floorModel.Initialize(OpenGL, "Models/floor.txt", "Data/blue01.tga", true))
             return false;
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(OpenGL))
             return false;
 
-        m_ReflectionShader = new ReflectionShader();
-        if (!m_ReflectionShader.Initialize(OpenGL))
+        _reflectionShader = new ReflectionShader();
+        if (!_reflectionShader.Initialize(OpenGL))
             return false;
 
-        m_RenderTexture = new RenderTexture();
+        _renderTexture = new RenderTexture();
         if (
-            !m_RenderTexture.Initialize(
+            !_renderTexture.Initialize(
                 OpenGL,
                 screenWidth,
                 screenHeight,
@@ -54,70 +54,70 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_RenderTexture?.Shutdown(m_OpenGL);
-        m_RenderTexture = null;
-        m_ReflectionShader?.Shutdown(m_OpenGL);
-        m_ReflectionShader = null;
-        m_TextureShader?.Shutdown(m_OpenGL);
-        m_TextureShader = null;
-        m_FloorModel?.Shutdown(m_OpenGL);
-        m_FloorModel = null;
-        m_CubeModel?.Shutdown(m_OpenGL);
-        m_CubeModel = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _renderTexture?.Shutdown(_openGL);
+        _renderTexture = null;
+        _reflectionShader?.Shutdown(_openGL);
+        _reflectionShader = null;
+        _textureShader?.Shutdown(_openGL);
+        _textureShader = null;
+        _floorModel?.Shutdown(_openGL);
+        _floorModel = null;
+        _cubeModel?.Shutdown(_openGL);
+        _cubeModel = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f)
-            m_rotation += MathF.Tau;
-        if (!RenderReflectionToTexture(m_rotation))
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation < 0.0f)
+            _rotation += MathF.Tau;
+        if (!RenderReflectionToTexture(_rotation))
             return false;
-        return Render(m_rotation);
+        return Render(_rotation);
     }
 
     private bool RenderReflectionToTexture(float rotation)
     {
-        m_RenderTexture.SetRenderTarget(m_OpenGL);
-        m_RenderTexture.ClearRenderTarget(m_OpenGL, 0, 0, 0, 1);
+        _renderTexture.SetRenderTarget(_openGL);
+        _renderTexture.ClearRenderTarget(_openGL, 0, 0, 0, 1);
 
-        m_Camera.RenderReflection(-1.5f);
-        var reflectionView = m_Camera.GetReflectionViewMatrix();
+        _camera.RenderReflection(-1.5f);
+        var reflectionView = _camera.GetReflectionViewMatrix();
         var world = Matrix4X4.CreateRotationY<float>(rotation);
-        var projection = m_RenderTexture.GetProjectionMatrix();
+        var projection = _renderTexture.GetProjectionMatrix();
 
-        m_TextureShader.SetShaderParameters(m_OpenGL, world, reflectionView, projection);
-        m_CubeModel.SetTexture(m_OpenGL, 0);
-        m_CubeModel.Render(m_OpenGL);
+        _textureShader.SetShaderParameters(_openGL, world, reflectionView, projection);
+        _cubeModel.SetTexture(_openGL, 0);
+        _cubeModel.Render(_openGL);
 
-        m_OpenGL.SetBackBufferRenderTarget();
-        m_OpenGL.ResetViewport();
+        _openGL.SetBackBufferRenderTarget();
+        _openGL.ResetViewport();
         return true;
     }
 
     private bool Render(float rotation)
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
+        _openGL.BeginScene(0, 0, 0, 1);
 
         var world = Matrix4X4.CreateRotationY<float>(rotation);
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_OpenGL.GetProjectionMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _openGL.GetProjectionMatrix();
 
-        m_TextureShader.SetShaderParameters(m_OpenGL, world, view, projection);
-        m_CubeModel.SetTexture(m_OpenGL, 0);
-        m_CubeModel.Render(m_OpenGL);
+        _textureShader.SetShaderParameters(_openGL, world, view, projection);
+        _cubeModel.SetTexture(_openGL, 0);
+        _cubeModel.Render(_openGL);
 
         world = Matrix4X4.CreateTranslation<float>(0, -1.5f, 0);
-        var reflectionView = m_Camera.GetReflectionViewMatrix();
+        var reflectionView = _camera.GetReflectionViewMatrix();
 
-        m_ReflectionShader.SetShaderParameters(m_OpenGL, world, view, projection, reflectionView);
-        m_RenderTexture.SetTexture(m_OpenGL, 1);
-        m_FloorModel.SetTexture(m_OpenGL, 0);
-        m_FloorModel.Render(m_OpenGL);
+        _reflectionShader.SetShaderParameters(_openGL, world, view, projection, reflectionView);
+        _renderTexture.SetTexture(_openGL, 1);
+        _floorModel.SetTexture(_openGL, 0);
+        _floorModel.Render(_openGL);
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

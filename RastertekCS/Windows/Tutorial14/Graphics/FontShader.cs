@@ -23,11 +23,11 @@ public unsafe class FontShader
             a;
     }
 
-    private ComPtr<ID3D11VertexShader> m_vertexShader;
-    private ComPtr<ID3D11PixelShader> m_pixelShader;
-    private ComPtr<ID3D11InputLayout> m_layout;
-    private ComPtr<ID3D11Buffer> m_matrixBuffer;
-    private ComPtr<ID3D11Buffer> m_pixelBuffer;
+    private ComPtr<ID3D11VertexShader> _vertexShader;
+    private ComPtr<ID3D11PixelShader> _pixelShader;
+    private ComPtr<ID3D11InputLayout> _layout;
+    private ComPtr<ID3D11Buffer> _matrixBuffer;
+    private ComPtr<ID3D11Buffer> _pixelBuffer;
 
     public bool Initialize(DX11 DirectX)
     {
@@ -36,11 +36,11 @@ public unsafe class FontShader
 
     public void Shutdown()
     {
-        m_pixelBuffer.Release();
-        m_matrixBuffer.Release();
-        m_layout.Release();
-        m_pixelShader.Release();
-        m_vertexShader.Release();
+        _pixelBuffer.Release();
+        _matrixBuffer.Release();
+        _layout.Release();
+        _pixelShader.Release();
+        _vertexShader.Release();
     }
 
     public bool Render(
@@ -92,7 +92,7 @@ public unsafe class FontShader
                 vsBlob.GetBufferPointer(),
                 vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_vertexShader
+                ref _vertexShader
             )
         );
 
@@ -124,7 +124,7 @@ public unsafe class FontShader
                 psBlob.GetBufferPointer(),
                 psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_pixelShader
+                ref _pixelShader
             )
         );
 
@@ -163,7 +163,7 @@ public unsafe class FontShader
                     (uint)layoutDesc.Length,
                     vsBlob.GetBufferPointer(),
                     vsBlob.GetBufferSize(),
-                    ref m_layout
+                    ref _layout
                 )
             );
         }
@@ -182,7 +182,7 @@ public unsafe class FontShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref _matrixBuffer));
 
         var pixelBufferDesc = new BufferDesc
         {
@@ -193,7 +193,7 @@ public unsafe class FontShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&pixelBufferDesc, null, ref m_pixelBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&pixelBufferDesc, null, ref _pixelBuffer));
 
         return true;
     }
@@ -214,28 +214,28 @@ public unsafe class FontShader
 
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
         var matrixPtr = (MatrixBufferType*)mappedResource.PData;
         matrixPtr->world = worldMatrix;
         matrixPtr->view = viewMatrix;
         matrixPtr->projection = projectionMatrix;
-        context.Unmap(m_matrixBuffer, 0);
+        context.Unmap(_matrixBuffer, 0);
 
-        var mcb = m_matrixBuffer.GetPinnableReference();
+        var mcb = _matrixBuffer.GetPinnableReference();
         context.VSSetConstantBuffers(0, 1, &mcb);
 
         SilkMarshal.ThrowHResult(
-            context.Map(m_pixelBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_pixelBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
         var pixelPtr = (PixelBufferType*)mappedResource.PData;
         pixelPtr->r = pixelColor[0];
         pixelPtr->g = pixelColor[1];
         pixelPtr->b = pixelColor[2];
         pixelPtr->a = pixelColor[3];
-        context.Unmap(m_pixelBuffer, 0);
+        context.Unmap(_pixelBuffer, 0);
 
-        var pcb = m_pixelBuffer.GetPinnableReference();
+        var pcb = _pixelBuffer.GetPinnableReference();
         context.PSSetConstantBuffers(0, 1, &pcb);
 
         return true;
@@ -244,9 +244,9 @@ public unsafe class FontShader
     private void RenderShader(DX11 DirectX, int indexCount)
     {
         var context = DirectX.DeviceContext;
-        context.IASetInputLayout(m_layout);
-        context.VSSetShader(m_vertexShader, null, 0);
-        context.PSSetShader(m_pixelShader, null, 0);
+        context.IASetInputLayout(_layout);
+        context.VSSetShader(_vertexShader, null, 0);
+        context.PSSetShader(_pixelShader, null, 0);
         context.DrawIndexed((uint)indexCount, 0, 0);
     }
 }

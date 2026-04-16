@@ -4,15 +4,15 @@ namespace RastertekCS.OpenGL.Tutorial14.Graphics;
 
 public class Text
 {
-    private uint m_vertexArrayId;
-    private uint m_vertexBufferId;
-    private uint m_indexBufferId;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private int m_maxLength;
-    private float m_red,
-        m_green,
-        m_blue;
+    private uint _vertexArrayId;
+    private uint _vertexBufferId;
+    private uint _indexBufferId;
+    private int _vertexCount;
+    private int _indexCount;
+    private int _maxLength;
+    private float _red,
+        _green,
+        _blue;
 
     public unsafe bool Initialize(
         GL4 OpenGL,
@@ -29,29 +29,29 @@ public class Text
     )
     {
         var gl = OpenGL.Gl;
-        m_maxLength = maxLength;
-        m_red = r;
-        m_green = g;
-        m_blue = b;
+        _maxLength = maxLength;
+        _red = r;
+        _green = g;
+        _blue = b;
 
-        m_vertexCount = 6 * m_maxLength;
-        m_indexCount = m_vertexCount;
+        _vertexCount = 6 * _maxLength;
+        _indexCount = _vertexCount;
         int floatsPerVertex = 5; // x,y,z,tu,tv
 
-        var vertices = new float[m_vertexCount * floatsPerVertex];
-        var indices = new uint[m_indexCount];
-        for (int i = 0; i < m_indexCount; i++)
+        var vertices = new float[_vertexCount * floatsPerVertex];
+        var indices = new uint[_indexCount];
+        for (int i = 0; i < _indexCount; i++)
             indices[i] = (uint)i;
 
         float startX = -(screenWidth / 2.0f) + posX;
         float startY = (screenHeight / 2.0f) - posY;
         font.BuildVertexArray(vertices, sentence, startX, startY);
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (float* p = vertices)
             gl.BufferData(
                 BufferTargetARB.ArrayBuffer,
@@ -79,8 +79,8 @@ public class Text
             (void*)(3 * sizeof(float))
         );
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
             gl.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
@@ -105,17 +105,17 @@ public class Text
         int screenHeight
     )
     {
-        m_red = r;
-        m_green = g;
-        m_blue = b;
+        _red = r;
+        _green = g;
+        _blue = b;
         int floatsPerVertex = 5;
-        var vertices = new float[m_vertexCount * floatsPerVertex];
+        var vertices = new float[_vertexCount * floatsPerVertex];
         float startX = -(screenWidth / 2.0f) + posX;
         float startY = (screenHeight / 2.0f) - posY;
         font.BuildVertexArray(vertices, sentence, startX, startY);
 
         var gl = OpenGL.Gl;
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (float* p = vertices)
             gl.BufferSubData(
                 BufferTargetARB.ArrayBuffer,
@@ -131,22 +131,22 @@ public class Text
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexArrayId);
     }
 
-    public float[] GetPixelColor() => new[] { m_red, m_green, m_blue, 1.0f };
+    public float[] GetPixelColor() => new[] { _red, _green, _blue, 1.0f };
 
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.BindVertexArray(m_vertexArrayId);
+        gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_indexCount,
+            (uint)_indexCount,
             DrawElementsType.UnsignedInt,
             (void*)0
         );

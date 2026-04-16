@@ -15,20 +15,20 @@ public unsafe class Bitmap
             tv;
     }
 
-    private ComPtr<ID3D11Buffer> m_vertexBuffer;
-    private ComPtr<ID3D11Buffer> m_indexBuffer;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private Texture m_Texture;
+    private ComPtr<ID3D11Buffer> _vertexBuffer;
+    private ComPtr<ID3D11Buffer> _indexBuffer;
+    private int _vertexCount;
+    private int _indexCount;
+    private Texture _texture;
 
-    private int m_screenWidth,
-        m_screenHeight;
-    private int m_bitmapWidth,
-        m_bitmapHeight;
-    private int m_renderX,
-        m_renderY;
-    private int m_prevPosX = -1,
-        m_prevPosY = -1;
+    private int _screenWidth,
+        _screenHeight;
+    private int _bitmapWidth,
+        _bitmapHeight;
+    private int _renderX,
+        _renderY;
+    private int _previousPositionX = -1,
+        _previousPositionY = -1;
 
     public bool Initialize(
         DX11 DirectX,
@@ -39,12 +39,12 @@ public unsafe class Bitmap
         int bitmapHeight
     )
     {
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
-        m_bitmapWidth = bitmapWidth;
-        m_bitmapHeight = bitmapHeight;
-        m_renderX = 0;
-        m_renderY = 0;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
+        _bitmapWidth = bitmapWidth;
+        _bitmapHeight = bitmapHeight;
+        _renderX = 0;
+        _renderY = 0;
 
         if (!InitializeBuffers(DirectX))
             return false;
@@ -56,10 +56,10 @@ public unsafe class Bitmap
 
     public void Shutdown()
     {
-        m_Texture?.Shutdown();
-        m_Texture = null;
-        m_indexBuffer.Release();
-        m_vertexBuffer.Release();
+        _texture?.Shutdown();
+        _texture = null;
+        _indexBuffer.Release();
+        _vertexBuffer.Release();
     }
 
     public bool Render(DX11 DirectX)
@@ -70,32 +70,32 @@ public unsafe class Bitmap
         return true;
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 
-    public void SetTexture(DX11 DirectX, uint slot) => m_Texture.SetTexture(DirectX, slot);
+    public void SetTexture(DX11 DirectX, uint slot) => _texture.SetTexture(DirectX, slot);
 
     public void SetRenderLocation(int x, int y)
     {
-        m_renderX = x;
-        m_renderY = y;
+        _renderX = x;
+        _renderY = y;
     }
 
     private bool InitializeBuffers(DX11 DirectX)
     {
         var device = DirectX.Device;
 
-        m_vertexCount = 6;
-        m_indexCount = 6;
+        _vertexCount = 6;
+        _indexCount = 6;
 
-        var vertices = new VertexType[m_vertexCount];
-        var indices = new uint[m_indexCount];
-        for (int i = 0; i < m_indexCount; i++)
+        var vertices = new VertexType[_vertexCount];
+        var indices = new uint[_indexCount];
+        for (int i = 0; i < _indexCount; i++)
             indices[i] = (uint)i;
 
         var vertexBufferDesc = new BufferDesc
         {
             Usage = Usage.Dynamic,
-            ByteWidth = (uint)(sizeof(VertexType) * m_vertexCount),
+            ByteWidth = (uint)(sizeof(VertexType) * _vertexCount),
             BindFlags = (uint)BindFlag.VertexBuffer,
             CPUAccessFlags = (uint)CpuAccessFlag.Write,
             MiscFlags = 0,
@@ -111,14 +111,14 @@ public unsafe class Bitmap
                 SysMemSlicePitch = 0,
             };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref _vertexBuffer)
             );
         }
 
         var indexBufferDesc = new BufferDesc
         {
             Usage = Usage.Default,
-            ByteWidth = (uint)(sizeof(uint) * m_indexCount),
+            ByteWidth = (uint)(sizeof(uint) * _indexCount),
             BindFlags = (uint)BindFlag.IndexBuffer,
             CPUAccessFlags = 0,
             MiscFlags = 0,
@@ -134,7 +134,7 @@ public unsafe class Bitmap
                 SysMemSlicePitch = 0,
             };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref _indexBuffer)
             );
         }
 
@@ -143,16 +143,16 @@ public unsafe class Bitmap
 
     private bool UpdateBuffers(DX11 DirectX)
     {
-        if (m_prevPosX == m_renderX && m_prevPosY == m_renderY)
+        if (_previousPositionX == _renderX && _previousPositionY == _renderY)
             return true;
 
-        m_prevPosX = m_renderX;
-        m_prevPosY = m_renderY;
+        _previousPositionX = _renderX;
+        _previousPositionY = _renderY;
 
-        float left = (m_screenWidth / 2 * -1) + (float)m_renderX;
-        float right = left + m_bitmapWidth;
-        float top = (m_screenHeight / 2) - (float)m_renderY;
-        float bottom = top - m_bitmapHeight;
+        float left = (_screenWidth / 2 * -1) + (float)_renderX;
+        float right = left + _bitmapWidth;
+        float top = (_screenHeight / 2) - (float)_renderY;
+        float bottom = top - _bitmapHeight;
 
         var vertices = new VertexType[6]
         {
@@ -209,18 +209,18 @@ public unsafe class Bitmap
         var context = DirectX.DeviceContext;
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_vertexBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_vertexBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
         fixed (VertexType* pSrc = vertices)
         {
             global::System.Buffer.MemoryCopy(
                 pSrc,
                 mappedResource.PData,
-                sizeof(VertexType) * m_vertexCount,
-                sizeof(VertexType) * m_vertexCount
+                sizeof(VertexType) * _vertexCount,
+                sizeof(VertexType) * _vertexCount
             );
         }
-        context.Unmap(m_vertexBuffer, 0);
+        context.Unmap(_vertexBuffer, 0);
 
         return true;
     }
@@ -230,15 +230,15 @@ public unsafe class Bitmap
         var context = DirectX.DeviceContext;
         uint stride = (uint)sizeof(VertexType);
         uint offset = 0;
-        var vb = m_vertexBuffer.GetPinnableReference();
+        var vb = _vertexBuffer.GetPinnableReference();
         context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-        context.IASetIndexBuffer(m_indexBuffer, Format.FormatR32Uint, 0);
+        context.IASetIndexBuffer(_indexBuffer, Format.FormatR32Uint, 0);
         context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3D11PrimitiveTopologyTrianglelist);
     }
 
     private bool LoadTexture(DX11 DirectX, string filename)
     {
-        m_Texture = new Texture();
-        return m_Texture.Initialize(DirectX, filename, false);
+        _texture = new Texture();
+        return _texture.Initialize(DirectX, filename, false);
     }
 }

@@ -16,16 +16,16 @@ public class Model
             nz;
     }
 
-    private uint m_vertexArrayId;
-    private uint m_vertexBufferId;
-    private uint m_indexBufferId;
-    private int m_indexCount;
-    private Texture m_Texture;
+    private uint _vertexArrayId;
+    private uint _vertexBufferId;
+    private uint _indexBufferId;
+    private int _indexCount;
+    private Texture _texture;
 
     public unsafe bool Initialize(GL4 OpenGL, string textureFilename, uint textureUnit, bool wrap)
     {
         var gl = OpenGL.Gl;
-        m_indexCount = 3;
+        _indexCount = 3;
 
         var vertices = new VertexType[]
         {
@@ -65,11 +65,11 @@ public class Model
         };
         var indices = new uint[] { 0, 1, 2 };
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = vertices)
         {
             gl.BufferData(
@@ -109,8 +109,8 @@ public class Model
             (void*)(5 * sizeof(float))
         );
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
         {
             gl.BufferData(
@@ -121,8 +121,8 @@ public class Model
             );
         }
 
-        m_Texture = new Texture();
-        if (!m_Texture.Initialize(OpenGL, textureFilename, textureUnit, wrap))
+        _texture = new Texture();
+        if (!_texture.Initialize(OpenGL, textureFilename, textureUnit, wrap))
             return false;
 
         return true;
@@ -130,27 +130,27 @@ public class Model
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture?.Shutdown(OpenGL);
-        m_Texture = null;
+        _texture?.Shutdown(OpenGL);
+        _texture = null;
         var gl = OpenGL.Gl;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.DisableVertexAttribArray(2);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexArrayId);
     }
 
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.BindVertexArray(m_vertexArrayId);
+        gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_indexCount,
+            (uint)_indexCount,
             DrawElementsType.UnsignedInt,
             (void*)0
         );

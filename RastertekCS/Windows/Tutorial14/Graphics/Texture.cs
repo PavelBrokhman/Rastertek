@@ -6,16 +6,16 @@ namespace RastertekCS.Windows.Tutorial14.Graphics;
 
 public unsafe class Texture
 {
-    private ComPtr<ID3D11Texture2D> m_texture;
-    private ComPtr<ID3D11ShaderResourceView> m_textureView;
-    private ComPtr<ID3D11SamplerState> m_samplerState;
-    private bool m_loaded;
-    private int m_width;
-    private int m_height;
+    private ComPtr<ID3D11Texture2D> _texture;
+    private ComPtr<ID3D11ShaderResourceView> _textureView;
+    private ComPtr<ID3D11SamplerState> _samplerState;
+    private bool _loaded;
+    private int _width;
+    private int _height;
 
-    public int GetWidth() => m_width;
+    public int GetWidth() => _width;
 
-    public int GetHeight() => m_height;
+    public int GetHeight() => _height;
 
     public bool Initialize(DX11 DirectX, string filename, bool wrap)
     {
@@ -34,8 +34,8 @@ public unsafe class Texture
             return false;
         }
 
-        m_width = width;
-        m_height = height;
+        _width = width;
+        _height = height;
 
         // Create the texture.
         var textureDesc = new Texture2DDesc
@@ -60,9 +60,7 @@ public unsafe class Texture
                 SysMemPitch = (uint)(width * 4),
                 SysMemSlicePitch = 0,
             };
-            SilkMarshal.ThrowHResult(
-                device.CreateTexture2D(&textureDesc, &initData, ref m_texture)
-            );
+            SilkMarshal.ThrowHResult(device.CreateTexture2D(&textureDesc, &initData, ref _texture));
         }
 
         // Create shader resource view.
@@ -73,7 +71,7 @@ public unsafe class Texture
             Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = 1 },
         };
         SilkMarshal.ThrowHResult(
-            device.CreateShaderResourceView(m_texture, &srvDesc, ref m_textureView)
+            device.CreateShaderResourceView(_texture, &srvDesc, ref _textureView)
         );
 
         // Create sampler state.
@@ -93,29 +91,29 @@ public unsafe class Texture
         samplerDesc.BorderColor[1] = 0;
         samplerDesc.BorderColor[2] = 0;
         samplerDesc.BorderColor[3] = 0;
-        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_samplerState));
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref _samplerState));
 
-        m_loaded = true;
+        _loaded = true;
         return true;
     }
 
     public void Shutdown()
     {
-        if (m_loaded)
+        if (_loaded)
         {
-            m_samplerState.Release();
-            m_textureView.Release();
-            m_texture.Release();
-            m_loaded = false;
+            _samplerState.Release();
+            _textureView.Release();
+            _texture.Release();
+            _loaded = false;
         }
     }
 
     public void SetTexture(DX11 DirectX, uint slot)
     {
         var context = DirectX.DeviceContext;
-        var srv = m_textureView.GetPinnableReference();
+        var srv = _textureView.GetPinnableReference();
         context.PSSetShaderResources(slot, 1, &srv);
-        var sampler = m_samplerState.GetPinnableReference();
+        var sampler = _samplerState.GetPinnableReference();
         context.PSSetSamplers(slot, 1, &sampler);
     }
 

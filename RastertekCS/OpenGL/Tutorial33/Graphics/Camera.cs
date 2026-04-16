@@ -4,25 +4,29 @@ namespace RastertekCS.OpenGL.Tutorial33.Graphics;
 
 public class Camera
 {
-    private float m_px,
-        m_py,
-        m_pz;
-    private Matrix4X4<float> m_view;
+    private float _positionX,
+        _positionY,
+        _positionZ;
+    private Matrix4X4<float> _viewMatrix;
 
     public void SetPosition(float x, float y, float z)
     {
-        m_px = x;
-        m_py = y;
-        m_pz = z;
+        _positionX = x;
+        _positionY = y;
+        _positionZ = z;
     }
 
     public void Render()
     {
-        var pos = new Vector3D<float>(m_px, m_py, m_pz);
-        m_view = LookAtLH(pos, pos + new Vector3D<float>(0, 0, 1), new Vector3D<float>(0, 1, 0));
+        var pos = new Vector3D<float>(_positionX, _positionY, _positionZ);
+        _viewMatrix = LookAtLH(
+            pos,
+            pos + new Vector3D<float>(0, 0, 1),
+            new Vector3D<float>(0, 1, 0)
+        );
     }
 
-    public Matrix4X4<float> GetViewMatrix() => m_view;
+    public Matrix4X4<float> GetViewMatrix() => _viewMatrix;
 
     private static Matrix4X4<float> LookAtLH(
         Vector3D<float> eye,

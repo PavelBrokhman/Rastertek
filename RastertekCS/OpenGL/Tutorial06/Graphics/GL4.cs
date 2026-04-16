@@ -6,13 +6,13 @@ namespace RastertekCS.OpenGL.Tutorial06.Graphics;
 
 public class GL4
 {
-    private GL m_gl;
-    private IWindow m_window;
-    private Matrix4X4<float> m_worldMatrix;
-    private Matrix4X4<float> m_projectionMatrix;
-    private string m_videoCardDescription;
+    private GL _gl;
+    private IWindow _window;
+    private Matrix4X4<float> _worldMatrix;
+    private Matrix4X4<float> _projectionMatrix;
+    private string _videoCardDescription;
 
-    public GL Gl => m_gl;
+    public GL Gl => _gl;
 
     public bool Initialize(
         IWindow window,
@@ -23,47 +23,47 @@ public class GL4
         bool vsync
     )
     {
-        m_window = window;
-        m_gl = GL.GetApi(window);
+        _window = window;
+        _gl = GL.GetApi(window);
 
-        var vendor = m_gl.GetStringS(StringName.Vendor) ?? "";
-        var renderer = m_gl.GetStringS(StringName.Renderer) ?? "";
-        m_videoCardDescription = vendor + " - " + renderer;
+        var vendor = _gl.GetStringS(StringName.Vendor) ?? "";
+        var renderer = _gl.GetStringS(StringName.Renderer) ?? "";
+        _videoCardDescription = vendor + " - " + renderer;
 
-        m_gl.ClearDepth(1.0f);
-        m_gl.Enable(EnableCap.DepthTest);
-        m_gl.FrontFace(FrontFaceDirection.CW);
-        m_gl.Enable(EnableCap.CullFace);
-        m_gl.CullFace(TriangleFace.Back);
-        m_gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
+        _gl.ClearDepth(1.0f);
+        _gl.Enable(EnableCap.DepthTest);
+        _gl.FrontFace(FrontFaceDirection.CW);
+        _gl.Enable(EnableCap.CullFace);
+        _gl.CullFace(TriangleFace.Back);
+        _gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
 
-        m_worldMatrix = Matrix4X4<float>.Identity;
+        _worldMatrix = Matrix4X4<float>.Identity;
         float fov = MathF.PI / 4.0f;
         float aspect = (float)screenWidth / screenHeight;
-        m_projectionMatrix = PerspectiveFovLH(fov, aspect, screenNear, screenDepth);
+        _projectionMatrix = PerspectiveFovLH(fov, aspect, screenNear, screenDepth);
         _ = vsync;
         return true;
     }
 
     public void Shutdown()
     {
-        m_gl?.Dispose();
-        m_gl = null;
+        _gl?.Dispose();
+        _gl = null;
     }
 
     public void BeginScene(float r, float g, float b, float a)
     {
-        m_gl.ClearColor(r, g, b, a);
-        m_gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+        _gl.ClearColor(r, g, b, a);
+        _gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
     public void EndScene() { }
 
-    public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
+    public Matrix4X4<float> GetWorldMatrix() => _worldMatrix;
 
-    public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
+    public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;
 
-    public string GetVideoCardInfo() => m_videoCardDescription;
+    public string GetVideoCardInfo() => _videoCardDescription;
 
     private static Matrix4X4<float> PerspectiveFovLH(
         float fov,

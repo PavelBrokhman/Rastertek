@@ -14,23 +14,23 @@ public class Sprite
             tv;
     }
 
-    private uint m_vertexArrayId;
-    private uint m_vertexBufferId;
-    private uint m_indexBufferId;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private Texture[] m_Textures;
-    private int m_textureCount;
-    private int m_currentTexture;
-    private float m_cycleTime;
-    private float m_frameTime;
+    private uint _vertexArrayId;
+    private uint _vertexBufferId;
+    private uint _indexBufferId;
+    private int _vertexCount;
+    private int _indexCount;
+    private Texture[] _textures;
+    private int _textureCount;
+    private int _currentTexture;
+    private float _cycleTime;
+    private float _frameTime;
 
-    private int m_screenWidth,
-        m_screenHeight;
-    private int m_bitmapWidth,
-        m_bitmapHeight;
-    private int m_renderX,
-        m_renderY;
+    private int _screenWidth,
+        _screenHeight;
+    private int _bitmapWidth,
+        _bitmapHeight;
+    private int _renderX,
+        _renderY;
 
     public unsafe bool Initialize(
         GL4 OpenGL,
@@ -41,35 +41,35 @@ public class Sprite
     )
     {
         var gl = OpenGL.Gl;
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
-        m_currentTexture = 0;
-        m_frameTime = 0;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
+        _currentTexture = 0;
+        _frameTime = 0;
 
         if (!LoadSpriteFile(spriteFilename))
             return false;
 
-        m_Textures = new Texture[m_textureCount];
+        _textures = new Texture[_textureCount];
         var lines = File.ReadAllLines(spriteFilename);
         int startLine = 3;
-        for (int i = 0; i < m_textureCount; i++)
+        for (int i = 0; i < _textureCount; i++)
         {
             var texFile = lines[startLine + i].Trim();
-            m_Textures[i] = new Texture();
-            if (!m_Textures[i].Initialize(OpenGL, texFile, textureUnit, false))
+            _textures[i] = new Texture();
+            if (!_textures[i].Initialize(OpenGL, texFile, textureUnit, false))
                 return false;
         }
 
-        m_vertexCount = 6;
-        m_indexCount = 6;
-        var vertices = new VertexType[m_vertexCount];
+        _vertexCount = 6;
+        _indexCount = 6;
+        var vertices = new VertexType[_vertexCount];
         var indices = new uint[] { 0, 1, 2, 3, 4, 5 };
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = vertices)
             gl.BufferData(
                 BufferTargetARB.ArrayBuffer,
@@ -97,8 +97,8 @@ public class Sprite
             (void*)(3 * sizeof(float))
         );
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
             gl.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
@@ -112,54 +112,54 @@ public class Sprite
 
     public void Shutdown(GL4 OpenGL)
     {
-        if (m_Textures != null)
+        if (_textures != null)
         {
-            foreach (var t in m_Textures)
+            foreach (var t in _textures)
                 t?.Shutdown(OpenGL);
-            m_Textures = null;
+            _textures = null;
         }
         var gl = OpenGL.Gl;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexArrayId);
     }
 
     public void Update(float frameTimeMs)
     {
-        m_frameTime += frameTimeMs;
-        if (m_frameTime >= m_cycleTime)
+        _frameTime += frameTimeMs;
+        if (_frameTime >= _cycleTime)
         {
-            m_frameTime -= m_cycleTime;
-            m_currentTexture++;
-            if (m_currentTexture >= m_textureCount)
-                m_currentTexture = 0;
+            _frameTime -= _cycleTime;
+            _currentTexture++;
+            if (_currentTexture >= _textureCount)
+                _currentTexture = 0;
         }
     }
 
     public void SetRenderLocation(int x, int y)
     {
-        m_renderX = x;
-        m_renderY = y;
+        _renderX = x;
+        _renderY = y;
     }
 
     public void SetTexture(GL4 OpenGL, uint textureUnit)
     {
-        m_Textures[m_currentTexture].SetTexture(OpenGL, textureUnit);
+        _textures[_currentTexture].SetTexture(OpenGL, textureUnit);
     }
 
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
 
-        float left = -((float)m_screenWidth / 2.0f) + m_renderX;
-        float right = left + m_bitmapWidth;
-        float top = ((float)m_screenHeight / 2.0f) - m_renderY;
-        float bottom = top - m_bitmapHeight;
+        float left = -((float)_screenWidth / 2.0f) + _renderX;
+        float right = left + _bitmapWidth;
+        float top = ((float)_screenHeight / 2.0f) - _renderY;
+        float bottom = top - _bitmapHeight;
 
         var v = new VertexType[6]
         {
@@ -213,7 +213,7 @@ public class Sprite
             },
         };
 
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = v)
             gl.BufferSubData(
                 BufferTargetARB.ArrayBuffer,
@@ -222,10 +222,10 @@ public class Sprite
                 p
             );
 
-        gl.BindVertexArray(m_vertexArrayId);
+        gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_indexCount,
+            (uint)_indexCount,
             DrawElementsType.UnsignedInt,
             (void*)0
         );
@@ -243,11 +243,11 @@ public class Sprite
         //   file1.tga
         //   file2.tga
         //   ...
-        m_textureCount = int.Parse(lines[0].Split(':')[1].Trim(), CultureInfo.InvariantCulture);
-        m_cycleTime = float.Parse(lines[1].Split(':')[1].Trim(), CultureInfo.InvariantCulture);
+        _textureCount = int.Parse(lines[0].Split(':')[1].Trim(), CultureInfo.InvariantCulture);
+        _cycleTime = float.Parse(lines[1].Split(':')[1].Trim(), CultureInfo.InvariantCulture);
         var size = lines[2].Split(':')[1].Trim().Split(' ');
-        m_bitmapWidth = int.Parse(size[0], CultureInfo.InvariantCulture);
-        m_bitmapHeight = int.Parse(size[1], CultureInfo.InvariantCulture);
+        _bitmapWidth = int.Parse(size[0], CultureInfo.InvariantCulture);
+        _bitmapHeight = int.Parse(size[1], CultureInfo.InvariantCulture);
         return true;
     }
 }

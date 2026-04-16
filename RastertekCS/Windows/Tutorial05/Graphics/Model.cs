@@ -15,16 +15,16 @@ public unsafe class Model
             tv;
     }
 
-    private ComPtr<ID3D11Buffer> m_vertexBuffer;
-    private ComPtr<ID3D11Buffer> m_indexBuffer;
-    private int m_indexCount;
+    private ComPtr<ID3D11Buffer> _vertexBuffer;
+    private ComPtr<ID3D11Buffer> _indexBuffer;
+    private int _indexCount;
 
-    private Texture m_Texture;
+    private Texture _texture;
 
     public bool Initialize(DX11 DirectX, string textureFilename, bool wrap)
     {
         var device = DirectX.Device;
-        m_indexCount = 3;
+        _indexCount = 3;
 
         var vertices = new VertexType[]
         {
@@ -69,7 +69,7 @@ public unsafe class Model
             };
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref _vertexBuffer)
             );
         }
 
@@ -87,13 +87,13 @@ public unsafe class Model
             };
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref _indexBuffer)
             );
         }
 
         // Load texture.
-        m_Texture = new Texture();
-        if (!m_Texture.Initialize(DirectX, textureFilename, wrap))
+        _texture = new Texture();
+        if (!_texture.Initialize(DirectX, textureFilename, wrap))
             return false;
 
         return true;
@@ -101,10 +101,10 @@ public unsafe class Model
 
     public void Shutdown()
     {
-        m_Texture?.Shutdown();
-        m_Texture = null;
-        m_indexBuffer.Release();
-        m_vertexBuffer.Release();
+        _texture?.Shutdown();
+        _texture = null;
+        _indexBuffer.Release();
+        _vertexBuffer.Release();
     }
 
     public void Render(DX11 DirectX)
@@ -113,16 +113,16 @@ public unsafe class Model
 
         uint stride = (uint)sizeof(VertexType);
         uint offset = 0;
-        var vb = m_vertexBuffer.GetPinnableReference();
+        var vb = _vertexBuffer.GetPinnableReference();
         context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-        context.IASetIndexBuffer(m_indexBuffer, Format.FormatR32Uint, 0);
+        context.IASetIndexBuffer(_indexBuffer, Format.FormatR32Uint, 0);
         context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
     }
 
     public void SetTexture(DX11 DirectX, uint slot)
     {
-        m_Texture.SetTexture(DirectX, slot);
+        _texture.SetTexture(DirectX, slot);
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 }

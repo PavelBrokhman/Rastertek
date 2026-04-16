@@ -4,26 +4,26 @@ namespace RastertekCS.Windows.Tutorial22.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private Light m_Light;
-    private TextureShader m_TextureShader;
-    private LightShader m_LightShader;
-    private NormalMapShader m_NormalMapShader;
-    private float m_rotation = MathF.Tau;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private Light _light;
+    private TextureShader _textureShader;
+    private LightShader _lightShader;
+    private NormalMapShader _normalMapShader;
+    private float _rotation = MathF.Tau;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -8.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -8.0f);
+        _camera.Render();
 
-        m_Model = new Model();
+        _model = new Model();
         if (
-            !m_Model.Initialize(
+            !_model.Initialize(
                 DirectX,
                 "Models/sphere.txt",
                 "Data/stone01.tga",
@@ -33,20 +33,20 @@ public class GraphicsFramework
         )
             return false;
 
-        m_Light = new Light();
-        m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-        m_Light.SetDirection(0.0f, 0.0f, 1.0f);
+        _light = new Light();
+        _light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+        _light.SetDirection(0.0f, 0.0f, 1.0f);
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(DirectX))
             return false;
 
-        m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(DirectX))
+        _lightShader = new LightShader();
+        if (!_lightShader.Initialize(DirectX))
             return false;
 
-        m_NormalMapShader = new NormalMapShader();
-        if (!m_NormalMapShader.Initialize(DirectX))
+        _normalMapShader = new NormalMapShader();
+        if (!_normalMapShader.Initialize(DirectX))
             return false;
 
         return true;
@@ -54,74 +54,74 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_NormalMapShader?.Shutdown();
-        m_LightShader?.Shutdown();
-        m_TextureShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_NormalMapShader = null;
-        m_LightShader = null;
-        m_TextureShader = null;
-        m_Model = null;
-        m_Light = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _normalMapShader?.Shutdown();
+        _lightShader?.Shutdown();
+        _textureShader?.Shutdown();
+        _model?.Shutdown();
+        _normalMapShader = null;
+        _lightShader = null;
+        _textureShader = null;
+        _model = null;
+        _light = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation <= 0.0f)
-            m_rotation += MathF.Tau;
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation <= 0.0f)
+            _rotation += MathF.Tau;
         return Render();
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
-        var rotate = Matrix4X4.CreateRotationY(m_rotation);
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
+        var rotate = Matrix4X4.CreateRotationY(_rotation);
 
         var world1 = rotate * Matrix4X4.CreateTranslation(0.0f, 1.0f, 0.0f);
-        m_Model.Render(m_DirectX);
-        m_Model.SetTextures(m_DirectX);
-        if (!m_TextureShader.Render(m_DirectX, m_Model.GetIndexCount(), world1, view, projection))
+        _model.Render(_directX);
+        _model.SetTextures(_directX);
+        if (!_textureShader.Render(_directX, _model.GetIndexCount(), world1, view, projection))
             return false;
 
         var world2 = rotate * Matrix4X4.CreateTranslation(-1.5f, -1.0f, 0.0f);
-        m_Model.Render(m_DirectX);
-        m_Model.SetTextures(m_DirectX);
+        _model.Render(_directX);
+        _model.SetTextures(_directX);
         if (
-            !m_LightShader.Render(
-                m_DirectX,
-                m_Model.GetIndexCount(),
+            !_lightShader.Render(
+                _directX,
+                _model.GetIndexCount(),
                 world2,
                 view,
                 projection,
-                m_Light.GetDirection(),
-                m_Light.GetDiffuseColor()
+                _light.GetDirection(),
+                _light.GetDiffuseColor()
             )
         )
             return false;
 
         var world3 = rotate * Matrix4X4.CreateTranslation(1.5f, -1.0f, 0.0f);
-        m_Model.Render(m_DirectX);
-        m_Model.SetTextures(m_DirectX);
+        _model.Render(_directX);
+        _model.SetTextures(_directX);
         if (
-            !m_NormalMapShader.Render(
-                m_DirectX,
-                m_Model.GetIndexCount(),
+            !_normalMapShader.Render(
+                _directX,
+                _model.GetIndexCount(),
                 world3,
                 view,
                 projection,
-                m_Light.GetDirection(),
-                m_Light.GetDiffuseColor()
+                _light.GetDirection(),
+                _light.GetDiffuseColor()
             )
         )
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

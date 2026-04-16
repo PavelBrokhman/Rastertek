@@ -5,20 +5,20 @@ namespace RastertekCS.OpenGL.Tutorial33.Graphics;
 
 public class FireShader
 {
-    private uint m_vs,
-        m_fs,
-        m_prog;
+    private uint _vertexShader,
+        _fragmentShader,
+        _shaderProgram;
 
     public bool Initialize(GL4 gl) => Init(gl, "Shaders/fire.vs", "Shaders/fire.ps");
 
     public void Shutdown(GL4 gl)
     {
         var g = gl.Gl;
-        g.DetachShader(m_prog, m_vs);
-        g.DetachShader(m_prog, m_fs);
-        g.DeleteShader(m_vs);
-        g.DeleteShader(m_fs);
-        g.DeleteProgram(m_prog);
+        g.DetachShader(_shaderProgram, _vertexShader);
+        g.DetachShader(_shaderProgram, _fragmentShader);
+        g.DeleteShader(_vertexShader);
+        g.DeleteShader(_fragmentShader);
+        g.DeleteProgram(_shaderProgram);
     }
 
     public unsafe bool SetShaderParameters(
@@ -37,53 +37,53 @@ public class FireShader
     )
     {
         var g = gl.Gl;
-        g.UseProgram(m_prog);
+        g.UseProgram(_shaderProgram);
         int loc;
-        loc = g.GetUniformLocation(m_prog, "worldMatrix");
+        loc = g.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc >= 0)
             g.UniformMatrix4(loc, 1, false, (float*)&w);
-        loc = g.GetUniformLocation(m_prog, "viewMatrix");
+        loc = g.GetUniformLocation(_shaderProgram, "viewMatrix");
         if (loc >= 0)
             g.UniformMatrix4(loc, 1, false, (float*)&v);
-        loc = g.GetUniformLocation(m_prog, "projectionMatrix");
+        loc = g.GetUniformLocation(_shaderProgram, "projectionMatrix");
         if (loc >= 0)
             g.UniformMatrix4(loc, 1, false, (float*)&p);
-        loc = g.GetUniformLocation(m_prog, "frameTime");
+        loc = g.GetUniformLocation(_shaderProgram, "frameTime");
         if (loc >= 0)
             g.Uniform1(loc, frameTime);
-        loc = g.GetUniformLocation(m_prog, "scrollSpeeds");
+        loc = g.GetUniformLocation(_shaderProgram, "scrollSpeeds");
         if (loc >= 0)
             fixed (float* pp = scrollSpeeds)
                 g.Uniform3(loc, 1, pp);
-        loc = g.GetUniformLocation(m_prog, "scales");
+        loc = g.GetUniformLocation(_shaderProgram, "scales");
         if (loc >= 0)
             fixed (float* pp = scales)
                 g.Uniform3(loc, 1, pp);
-        loc = g.GetUniformLocation(m_prog, "fireTexture");
+        loc = g.GetUniformLocation(_shaderProgram, "fireTexture");
         if (loc >= 0)
             g.Uniform1(loc, 0);
-        loc = g.GetUniformLocation(m_prog, "noiseTexture");
+        loc = g.GetUniformLocation(_shaderProgram, "noiseTexture");
         if (loc >= 0)
             g.Uniform1(loc, 1);
-        loc = g.GetUniformLocation(m_prog, "alphaTexture");
+        loc = g.GetUniformLocation(_shaderProgram, "alphaTexture");
         if (loc >= 0)
             g.Uniform1(loc, 2);
-        loc = g.GetUniformLocation(m_prog, "distortion1");
+        loc = g.GetUniformLocation(_shaderProgram, "distortion1");
         if (loc >= 0)
             fixed (float* pp = d1)
                 g.Uniform2(loc, 1, pp);
-        loc = g.GetUniformLocation(m_prog, "distortion2");
+        loc = g.GetUniformLocation(_shaderProgram, "distortion2");
         if (loc >= 0)
             fixed (float* pp = d2)
                 g.Uniform2(loc, 1, pp);
-        loc = g.GetUniformLocation(m_prog, "distortion3");
+        loc = g.GetUniformLocation(_shaderProgram, "distortion3");
         if (loc >= 0)
             fixed (float* pp = d3)
                 g.Uniform2(loc, 1, pp);
-        loc = g.GetUniformLocation(m_prog, "distortionScale");
+        loc = g.GetUniformLocation(_shaderProgram, "distortionScale");
         if (loc >= 0)
             g.Uniform1(loc, dScale);
-        loc = g.GetUniformLocation(m_prog, "distortionBias");
+        loc = g.GetUniformLocation(_shaderProgram, "distortionBias");
         if (loc >= 0)
             g.Uniform1(loc, dBias);
         return true;
@@ -92,35 +92,35 @@ public class FireShader
     bool Init(GL4 gl, string vsf, string psf)
     {
         var g = gl.Gl;
-        m_vs = g.CreateShader(ShaderType.VertexShader);
-        g.ShaderSource(m_vs, File.ReadAllText(vsf));
-        g.CompileShader(m_vs);
-        g.GetShader(m_vs, ShaderParameterName.CompileStatus, out int s);
+        _vertexShader = g.CreateShader(ShaderType.VertexShader);
+        g.ShaderSource(_vertexShader, File.ReadAllText(vsf));
+        g.CompileShader(_vertexShader);
+        g.GetShader(_vertexShader, ShaderParameterName.CompileStatus, out int s);
         if (s != 1)
         {
-            Console.WriteLine($"VS: {g.GetShaderInfoLog(m_vs)}");
+            Console.WriteLine($"VS: {g.GetShaderInfoLog(_vertexShader)}");
             return false;
         }
-        m_fs = g.CreateShader(ShaderType.FragmentShader);
-        g.ShaderSource(m_fs, File.ReadAllText(psf));
-        g.CompileShader(m_fs);
-        g.GetShader(m_fs, ShaderParameterName.CompileStatus, out s);
+        _fragmentShader = g.CreateShader(ShaderType.FragmentShader);
+        g.ShaderSource(_fragmentShader, File.ReadAllText(psf));
+        g.CompileShader(_fragmentShader);
+        g.GetShader(_fragmentShader, ShaderParameterName.CompileStatus, out s);
         if (s != 1)
         {
-            Console.WriteLine($"PS: {g.GetShaderInfoLog(m_fs)}");
+            Console.WriteLine($"PS: {g.GetShaderInfoLog(_fragmentShader)}");
             return false;
         }
-        m_prog = g.CreateProgram();
-        g.AttachShader(m_prog, m_vs);
-        g.AttachShader(m_prog, m_fs);
-        g.BindAttribLocation(m_prog, 0, "inputPosition");
-        g.BindAttribLocation(m_prog, 1, "inputTexCoord");
-        g.BindAttribLocation(m_prog, 2, "inputNormal");
-        g.LinkProgram(m_prog);
-        g.GetProgram(m_prog, ProgramPropertyARB.LinkStatus, out int ls);
+        _shaderProgram = g.CreateProgram();
+        g.AttachShader(_shaderProgram, _vertexShader);
+        g.AttachShader(_shaderProgram, _fragmentShader);
+        g.BindAttribLocation(_shaderProgram, 0, "inputPosition");
+        g.BindAttribLocation(_shaderProgram, 1, "inputTexCoord");
+        g.BindAttribLocation(_shaderProgram, 2, "inputNormal");
+        g.LinkProgram(_shaderProgram);
+        g.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
         if (ls != 1)
         {
-            Console.WriteLine($"Link: {g.GetProgramInfoLog(m_prog)}");
+            Console.WriteLine($"Link: {g.GetProgramInfoLog(_shaderProgram)}");
             return false;
         }
         return true;

@@ -15,10 +15,10 @@ public unsafe class TextureShader
         public Matrix4X4<float> projection;
     }
 
-    private ComPtr<ID3D11VertexShader> m_vertexShader;
-    private ComPtr<ID3D11PixelShader> m_pixelShader;
-    private ComPtr<ID3D11InputLayout> m_layout;
-    private ComPtr<ID3D11Buffer> m_matrixBuffer;
+    private ComPtr<ID3D11VertexShader> _vertexShader;
+    private ComPtr<ID3D11PixelShader> _pixelShader;
+    private ComPtr<ID3D11InputLayout> _layout;
+    private ComPtr<ID3D11Buffer> _matrixBuffer;
 
     public bool Initialize(DX11 DirectX)
     {
@@ -27,10 +27,10 @@ public unsafe class TextureShader
 
     public void Shutdown()
     {
-        m_matrixBuffer.Release();
-        m_layout.Release();
-        m_pixelShader.Release();
-        m_vertexShader.Release();
+        _matrixBuffer.Release();
+        _layout.Release();
+        _pixelShader.Release();
+        _vertexShader.Release();
     }
 
     public bool Render(
@@ -83,7 +83,7 @@ public unsafe class TextureShader
                 vsBlob.GetBufferPointer(),
                 vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_vertexShader
+                ref _vertexShader
             )
         );
 
@@ -116,7 +116,7 @@ public unsafe class TextureShader
                 psBlob.GetBufferPointer(),
                 psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_pixelShader
+                ref _pixelShader
             )
         );
 
@@ -156,7 +156,7 @@ public unsafe class TextureShader
                     (uint)layoutDesc.Length,
                     vsBlob.GetBufferPointer(),
                     vsBlob.GetBufferSize(),
-                    ref m_layout
+                    ref _layout
                 )
             );
         }
@@ -176,7 +176,7 @@ public unsafe class TextureShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref _matrixBuffer));
 
         return true;
     }
@@ -197,7 +197,7 @@ public unsafe class TextureShader
 
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_matrixBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
 
         var dataPtr = (MatrixBufferType*)mappedResource.PData;
@@ -205,9 +205,9 @@ public unsafe class TextureShader
         dataPtr->view = viewMatrix;
         dataPtr->projection = projectionMatrix;
 
-        context.Unmap(m_matrixBuffer, 0);
+        context.Unmap(_matrixBuffer, 0);
 
-        var cb = m_matrixBuffer.GetPinnableReference();
+        var cb = _matrixBuffer.GetPinnableReference();
         context.VSSetConstantBuffers(0, 1, &cb);
 
         return true;
@@ -217,9 +217,9 @@ public unsafe class TextureShader
     {
         var context = DirectX.DeviceContext;
 
-        context.IASetInputLayout(m_layout);
-        context.VSSetShader(m_vertexShader, null, 0);
-        context.PSSetShader(m_pixelShader, null, 0);
+        context.IASetInputLayout(_layout);
+        context.VSSetShader(_vertexShader, null, 0);
+        context.PSSetShader(_pixelShader, null, 0);
         context.DrawIndexed((uint)indexCount, 0, 0);
     }
 }

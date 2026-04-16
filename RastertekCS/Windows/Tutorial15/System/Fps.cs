@@ -4,29 +4,29 @@ namespace RastertekCS.Windows.Tutorial15.System;
 
 public class Fps
 {
-    private int m_fps;
-    private int m_count;
-    private long m_startMs;
-    private readonly Stopwatch m_stopwatch = new();
+    private int _fps;
+    private int _count;
+    private long _startMs;
+    private readonly Stopwatch _stopwatch = new();
 
     public void Initialize()
     {
-        m_fps = 0;
-        m_count = 0;
-        m_stopwatch.Start();
-        m_startMs = m_stopwatch.ElapsedMilliseconds;
+        _fps = 0;
+        _count = 0;
+        _stopwatch.Start();
+        _startMs = _stopwatch.ElapsedMilliseconds;
     }
 
     public void Frame()
     {
-        m_count++;
-        if (m_stopwatch.ElapsedMilliseconds >= m_startMs + 1000)
+        _count++;
+        if (_stopwatch.ElapsedMilliseconds >= _startMs + 1000)
         {
-            m_fps = m_count;
-            m_count = 0;
-            m_startMs = m_stopwatch.ElapsedMilliseconds;
+            _fps = _count;
+            _count = 0;
+            _startMs = _stopwatch.ElapsedMilliseconds;
         }
     }
 
-    public int GetFps() => m_fps;
+    public int GetFps() => _fps;
 }

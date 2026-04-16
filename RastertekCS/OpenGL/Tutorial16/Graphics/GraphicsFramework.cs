@@ -6,39 +6,39 @@ public class GraphicsFramework
 {
     private const uint TEXTURE_UNIT = 0;
 
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Font m_Font;
-    private FontShader m_FontShader;
-    private Text[] m_MouseStrings;
-    private int m_screenWidth,
-        m_screenHeight;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Font _font;
+    private FontShader _fontShader;
+    private Text[] _mouseStrings;
+    private int _screenWidth,
+        _screenHeight;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
+        _openGL = OpenGL;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0, 0, -10);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0, 0, -10);
+        _camera.Render();
 
-        m_Font = new Font();
-        if (!m_Font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
+        _font = new Font();
+        if (!_font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
             return false;
 
-        m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(OpenGL))
+        _fontShader = new FontShader();
+        if (!_fontShader.Initialize(OpenGL))
             return false;
 
-        m_MouseStrings = new Text[3];
-        m_MouseStrings[0] = new Text();
+        _mouseStrings = new Text[3];
+        _mouseStrings[0] = new Text();
         if (
-            !m_MouseStrings[0]
+            !_mouseStrings[0]
                 .Initialize(
                     OpenGL,
-                    m_Font,
+                    _font,
                     "Mouse X: 0",
                     10,
                     10,
@@ -51,12 +51,12 @@ public class GraphicsFramework
                 )
         )
             return false;
-        m_MouseStrings[1] = new Text();
+        _mouseStrings[1] = new Text();
         if (
-            !m_MouseStrings[1]
+            !_mouseStrings[1]
                 .Initialize(
                     OpenGL,
-                    m_Font,
+                    _font,
                     "Mouse Y: 0",
                     10,
                     35,
@@ -69,12 +69,12 @@ public class GraphicsFramework
                 )
         )
             return false;
-        m_MouseStrings[2] = new Text();
+        _mouseStrings[2] = new Text();
         if (
-            !m_MouseStrings[2]
+            !_mouseStrings[2]
                 .Initialize(
                     OpenGL,
-                    m_Font,
+                    _font,
                     "Mouse Button: No",
                     10,
                     60,
@@ -93,18 +93,18 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        if (m_MouseStrings != null)
+        if (_mouseStrings != null)
         {
-            foreach (var t in m_MouseStrings)
-                t?.Shutdown(m_OpenGL);
-            m_MouseStrings = null;
+            foreach (var t in _mouseStrings)
+                t?.Shutdown(_openGL);
+            _mouseStrings = null;
         }
-        m_FontShader?.Shutdown(m_OpenGL);
-        m_FontShader = null;
-        m_Font?.Shutdown(m_OpenGL);
-        m_Font = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _fontShader?.Shutdown(_openGL);
+        _fontShader = null;
+        _font?.Shutdown(_openGL);
+        _font = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame(int mouseX, int mouseY, bool mouseDown)
@@ -116,89 +116,80 @@ public class GraphicsFramework
 
     private bool UpdateMouseStrings(int mouseX, int mouseY, bool mouseDown)
     {
-        m_MouseStrings[0]
+        _mouseStrings[0]
             .UpdateText(
-                m_OpenGL,
-                m_Font,
+                _openGL,
+                _font,
                 $"Mouse X: {mouseX}",
                 10,
                 10,
                 1,
                 1,
                 1,
-                m_screenWidth,
-                m_screenHeight
+                _screenWidth,
+                _screenHeight
             );
-        m_MouseStrings[1]
+        _mouseStrings[1]
             .UpdateText(
-                m_OpenGL,
-                m_Font,
+                _openGL,
+                _font,
                 $"Mouse Y: {mouseY}",
                 10,
                 35,
                 1,
                 1,
                 1,
-                m_screenWidth,
-                m_screenHeight
+                _screenWidth,
+                _screenHeight
             );
-        m_MouseStrings[2]
+        _mouseStrings[2]
             .UpdateText(
-                m_OpenGL,
-                m_Font,
+                _openGL,
+                _font,
                 mouseDown ? "Mouse Button: Yes" : "Mouse Button: No",
                 10,
                 60,
                 1,
                 1,
                 1,
-                m_screenWidth,
-                m_screenHeight
+                _screenWidth,
+                _screenHeight
             );
         return true;
     }
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
+        _openGL.BeginScene(0, 0, 0, 1);
 
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var ortho = m_OpenGL.GetOrthoMatrix();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var ortho = _openGL.GetOrthoMatrix();
 
-        m_OpenGL.TurnZBufferOff();
+        _openGL.TurnZBufferOff();
 
-        m_OpenGL.Gl.Enable(EnableCap.Blend);
-        m_OpenGL.Gl.BlendFuncSeparate(
+        _openGL.Gl.Enable(EnableCap.Blend);
+        _openGL.Gl.BlendFuncSeparate(
             BlendingFactor.SrcAlpha,
             BlendingFactor.OneMinusSrcAlpha,
             BlendingFactor.One,
             BlendingFactor.Zero
         );
 
-        m_FontShader.SetShader(m_OpenGL);
-        m_Font.SetTexture(m_OpenGL, TEXTURE_UNIT);
+        _fontShader.SetShader(_openGL);
+        _font.SetTexture(_openGL, TEXTURE_UNIT);
 
-        var color = m_MouseStrings[0].GetPixelColor();
-        if (
-            !m_FontShader.SetShaderParameters(
-                m_OpenGL,
-                world,
-                view,
-                ortho,
-                (int)TEXTURE_UNIT,
-                color
-            )
-        )
+        var color = _mouseStrings[0].GetPixelColor();
+        if (!_fontShader.SetShaderParameters(_openGL, world, view, ortho, (int)TEXTURE_UNIT, color))
             return false;
 
-        m_MouseStrings[0].Render(m_OpenGL);
-        m_MouseStrings[1].Render(m_OpenGL);
-        m_MouseStrings[2].Render(m_OpenGL);
+        _mouseStrings[0].Render(_openGL);
+        _mouseStrings[1].Render(_openGL);
+        _mouseStrings[2].Render(_openGL);
 
-        m_OpenGL.Gl.Disable(EnableCap.Blend);
-        m_OpenGL.TurnZBufferOn();
-        m_OpenGL.EndScene();
+        _openGL.Gl.Disable(EnableCap.Blend);
+        _openGL.TurnZBufferOn();
+        _openGL.EndScene();
         return true;
     }
 }

@@ -23,12 +23,12 @@ public unsafe class TransparentShader
             pad2;
     }
 
-    private ComPtr<ID3D11VertexShader> m_vertexShader;
-    private ComPtr<ID3D11PixelShader> m_pixelShader;
-    private ComPtr<ID3D11InputLayout> m_layout;
-    private ComPtr<ID3D11Buffer> m_matrixBuffer;
-    private ComPtr<ID3D11Buffer> m_transparentBuffer;
-    private ComPtr<ID3D11SamplerState> m_sampleState;
+    private ComPtr<ID3D11VertexShader> _vertexShader;
+    private ComPtr<ID3D11PixelShader> _pixelShader;
+    private ComPtr<ID3D11InputLayout> _layout;
+    private ComPtr<ID3D11Buffer> _matrixBuffer;
+    private ComPtr<ID3D11Buffer> _transparentBuffer;
+    private ComPtr<ID3D11SamplerState> _sampleState;
 
     public bool Initialize(DX11 DirectX)
     {
@@ -37,12 +37,12 @@ public unsafe class TransparentShader
 
     public void Shutdown()
     {
-        m_sampleState.Release();
-        m_transparentBuffer.Release();
-        m_matrixBuffer.Release();
-        m_layout.Release();
-        m_pixelShader.Release();
-        m_vertexShader.Release();
+        _sampleState.Release();
+        _transparentBuffer.Release();
+        _matrixBuffer.Release();
+        _layout.Release();
+        _pixelShader.Release();
+        _vertexShader.Release();
     }
 
     public bool Render(
@@ -104,7 +104,7 @@ public unsafe class TransparentShader
                 vsBlob.GetBufferPointer(),
                 vsBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_vertexShader
+                ref _vertexShader
             )
         );
 
@@ -136,7 +136,7 @@ public unsafe class TransparentShader
                 psBlob.GetBufferPointer(),
                 psBlob.GetBufferSize(),
                 ref Unsafe.NullRef<ID3D11ClassLinkage>(),
-                ref m_pixelShader
+                ref _pixelShader
             )
         );
 
@@ -172,7 +172,7 @@ public unsafe class TransparentShader
                     (uint)layoutDesc.Length,
                     vsBlob.GetBufferPointer(),
                     vsBlob.GetBufferSize(),
-                    ref m_layout
+                    ref _layout
                 )
             );
         SilkMarshal.Free(posName);
@@ -189,7 +189,7 @@ public unsafe class TransparentShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref m_matrixBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&matrixBufferDesc, null, ref _matrixBuffer));
 
         var tbd = new BufferDesc
         {
@@ -200,7 +200,7 @@ public unsafe class TransparentShader
             MiscFlags = 0,
             StructureByteStride = 0,
         };
-        SilkMarshal.ThrowHResult(device.CreateBuffer(&tbd, null, ref m_transparentBuffer));
+        SilkMarshal.ThrowHResult(device.CreateBuffer(&tbd, null, ref _transparentBuffer));
 
         var samplerDesc = new SamplerDesc
         {
@@ -214,7 +214,7 @@ public unsafe class TransparentShader
             MinLOD = 0,
             MaxLOD = float.MaxValue,
         };
-        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref m_sampleState));
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref _sampleState));
 
         return true;
     }
@@ -234,23 +234,23 @@ public unsafe class TransparentShader
         projectionMatrix = Matrix4X4.Transpose(projectionMatrix);
 
         MappedSubresource mr;
-        SilkMarshal.ThrowHResult(context.Map(m_matrixBuffer, 0, Map.WriteDiscard, 0, &mr));
+        SilkMarshal.ThrowHResult(context.Map(_matrixBuffer, 0, Map.WriteDiscard, 0, &mr));
         var mp = (MatrixBufferType*)mr.PData;
         mp->world = worldMatrix;
         mp->view = viewMatrix;
         mp->projection = projectionMatrix;
-        context.Unmap(m_matrixBuffer, 0);
-        var mcb = m_matrixBuffer.GetPinnableReference();
+        context.Unmap(_matrixBuffer, 0);
+        var mcb = _matrixBuffer.GetPinnableReference();
         context.VSSetConstantBuffers(0, 1, &mcb);
 
-        SilkMarshal.ThrowHResult(context.Map(m_transparentBuffer, 0, Map.WriteDiscard, 0, &mr));
+        SilkMarshal.ThrowHResult(context.Map(_transparentBuffer, 0, Map.WriteDiscard, 0, &mr));
         var tp = (TransparentBufferType*)mr.PData;
         tp->blendAmount = blendAmount;
         tp->pad0 = 0;
         tp->pad1 = 0;
         tp->pad2 = 0;
-        context.Unmap(m_transparentBuffer, 0);
-        var tcb = m_transparentBuffer.GetPinnableReference();
+        context.Unmap(_transparentBuffer, 0);
+        var tcb = _transparentBuffer.GetPinnableReference();
         context.PSSetConstantBuffers(0, 1, &tcb);
 
         var srv = texture.GetPinnableReference();
@@ -262,10 +262,10 @@ public unsafe class TransparentShader
     private void RenderShader(DX11 DirectX, int indexCount)
     {
         var context = DirectX.DeviceContext;
-        context.IASetInputLayout(m_layout);
-        context.VSSetShader(m_vertexShader, null, 0);
-        context.PSSetShader(m_pixelShader, null, 0);
-        var smp = m_sampleState.GetPinnableReference();
+        context.IASetInputLayout(_layout);
+        context.VSSetShader(_vertexShader, null, 0);
+        context.PSSetShader(_pixelShader, null, 0);
+        var smp = _sampleState.GetPinnableReference();
         context.PSSetSamplers(0, 1, &smp);
         context.DrawIndexed((uint)indexCount, 0, 0);
     }

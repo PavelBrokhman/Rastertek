@@ -9,14 +9,14 @@ public unsafe class Text
     // 5 floats per vertex: x y z tu tv (matches Font.BuildVertexArray output).
     private const int FLOATS_PER_VERTEX = 5;
 
-    private ComPtr<ID3D11Buffer> m_vertexBuffer;
-    private ComPtr<ID3D11Buffer> m_indexBuffer;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private int m_maxLength;
-    private int m_screenWidth;
-    private int m_screenHeight;
-    private readonly float[] m_pixelColor = new float[4];
+    private ComPtr<ID3D11Buffer> _vertexBuffer;
+    private ComPtr<ID3D11Buffer> _indexBuffer;
+    private int _vertexCount;
+    private int _indexCount;
+    private int _maxLength;
+    private int _screenWidth;
+    private int _screenHeight;
+    private readonly float[] _pixelColor = new float[4];
 
     public bool Initialize(
         DX11 DirectX,
@@ -32,9 +32,9 @@ public unsafe class Text
         float blue
     )
     {
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
-        m_maxLength = maxLength;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
+        _maxLength = maxLength;
 
         if (!InitializeBuffers(DirectX))
             return false;
@@ -45,8 +45,8 @@ public unsafe class Text
 
     public void Shutdown()
     {
-        m_indexBuffer.Release();
-        m_vertexBuffer.Release();
+        _indexBuffer.Release();
+        _vertexBuffer.Release();
     }
 
     public void Render(DX11 DirectX)
@@ -54,26 +54,26 @@ public unsafe class Text
         var context = DirectX.DeviceContext;
         uint stride = FLOATS_PER_VERTEX * sizeof(float);
         uint offset = 0;
-        var vb = m_vertexBuffer.GetPinnableReference();
+        var vb = _vertexBuffer.GetPinnableReference();
         context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-        context.IASetIndexBuffer(m_indexBuffer, Format.FormatR32Uint, 0);
+        context.IASetIndexBuffer(_indexBuffer, Format.FormatR32Uint, 0);
         context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3D11PrimitiveTopologyTrianglelist);
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 
-    public float[] GetPixelColor() => m_pixelColor;
+    public float[] GetPixelColor() => _pixelColor;
 
     private bool InitializeBuffers(DX11 DirectX)
     {
         var device = DirectX.Device;
 
-        m_vertexCount = 6 * m_maxLength;
-        m_indexCount = m_vertexCount;
+        _vertexCount = 6 * _maxLength;
+        _indexCount = _vertexCount;
 
-        var vertices = new float[m_vertexCount * FLOATS_PER_VERTEX];
-        var indices = new uint[m_indexCount];
-        for (int i = 0; i < m_indexCount; i++)
+        var vertices = new float[_vertexCount * FLOATS_PER_VERTEX];
+        var indices = new uint[_indexCount];
+        for (int i = 0; i < _indexCount; i++)
             indices[i] = (uint)i;
 
         var vertexBufferDesc = new BufferDesc
@@ -89,14 +89,14 @@ public unsafe class Text
         {
             var vertexData = new SubresourceData { PSysMem = pVertices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref m_vertexBuffer)
+                device.CreateBuffer(&vertexBufferDesc, &vertexData, ref _vertexBuffer)
             );
         }
 
         var indexBufferDesc = new BufferDesc
         {
             Usage = Usage.Default,
-            ByteWidth = (uint)(sizeof(uint) * m_indexCount),
+            ByteWidth = (uint)(sizeof(uint) * _indexCount),
             BindFlags = (uint)BindFlag.IndexBuffer,
             CPUAccessFlags = 0,
             MiscFlags = 0,
@@ -106,7 +106,7 @@ public unsafe class Text
         {
             var indexData = new SubresourceData { PSysMem = pIndices };
             SilkMarshal.ThrowHResult(
-                device.CreateBuffer(&indexBufferDesc, &indexData, ref m_indexBuffer)
+                device.CreateBuffer(&indexBufferDesc, &indexData, ref _indexBuffer)
             );
         }
 
@@ -124,25 +124,25 @@ public unsafe class Text
         float blue
     )
     {
-        m_pixelColor[0] = red;
-        m_pixelColor[1] = green;
-        m_pixelColor[2] = blue;
-        m_pixelColor[3] = 1.0f;
+        _pixelColor[0] = red;
+        _pixelColor[1] = green;
+        _pixelColor[2] = blue;
+        _pixelColor[3] = 1.0f;
 
-        if (text.Length > m_maxLength)
+        if (text.Length > _maxLength)
             return false;
 
-        var vertices = new float[m_vertexCount * FLOATS_PER_VERTEX];
+        var vertices = new float[_vertexCount * FLOATS_PER_VERTEX];
 
-        float drawX = -(m_screenWidth / 2) + positionX;
-        float drawY = (m_screenHeight / 2) - positionY;
+        float drawX = -(_screenWidth / 2) + positionX;
+        float drawY = (_screenHeight / 2) - positionY;
 
         font.BuildVertexArray(vertices, text, drawX, drawY);
 
         var context = DirectX.DeviceContext;
         MappedSubresource mappedResource;
         SilkMarshal.ThrowHResult(
-            context.Map(m_vertexBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
+            context.Map(_vertexBuffer, 0, Map.WriteDiscard, 0, &mappedResource)
         );
         fixed (float* pSrc = vertices)
         {
@@ -153,7 +153,7 @@ public unsafe class Text
                 sizeof(float) * vertices.Length
             );
         }
-        context.Unmap(m_vertexBuffer, 0);
+        context.Unmap(_vertexBuffer, 0);
 
         return true;
     }

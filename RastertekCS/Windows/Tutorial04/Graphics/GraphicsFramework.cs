@@ -2,24 +2,24 @@ namespace RastertekCS.Windows.Tutorial04.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private ColorShader m_ColorShader;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private ColorShader _colorShader;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(DirectX))
+        _model = new Model();
+        if (!_model.Initialize(DirectX))
             return false;
 
-        m_ColorShader = new ColorShader();
-        if (!m_ColorShader.Initialize(DirectX))
+        _colorShader = new ColorShader();
+        if (!_colorShader.Initialize(DirectX))
             return false;
 
         return true;
@@ -27,32 +27,32 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_ColorShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_ColorShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _colorShader?.Shutdown();
+        _model?.Shutdown();
+        _colorShader = null;
+        _model = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame() => Render();
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        m_Camera.Render();
+        _camera.Render();
 
-        var world = m_DirectX.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
+        var world = _directX.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
 
-        m_Model.Render(m_DirectX);
+        _model.Render(_directX);
 
-        if (!m_ColorShader.Render(m_DirectX, m_Model.GetIndexCount(), world, view, projection))
+        if (!_colorShader.Render(_directX, _model.GetIndexCount(), world, view, projection))
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

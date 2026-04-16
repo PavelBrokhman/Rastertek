@@ -5,29 +5,29 @@ public class GraphicsFramework
     private const uint TEXTURE_UNIT = 0;
     private const int BITMAP_SIZE = 256;
 
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private TextureShader m_TextureShader;
-    private Bitmap m_Bitmap;
-    private int m_screenWidth,
-        m_screenHeight;
+    private GL4 _openGL;
+    private Camera _camera;
+    private TextureShader _textureShader;
+    private Bitmap _bitmap;
+    private int _screenWidth,
+        _screenHeight;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
+        _openGL = OpenGL;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -1.0f);
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -1.0f);
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(OpenGL))
             return false;
 
-        m_Bitmap = new Bitmap();
+        _bitmap = new Bitmap();
         if (
-            !m_Bitmap.Initialize(
+            !_bitmap.Initialize(
                 OpenGL,
                 screenWidth,
                 screenHeight,
@@ -38,43 +38,43 @@ public class GraphicsFramework
             )
         )
             return false;
-        m_Bitmap.SetRenderLocation(100, 100);
+        _bitmap.SetRenderLocation(100, 100);
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_Bitmap?.Shutdown(m_OpenGL);
-        m_TextureShader?.Shutdown(m_OpenGL);
-        m_Bitmap = null;
-        m_TextureShader = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _bitmap?.Shutdown(_openGL);
+        _textureShader?.Shutdown(_openGL);
+        _bitmap = null;
+        _textureShader = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame() => Render();
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _openGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        m_Camera.Render();
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var ortho = m_OpenGL.GetOrthoMatrix();
+        _camera.Render();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var ortho = _openGL.GetOrthoMatrix();
 
         // Отключаем z-buffer для 2D рендеринга.
-        m_OpenGL.TurnZBufferOff();
+        _openGL.TurnZBufferOff();
 
-        m_TextureShader.SetShader(m_OpenGL);
-        if (!m_TextureShader.SetShaderParameters(m_OpenGL, world, view, ortho, (int)TEXTURE_UNIT))
+        _textureShader.SetShader(_openGL);
+        if (!_textureShader.SetShaderParameters(_openGL, world, view, ortho, (int)TEXTURE_UNIT))
             return false;
-        m_Bitmap.Render(m_OpenGL);
+        _bitmap.Render(_openGL);
 
-        m_OpenGL.TurnZBufferOn();
+        _openGL.TurnZBufferOn();
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

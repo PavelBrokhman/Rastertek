@@ -8,24 +8,24 @@ namespace RastertekCS.OpenGL.Tutorial33.System;
 
 public class SystemFramework
 {
-    private IWindow m_w;
-    private IInputContext m_ic;
-    private GL4 m_gl;
-    private Input m_in;
-    private GraphicsFramework m_gfx;
-    private bool m_done,
-        m_init;
+    private IWindow _window;
+    private IInputContext _inputContext;
+    private GL4 _gl;
+    private Input _input;
+    private GraphicsFramework _graphics;
+    private bool _done,
+        _initialized;
 
     public bool Initialize()
     {
         int sw = 0,
             sh = 0;
-        m_gl = new GL4();
+        _gl = new GL4();
         if (!InitWin(ref sw, ref sh))
             return false;
         if (
-            !m_gl.Initialize(
-                m_w,
+            !_gl.Initialize(
+                _window,
                 sw,
                 sh,
                 SystemConfiguration.ScreenDepth,
@@ -34,31 +34,31 @@ public class SystemFramework
             )
         )
             return false;
-        m_in = new Input();
-        m_in.Initialize();
-        m_gfx = new GraphicsFramework();
-        if (!m_gfx.Initialize(m_gl, sw, sh))
+        _input = new Input();
+        _input.Initialize();
+        _graphics = new GraphicsFramework();
+        if (!_graphics.Initialize(_gl, sw, sh))
             return false;
-        m_init = true;
+        _initialized = true;
         return true;
     }
 
     public void Shutdown()
     {
-        m_gfx?.Shutdown();
-        m_gfx = null;
-        m_gl?.Shutdown();
-        m_gl = null;
-        m_ic?.Dispose();
-        m_ic = null;
-        m_w?.Dispose();
-        m_w = null;
+        _graphics?.Shutdown();
+        _graphics = null;
+        _gl?.Shutdown();
+        _gl = null;
+        _inputContext?.Dispose();
+        _inputContext = null;
+        _window?.Dispose();
+        _window = null;
     }
 
     public void Run()
     {
-        m_done = false;
-        m_w.Run();
+        _done = false;
+        _window.Run();
     }
 
     bool InitWin(ref int sw, ref int sh)
@@ -76,43 +76,43 @@ public class SystemFramework
             ContextFlags.ForwardCompatible,
             new APIVersion(4, 0)
         );
-        m_w = Window.Create(o);
-        m_w.Load += () =>
+        _window = Window.Create(o);
+        _window.Load += () =>
         {
-            m_ic = m_w.CreateInput();
-            foreach (var kb in m_ic.Keyboards)
+            _inputContext = _window.CreateInput();
+            foreach (var kb in _inputContext.Keyboards)
             {
-                kb.KeyDown += (_, key, _) => m_in?.KeyDown(key);
-                kb.KeyUp += (_, key, _) => m_in?.KeyUp(key);
+                kb.KeyDown += (_, key, _) => _input?.KeyDown(key);
+                kb.KeyUp += (_, key, _) => _input?.KeyUp(key);
             }
         };
-        m_w.Render += _ =>
+        _window.Render += _ =>
         {
-            if (!m_init)
+            if (!_initialized)
                 return;
-            if (m_done || m_in.IsKeyDown(Key.Escape))
+            if (_done || _input.IsKeyDown(Key.Escape))
             {
-                m_done = true;
-                m_w.Close();
+                _done = true;
+                _window.Close();
                 return;
             }
-            if (!m_gfx.Frame())
+            if (!_graphics.Frame())
             {
-                m_done = true;
-                m_w.Close();
+                _done = true;
+                _window.Close();
             }
         };
-        m_w.Closing += () =>
+        _window.Closing += () =>
         {
-            m_done = true;
-            m_gfx?.Shutdown();
-            m_gfx = null;
-            m_gl?.Shutdown();
-            m_gl = null;
+            _done = true;
+            _graphics?.Shutdown();
+            _graphics = null;
+            _gl?.Shutdown();
+            _gl = null;
         };
-        m_w.Initialize();
-        sw = m_w.Size.X;
-        sh = m_w.Size.Y;
+        _window.Initialize();
+        sw = _window.Size.X;
+        sh = _window.Size.Y;
         return true;
     }
 }

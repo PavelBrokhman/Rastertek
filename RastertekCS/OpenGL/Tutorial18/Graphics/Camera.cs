@@ -4,47 +4,47 @@ namespace RastertekCS.OpenGL.Tutorial18.Graphics;
 
 public class Camera
 {
-    private float m_positionX,
-        m_positionY,
-        m_positionZ;
-    private float m_rotationX,
-        m_rotationY,
-        m_rotationZ;
-    private Matrix4X4<float> m_viewMatrix;
+    private float _positionX,
+        _positionY,
+        _positionZ;
+    private float _rotationX,
+        _rotationY,
+        _rotationZ;
+    private Matrix4X4<float> _viewMatrix;
 
     public void SetPosition(float x, float y, float z)
     {
-        m_positionX = x;
-        m_positionY = y;
-        m_positionZ = z;
+        _positionX = x;
+        _positionY = y;
+        _positionZ = z;
     }
 
     public void SetRotation(float x, float y, float z)
     {
-        m_rotationX = x;
-        m_rotationY = y;
-        m_rotationZ = z;
+        _rotationX = x;
+        _rotationY = y;
+        _rotationZ = z;
     }
 
-    public float[] GetPosition() => new[] { m_positionX, m_positionY, m_positionZ };
+    public float[] GetPosition() => new[] { _positionX, _positionY, _positionZ };
 
     public void Render()
     {
         var up = new Vector3D<float>(0, 1, 0);
-        var position = new Vector3D<float>(m_positionX, m_positionY, m_positionZ);
+        var position = new Vector3D<float>(_positionX, _positionY, _positionZ);
         var lookAt = new Vector3D<float>(0, 0, 1);
         var rot = Matrix4X4.CreateFromYawPitchRoll(
-            m_rotationY * (MathF.PI / 180.0f),
-            m_rotationX * (MathF.PI / 180.0f),
-            m_rotationZ * (MathF.PI / 180.0f)
+            _rotationY * (MathF.PI / 180.0f),
+            _rotationX * (MathF.PI / 180.0f),
+            _rotationZ * (MathF.PI / 180.0f)
         );
         lookAt = Vector3D.Transform(lookAt, rot);
         up = Vector3D.Transform(up, rot);
         lookAt = position + lookAt;
-        m_viewMatrix = LookAtLH(position, lookAt, up);
+        _viewMatrix = LookAtLH(position, lookAt, up);
     }
 
-    public Matrix4X4<float> GetViewMatrix() => m_viewMatrix;
+    public Matrix4X4<float> GetViewMatrix() => _viewMatrix;
 
     private static Matrix4X4<float> LookAtLH(
         Vector3D<float> eye,

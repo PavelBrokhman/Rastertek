@@ -6,83 +6,83 @@ public class GraphicsFramework
 {
     private const uint TEXTURE_UNIT = 0;
 
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Model m_Model;
-    private LightShader m_LightShader;
-    private Light m_Light;
-    private float m_rotation;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Model _model;
+    private LightShader _lightShader;
+    private Light _light;
+    private float _rotation;
 
     public bool Initialize(GL4 OpenGL)
     {
-        m_OpenGL = OpenGL;
+        _openGL = OpenGL;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/Stone01.tga", TEXTURE_UNIT, true))
+        _model = new Model();
+        if (!_model.Initialize(OpenGL, "Data/Stone01.tga", TEXTURE_UNIT, true))
             return false;
 
-        m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(OpenGL))
+        _lightShader = new LightShader();
+        if (!_lightShader.Initialize(OpenGL))
             return false;
 
-        m_Light = new Light();
-        m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+        _light = new Light();
+        _light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
         // Свет "идёт" в +Z (из камеры в сцену); -lightDirection = (0,0,-1)
         // совпадает с нормалями треугольника → полностью освещён.
-        m_Light.SetDirection(0.0f, 0.0f, 1.0f);
+        _light.SetDirection(0.0f, 0.0f, 1.0f);
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_LightShader?.Shutdown(m_OpenGL);
-        m_Model?.Shutdown(m_OpenGL);
-        m_LightShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_Light = null;
-        m_OpenGL = null;
+        _lightShader?.Shutdown(_openGL);
+        _model?.Shutdown(_openGL);
+        _lightShader = null;
+        _model = null;
+        _camera = null;
+        _light = null;
+        _openGL = null;
     }
 
     public bool Frame()
     {
-        m_rotation += 0.01f;
-        if (m_rotation > MathF.Tau)
-            m_rotation -= MathF.Tau;
+        _rotation += 0.01f;
+        if (_rotation > MathF.Tau)
+            _rotation -= MathF.Tau;
         return Render();
     }
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _openGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        m_Camera.Render();
+        _camera.Render();
 
-        var world = Matrix4X4.CreateRotationY(m_rotation);
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_OpenGL.GetProjectionMatrix();
+        var world = Matrix4X4.CreateRotationY(_rotation);
+        var view = _camera.GetViewMatrix();
+        var projection = _openGL.GetProjectionMatrix();
 
-        m_LightShader.SetShader(m_OpenGL);
+        _lightShader.SetShader(_openGL);
         if (
-            !m_LightShader.SetShaderParameters(
-                m_OpenGL,
+            !_lightShader.SetShaderParameters(
+                _openGL,
                 world,
                 view,
                 projection,
                 (int)TEXTURE_UNIT,
-                m_Light.GetDirection(),
-                m_Light.GetDiffuseColor()
+                _light.GetDirection(),
+                _light.GetDiffuseColor()
             )
         )
             return false;
 
-        m_Model.Render(m_OpenGL);
+        _model.Render(_openGL);
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

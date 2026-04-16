@@ -2,44 +2,44 @@ namespace RastertekCS.OpenGL.Tutorial21.Graphics;
 
 public class Light
 {
-    private float[] m_diffuseColor = new float[4];
-    private float[] m_direction = new float[3];
-    private float[] m_specularColor = new float[4];
-    private float m_specularPower;
+    private float[] _diffuseColor = new float[4];
+    private float[] _direction = new float[3];
+    private float[] _specularColor = new float[4];
+    private float _specularPower;
 
     public void SetDiffuseColor(float r, float g, float b, float a)
     {
-        m_diffuseColor[0] = r;
-        m_diffuseColor[1] = g;
-        m_diffuseColor[2] = b;
-        m_diffuseColor[3] = a;
+        _diffuseColor[0] = r;
+        _diffuseColor[1] = g;
+        _diffuseColor[2] = b;
+        _diffuseColor[3] = a;
     }
 
     public void SetDirection(float x, float y, float z)
     {
-        m_direction[0] = x;
-        m_direction[1] = y;
-        m_direction[2] = z;
+        _direction[0] = x;
+        _direction[1] = y;
+        _direction[2] = z;
     }
 
     public void SetSpecularColor(float r, float g, float b, float a)
     {
-        m_specularColor[0] = r;
-        m_specularColor[1] = g;
-        m_specularColor[2] = b;
-        m_specularColor[3] = a;
+        _specularColor[0] = r;
+        _specularColor[1] = g;
+        _specularColor[2] = b;
+        _specularColor[3] = a;
     }
 
     public void SetSpecularPower(float power)
     {
-        m_specularPower = power;
+        _specularPower = power;
     }
 
-    public float[] GetDiffuseColor() => (float[])m_diffuseColor.Clone();
+    public float[] GetDiffuseColor() => (float[])_diffuseColor.Clone();
 
-    public float[] GetDirection() => (float[])m_direction.Clone();
+    public float[] GetDirection() => (float[])_direction.Clone();
 
-    public float[] GetSpecularColor() => (float[])m_specularColor.Clone();
+    public float[] GetSpecularColor() => (float[])_specularColor.Clone();
 
-    public float GetSpecularPower() => m_specularPower;
+    public float GetSpecularPower() => _specularPower;
 }

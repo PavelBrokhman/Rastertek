@@ -4,26 +4,26 @@ namespace RastertekCS.Windows.Tutorial28.Graphics;
 
 public class GraphicsFramework
 {
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private TranslateShader m_TranslateShader;
-    private float m_textureTranslation;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private TranslateShader _translateShader;
+    private float _textureTranslation;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
+        _camera.Render();
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", true))
+        _model = new Model();
+        if (!_model.Initialize(DirectX, "Models/square.txt", "Data/stone01.tga", true))
             return false;
 
-        m_TranslateShader = new TranslateShader();
-        if (!m_TranslateShader.Initialize(DirectX))
+        _translateShader = new TranslateShader();
+        if (!_translateShader.Initialize(DirectX))
             return false;
 
         return true;
@@ -31,46 +31,46 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_TranslateShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_TranslateShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _translateShader?.Shutdown();
+        _model?.Shutdown();
+        _translateShader = null;
+        _model = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame()
     {
-        m_textureTranslation += 0.01f;
-        if (m_textureTranslation > 1.0f)
-            m_textureTranslation -= 1.0f;
+        _textureTranslation += 0.01f;
+        if (_textureTranslation > 1.0f)
+            _textureTranslation -= 1.0f;
         return Render();
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = m_DirectX.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
+        var world = _directX.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
 
-        m_Model.Render(m_DirectX);
-        m_Model.SetTexture(m_DirectX, 0);
+        _model.Render(_directX);
+        _model.SetTexture(_directX, 0);
 
         if (
-            !m_TranslateShader.Render(
-                m_DirectX,
-                m_Model.GetIndexCount(),
+            !_translateShader.Render(
+                _directX,
+                _model.GetIndexCount(),
                 world,
                 view,
                 projection,
-                m_textureTranslation
+                _textureTranslation
             )
         )
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

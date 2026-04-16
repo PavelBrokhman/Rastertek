@@ -13,17 +13,17 @@ public class GraphicsClass
     public const float SCREEN_DEPTH = 1000.0f;
     public const float SCREEN_NEAR = 0.1f;
 
-    private OpenGLClass m_OpenGL;
+    private OpenGLClass _openGL;
 
     public bool Initialize(OpenGLClass OpenGL)
     {
-        m_OpenGL = OpenGL;
+        _openGL = OpenGL;
         return true;
     }
 
     public void Shutdown()
     {
-        m_OpenGL = null;
+        _openGL = null;
     }
 
     public bool Frame()
@@ -34,10 +34,10 @@ public class GraphicsClass
     private bool Render()
     {
         // Очищаем буферы серо-синим цветом (как в оригинале).
-        m_OpenGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _openGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
         // SwapBuffers выполняется Silk.NET автоматически.
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
 
         return true;
     }

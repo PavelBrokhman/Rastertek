@@ -4,24 +4,24 @@ public class GraphicsFramework
 {
     private const uint TEXTURE_UNIT = 0;
 
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private Model m_Model;
-    private TextureShader m_TextureShader;
+    private GL4 _openGL;
+    private Camera _camera;
+    private Model _model;
+    private TextureShader _textureShader;
 
     public bool Initialize(GL4 OpenGL)
     {
-        m_OpenGL = OpenGL;
+        _openGL = OpenGL;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Data/Stone01.tga", TEXTURE_UNIT, true))
+        _model = new Model();
+        if (!_model.Initialize(OpenGL, "Data/Stone01.tga", TEXTURE_UNIT, true))
             return false;
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(OpenGL))
             return false;
 
         return true;
@@ -29,41 +29,35 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_TextureShader?.Shutdown(m_OpenGL);
-        m_Model?.Shutdown(m_OpenGL);
-        m_TextureShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_OpenGL = null;
+        _textureShader?.Shutdown(_openGL);
+        _model?.Shutdown(_openGL);
+        _textureShader = null;
+        _model = null;
+        _camera = null;
+        _openGL = null;
     }
 
     public bool Frame() => Render();
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _openGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        m_Camera.Render();
+        _camera.Render();
 
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_OpenGL.GetProjectionMatrix();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _openGL.GetProjectionMatrix();
 
-        m_TextureShader.SetShader(m_OpenGL);
+        _textureShader.SetShader(_openGL);
         if (
-            !m_TextureShader.SetShaderParameters(
-                m_OpenGL,
-                world,
-                view,
-                projection,
-                (int)TEXTURE_UNIT
-            )
+            !_textureShader.SetShaderParameters(_openGL, world, view, projection, (int)TEXTURE_UNIT)
         )
             return false;
 
-        m_Model.Render(m_OpenGL);
+        _model.Render(_openGL);
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

@@ -13,11 +13,11 @@ public class DisplayPlane
             tv;
     }
 
-    private uint m_vertexArrayId;
-    private uint m_vertexBufferId;
-    private uint m_indexBufferId;
-    private int m_vertexCount;
-    private int m_indexCount;
+    private uint _vertexArrayId;
+    private uint _vertexBufferId;
+    private uint _indexBufferId;
+    private int _vertexCount;
+    private int _indexCount;
 
     public unsafe bool Initialize(GL4 OpenGL, float width, float height)
     {
@@ -32,10 +32,10 @@ public class DisplayPlane
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.BindVertexArray(m_vertexArrayId);
+        gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_indexCount,
+            (uint)_indexCount,
             DrawElementsType.UnsignedInt,
             (void*)0
         );
@@ -45,11 +45,11 @@ public class DisplayPlane
     {
         var gl = OpenGL.Gl;
 
-        m_vertexCount = 6;
-        m_indexCount = m_vertexCount;
+        _vertexCount = 6;
+        _indexCount = _vertexCount;
 
-        var vertices = new VertexType[m_vertexCount];
-        var indices = new uint[m_indexCount];
+        var vertices = new VertexType[_vertexCount];
+        var indices = new uint[_indexCount];
 
         // First triangle.
         vertices[0].x = -width;
@@ -89,14 +89,14 @@ public class DisplayPlane
         vertices[5].tu = 1.0f;
         vertices[5].tv = 0.0f;
 
-        for (int i = 0; i < m_indexCount; i++)
+        for (int i = 0; i < _indexCount; i++)
             indices[i] = (uint)i;
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = vertices)
             gl.BufferData(
                 BufferTargetARB.ArrayBuffer,
@@ -127,8 +127,8 @@ public class DisplayPlane
             (void*)(3 * sizeof(float))
         );
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
             gl.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
@@ -146,10 +146,10 @@ public class DisplayPlane
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexArrayId);
     }
 }

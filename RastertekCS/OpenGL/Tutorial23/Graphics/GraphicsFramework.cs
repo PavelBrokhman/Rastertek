@@ -8,66 +8,66 @@ public class GraphicsFramework
 {
     private const uint TEXTURE_UNIT = 0;
 
-    private GL4 m_OpenGL;
-    private Input m_Input;
-    private Camera m_Camera;
-    private Model m_Model;
-    private Light m_Light;
-    private LightShader m_LightShader;
-    private FontShader m_FontShader;
-    private Font m_Font;
-    private Text m_RenderCountString;
-    private Position m_Position;
-    private ModelList m_ModelList;
-    private Frustum m_Frustum;
-    private Matrix4X4<float> m_baseViewMatrix;
-    private int m_screenWidth,
-        m_screenHeight;
+    private GL4 _openGL;
+    private Input _input;
+    private Camera _camera;
+    private Model _model;
+    private Light _light;
+    private LightShader _lightShader;
+    private FontShader _fontShader;
+    private Font _font;
+    private Text _renderCountString;
+    private Position _position;
+    private ModelList _modelList;
+    private Frustum _frustum;
+    private Matrix4X4<float> _baseViewMatrix;
+    private int _screenWidth,
+        _screenHeight;
 
     public bool Initialize(GL4 OpenGL, Input input, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
-        m_Input = input;
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
+        _openGL = OpenGL;
+        _input = input;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
 
         // Create and initialize the camera.
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
-        m_baseViewMatrix = m_Camera.GetViewMatrix();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
+        _baseViewMatrix = _camera.GetViewMatrix();
 
         // Create and initialize the model.
-        m_Model = new Model();
-        if (!m_Model.Initialize(OpenGL, "Models/sphere.txt", "Data/stone01.tga", TEXTURE_UNIT))
+        _model = new Model();
+        if (!_model.Initialize(OpenGL, "Models/sphere.txt", "Data/stone01.tga", TEXTURE_UNIT))
             return false;
 
         // Create and initialize the light.
-        m_Light = new Light();
-        m_Light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-        m_Light.SetDirection(0.0f, 0.0f, 1.0f);
+        _light = new Light();
+        _light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+        _light.SetDirection(0.0f, 0.0f, 1.0f);
 
         // Create and initialize the light shader.
-        m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(OpenGL))
+        _lightShader = new LightShader();
+        if (!_lightShader.Initialize(OpenGL))
             return false;
 
         // Create and initialize the font shader.
-        m_FontShader = new FontShader();
-        if (!m_FontShader.Initialize(OpenGL))
+        _fontShader = new FontShader();
+        if (!_fontShader.Initialize(OpenGL))
             return false;
 
         // Create and initialize the font.
-        m_Font = new Font();
-        if (!m_Font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
+        _font = new Font();
+        if (!_font.Initialize(OpenGL, "Data/font01.txt", "Data/font01.tga", TEXTURE_UNIT))
             return false;
 
         // Create and initialize the render count text.
-        m_RenderCountString = new Text();
+        _renderCountString = new Text();
         if (
-            !m_RenderCountString.Initialize(
+            !_renderCountString.Initialize(
                 OpenGL,
-                m_Font,
+                _font,
                 "Render Count: 0",
                 10,
                 10,
@@ -82,95 +82,95 @@ public class GraphicsFramework
             return false;
 
         // Create the position object.
-        m_Position = new Position();
+        _position = new Position();
 
         // Create and initialize the model list.
-        m_ModelList = new ModelList();
-        m_ModelList.Initialize(25);
+        _modelList = new ModelList();
+        _modelList.Initialize(25);
 
         // Create the frustum object.
-        m_Frustum = new Frustum();
+        _frustum = new Frustum();
 
         return true;
     }
 
     public void Shutdown()
     {
-        m_Frustum = null;
-        m_ModelList?.Shutdown();
-        m_ModelList = null;
-        m_Position = null;
-        m_RenderCountString?.Shutdown(m_OpenGL);
-        m_RenderCountString = null;
-        m_Font?.Shutdown(m_OpenGL);
-        m_Font = null;
-        m_FontShader?.Shutdown(m_OpenGL);
-        m_FontShader = null;
-        m_LightShader?.Shutdown(m_OpenGL);
-        m_LightShader = null;
-        m_Light = null;
-        m_Model?.Shutdown(m_OpenGL);
-        m_Model = null;
-        m_Camera = null;
-        m_Input = null;
-        m_OpenGL = null;
+        _frustum = null;
+        _modelList?.Shutdown();
+        _modelList = null;
+        _position = null;
+        _renderCountString?.Shutdown(_openGL);
+        _renderCountString = null;
+        _font?.Shutdown(_openGL);
+        _font = null;
+        _fontShader?.Shutdown(_openGL);
+        _fontShader = null;
+        _lightShader?.Shutdown(_openGL);
+        _lightShader = null;
+        _light = null;
+        _model?.Shutdown(_openGL);
+        _model = null;
+        _camera = null;
+        _input = null;
+        _openGL = null;
     }
 
     public bool Frame(RastertekCS.OpenGL.Tutorial23.System.Timer timer)
     {
         // Set the frame time for position calculations.
-        m_Position.SetFrameTime(timer.GetTime());
+        _position.SetFrameTime(timer.GetTime());
 
         // Check if left or right arrow keys are pressed.
-        bool leftKey = m_Input.IsKeyDown(Key.Left);
-        m_Position.TurnLeft(leftKey);
+        bool leftKey = _input.IsKeyDown(Key.Left);
+        _position.TurnLeft(leftKey);
 
-        bool rightKey = m_Input.IsKeyDown(Key.Right);
-        m_Position.TurnRight(rightKey);
+        bool rightKey = _input.IsKeyDown(Key.Right);
+        _position.TurnRight(rightKey);
 
         // Get the current rotation and set the camera.
-        float rotationY = m_Position.GetRotation();
-        m_Camera.SetRotation(0.0f, rotationY, 0.0f);
-        m_Camera.Render();
+        float rotationY = _position.GetRotation();
+        _camera.SetRotation(0.0f, rotationY, 0.0f);
+        _camera.Render();
 
         return Render();
     }
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _openGL.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_OpenGL.GetProjectionMatrix();
-        var ortho = m_OpenGL.GetOrthoMatrix();
+        var world = _openGL.GetWorldMatrix();
+        var view = _camera.GetViewMatrix();
+        var projection = _openGL.GetProjectionMatrix();
+        var ortho = _openGL.GetOrthoMatrix();
 
         // Construct the frustum.
-        m_Frustum.ConstructFrustum(view, projection);
+        _frustum.ConstructFrustum(view, projection);
 
         // Get light properties.
-        var lightDirection = m_Light.GetDirection();
-        var diffuseLightColor = m_Light.GetDiffuseColor();
+        var lightDirection = _light.GetDirection();
+        var diffuseLightColor = _light.GetDiffuseColor();
 
         // Get the number of models.
-        int modelCount = m_ModelList.GetModelCount();
+        int modelCount = _modelList.GetModelCount();
         int renderCount = 0;
 
         // Go through all models and render only those in the frustum.
         for (int i = 0; i < modelCount; i++)
         {
-            m_ModelList.GetData(i, out float posX, out float posY, out float posZ);
+            _modelList.GetData(i, out float posX, out float posY, out float posZ);
 
             // Check if the sphere (radius 1.0) is in the frustum.
-            if (m_Frustum.CheckSphere(posX, posY, posZ, 1.0f))
+            if (_frustum.CheckSphere(posX, posY, posZ, 1.0f))
             {
                 // Create translation matrix for this model position.
                 var worldTranslated = Matrix4X4.CreateTranslation(posX, posY, posZ);
 
                 // Set the light shader parameters.
                 if (
-                    !m_LightShader.SetShaderParameters(
-                        m_OpenGL,
+                    !_lightShader.SetShaderParameters(
+                        _openGL,
                         worldTranslated,
                         view,
                         projection,
@@ -182,19 +182,19 @@ public class GraphicsFramework
                     return false;
 
                 // Render the sphere.
-                m_Model.SetTexture(m_OpenGL, TEXTURE_UNIT);
-                m_Model.Render(m_OpenGL);
+                _model.SetTexture(_openGL, TEXTURE_UNIT);
+                _model.Render(_openGL);
 
                 renderCount++;
             }
         }
 
         // Disable Z buffer and enable alpha blending for 2D rendering.
-        m_OpenGL.TurnZBufferOff();
-        m_OpenGL.EnableAlphaBlending();
+        _openGL.TurnZBufferOff();
+        _openGL.EnableAlphaBlending();
 
         // Disable face culling for text rendering.
-        m_OpenGL.Gl.Disable(Silk.NET.OpenGL.EnableCap.CullFace);
+        _openGL.Gl.Disable(Silk.NET.OpenGL.EnableCap.CullFace);
 
         // Update the render count text.
         UpdateRenderCountString(renderCount);
@@ -203,48 +203,48 @@ public class GraphicsFramework
         var identityView = Matrix4X4<float>.Identity;
 
         // Set font shader parameters and render text.
-        m_FontShader.SetShader(m_OpenGL);
-        m_Font.SetTexture(m_OpenGL, TEXTURE_UNIT);
+        _fontShader.SetShader(_openGL);
+        _font.SetTexture(_openGL, TEXTURE_UNIT);
 
         if (
-            !m_FontShader.SetShaderParameters(
-                m_OpenGL,
+            !_fontShader.SetShaderParameters(
+                _openGL,
                 world,
                 identityView,
                 ortho,
                 (int)TEXTURE_UNIT,
-                m_RenderCountString.GetPixelColor()
+                _renderCountString.GetPixelColor()
             )
         )
             return false;
 
-        m_RenderCountString.Render(m_OpenGL);
+        _renderCountString.Render(_openGL);
 
         // Re-enable face culling.
-        m_OpenGL.Gl.Enable(Silk.NET.OpenGL.EnableCap.CullFace);
+        _openGL.Gl.Enable(Silk.NET.OpenGL.EnableCap.CullFace);
 
         // Re-enable Z buffer and disable alpha blending.
-        m_OpenGL.TurnZBufferOn();
-        m_OpenGL.DisableAlphaBlending();
+        _openGL.TurnZBufferOn();
+        _openGL.DisableAlphaBlending();
 
-        m_OpenGL.EndScene();
+        _openGL.EndScene();
         return true;
     }
 
     private void UpdateRenderCountString(int renderCount)
     {
         string text = $"Render Count: {renderCount}";
-        m_RenderCountString.UpdateText(
-            m_OpenGL,
-            m_Font,
+        _renderCountString.UpdateText(
+            _openGL,
+            _font,
             text,
             10,
             10,
             1.0f,
             1.0f,
             1.0f,
-            m_screenWidth,
-            m_screenHeight
+            _screenWidth,
+            _screenHeight
         );
     }
 }

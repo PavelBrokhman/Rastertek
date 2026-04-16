@@ -7,34 +7,34 @@ public class GraphicsFramework
     private const float SCREEN_DEPTH = 1000.0f;
     private const float SCREEN_NEAR = 0.3f;
 
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_CubeModel;
-    private Model m_FloorModel;
-    private RenderTexture m_RenderTexture;
-    private TextureShader m_TextureShader;
-    private ReflectionShader m_ReflectionShader;
-    private float m_rotation = MathF.Tau;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _cubeModel;
+    private Model _floorModel;
+    private RenderTexture _renderTexture;
+    private TextureShader _textureShader;
+    private ReflectionShader _reflectionShader;
+    private float _rotation = MathF.Tau;
 
     public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        m_CubeModel = new Model();
-        if (!m_CubeModel.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
+        _cubeModel = new Model();
+        if (!_cubeModel.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
             return false;
 
-        m_FloorModel = new Model();
-        if (!m_FloorModel.Initialize(DirectX, "Models/floor.txt", "Data/blue01.tga", true))
+        _floorModel = new Model();
+        if (!_floorModel.Initialize(DirectX, "Models/floor.txt", "Data/blue01.tga", true))
             return false;
 
-        m_RenderTexture = new RenderTexture();
+        _renderTexture = new RenderTexture();
         if (
-            !m_RenderTexture.Initialize(
+            !_renderTexture.Initialize(
                 DirectX,
                 screenWidth,
                 screenHeight,
@@ -44,12 +44,12 @@ public class GraphicsFramework
         )
             return false;
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(DirectX))
             return false;
 
-        m_ReflectionShader = new ReflectionShader();
-        if (!m_ReflectionShader.Initialize(DirectX))
+        _reflectionShader = new ReflectionShader();
+        if (!_reflectionShader.Initialize(DirectX))
             return false;
 
         return true;
@@ -57,25 +57,25 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_ReflectionShader?.Shutdown();
-        m_TextureShader?.Shutdown();
-        m_RenderTexture?.Shutdown();
-        m_FloorModel?.Shutdown();
-        m_CubeModel?.Shutdown();
-        m_ReflectionShader = null;
-        m_TextureShader = null;
-        m_RenderTexture = null;
-        m_FloorModel = null;
-        m_CubeModel = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _reflectionShader?.Shutdown();
+        _textureShader?.Shutdown();
+        _renderTexture?.Shutdown();
+        _floorModel?.Shutdown();
+        _cubeModel?.Shutdown();
+        _reflectionShader = null;
+        _textureShader = null;
+        _renderTexture = null;
+        _floorModel = null;
+        _cubeModel = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f)
-            m_rotation += MathF.Tau;
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation < 0.0f)
+            _rotation += MathF.Tau;
         if (!RenderReflectionToTexture())
             return false;
         return Render();
@@ -83,71 +83,71 @@ public class GraphicsFramework
 
     private bool RenderReflectionToTexture()
     {
-        m_RenderTexture.SetRenderTarget(m_DirectX);
-        m_RenderTexture.ClearRenderTarget(m_DirectX, 0.0f, 0.0f, 0.0f, 1.0f);
+        _renderTexture.SetRenderTarget(_directX);
+        _renderTexture.ClearRenderTarget(_directX, 0.0f, 0.0f, 0.0f, 1.0f);
 
-        m_Camera.RenderReflection(-1.5f);
-        var reflectionView = m_Camera.GetReflectionViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
-        var world = Matrix4X4.CreateRotationY(m_rotation);
+        _camera.RenderReflection(-1.5f);
+        var reflectionView = _camera.GetReflectionViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
+        var world = Matrix4X4.CreateRotationY(_rotation);
 
-        m_CubeModel.Render(m_DirectX);
+        _cubeModel.Render(_directX);
         if (
-            !m_TextureShader.Render(
-                m_DirectX,
-                m_CubeModel.GetIndexCount(),
+            !_textureShader.Render(
+                _directX,
+                _cubeModel.GetIndexCount(),
                 world,
                 reflectionView,
                 projection,
-                m_CubeModel.GetTextureView()
+                _cubeModel.GetTextureView()
             )
         )
             return false;
 
-        m_DirectX.SetBackBufferRenderTarget();
-        m_DirectX.ResetViewport();
+        _directX.SetBackBufferRenderTarget();
+        _directX.ResetViewport();
         return true;
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
-        var world = Matrix4X4.CreateRotationY(m_rotation);
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
+        var world = Matrix4X4.CreateRotationY(_rotation);
 
-        m_CubeModel.Render(m_DirectX);
+        _cubeModel.Render(_directX);
         if (
-            !m_TextureShader.Render(
-                m_DirectX,
-                m_CubeModel.GetIndexCount(),
+            !_textureShader.Render(
+                _directX,
+                _cubeModel.GetIndexCount(),
                 world,
                 view,
                 projection,
-                m_CubeModel.GetTextureView()
+                _cubeModel.GetTextureView()
             )
         )
             return false;
 
         var floorWorld = Matrix4X4.CreateTranslation(0.0f, -1.5f, 0.0f);
-        var reflectionView = m_Camera.GetReflectionViewMatrix();
-        m_FloorModel.Render(m_DirectX);
+        var reflectionView = _camera.GetReflectionViewMatrix();
+        _floorModel.Render(_directX);
         if (
-            !m_ReflectionShader.Render(
-                m_DirectX,
-                m_FloorModel.GetIndexCount(),
+            !_reflectionShader.Render(
+                _directX,
+                _floorModel.GetIndexCount(),
                 floorWorld,
                 view,
                 projection,
-                m_FloorModel.GetTextureView(),
-                m_RenderTexture.GetShaderResourceView(),
+                _floorModel.GetTextureView(),
+                _renderTexture.GetShaderResourceView(),
                 reflectionView
             )
         )
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }

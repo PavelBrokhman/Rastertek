@@ -4,22 +4,22 @@ namespace RastertekCS.OpenGL.Tutorial22.Graphics;
 
 public class ShaderManager
 {
-    private TextureShader m_TextureShader;
-    private LightShader m_LightShader;
-    private NormalMapShader m_NormalMapShader;
+    private TextureShader _textureShader;
+    private LightShader _lightShader;
+    private NormalMapShader _normalMapShader;
 
     public bool Initialize(GL4 OpenGL)
     {
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(OpenGL))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(OpenGL))
             return false;
 
-        m_LightShader = new LightShader();
-        if (!m_LightShader.Initialize(OpenGL))
+        _lightShader = new LightShader();
+        if (!_lightShader.Initialize(OpenGL))
             return false;
 
-        m_NormalMapShader = new NormalMapShader();
-        if (!m_NormalMapShader.Initialize(OpenGL))
+        _normalMapShader = new NormalMapShader();
+        if (!_normalMapShader.Initialize(OpenGL))
             return false;
 
         return true;
@@ -27,12 +27,12 @@ public class ShaderManager
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_NormalMapShader?.Shutdown(OpenGL);
-        m_NormalMapShader = null;
-        m_LightShader?.Shutdown(OpenGL);
-        m_LightShader = null;
-        m_TextureShader?.Shutdown(OpenGL);
-        m_TextureShader = null;
+        _normalMapShader?.Shutdown(OpenGL);
+        _normalMapShader = null;
+        _lightShader?.Shutdown(OpenGL);
+        _lightShader = null;
+        _textureShader?.Shutdown(OpenGL);
+        _textureShader = null;
     }
 
     public bool RenderTextureShader(
@@ -43,8 +43,8 @@ public class ShaderManager
         int textureUnit
     )
     {
-        m_TextureShader.SetShader(OpenGL);
-        return m_TextureShader.SetShaderParameters(
+        _textureShader.SetShader(OpenGL);
+        return _textureShader.SetShaderParameters(
             OpenGL,
             worldMatrix,
             viewMatrix,
@@ -63,8 +63,8 @@ public class ShaderManager
         int textureUnit
     )
     {
-        m_LightShader.SetShader(OpenGL);
-        return m_LightShader.SetShaderParameters(
+        _lightShader.SetShader(OpenGL);
+        return _lightShader.SetShaderParameters(
             OpenGL,
             worldMatrix,
             viewMatrix,
@@ -86,8 +86,8 @@ public class ShaderManager
         int textureUnit2
     )
     {
-        m_NormalMapShader.SetShader(OpenGL);
-        return m_NormalMapShader.SetShaderParameters(
+        _normalMapShader.SetShader(OpenGL);
+        return _normalMapShader.SetShaderParameters(
             OpenGL,
             worldMatrix,
             viewMatrix,

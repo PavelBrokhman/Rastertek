@@ -13,19 +13,19 @@ public class Bitmap
             tv;
     }
 
-    private uint m_vertexArrayId;
-    private uint m_vertexBufferId;
-    private uint m_indexBufferId;
-    private int m_vertexCount;
-    private int m_indexCount;
-    private Texture m_Texture;
+    private uint _vertexArrayId;
+    private uint _vertexBufferId;
+    private uint _indexBufferId;
+    private int _vertexCount;
+    private int _indexCount;
+    private Texture _texture;
 
-    private int m_screenWidth,
-        m_screenHeight;
-    private int m_bitmapWidth,
-        m_bitmapHeight;
-    private int m_previousPosX = -1,
-        m_previousPosY = -1;
+    private int _screenWidth,
+        _screenHeight;
+    private int _bitmapWidth,
+        _bitmapHeight;
+    private int _previousPosX = -1,
+        _previousPosY = -1;
 
     public unsafe bool Initialize(
         GL4 OpenGL,
@@ -38,22 +38,22 @@ public class Bitmap
     )
     {
         var gl = OpenGL.Gl;
-        m_screenWidth = screenWidth;
-        m_screenHeight = screenHeight;
-        m_bitmapWidth = bitmapWidth;
-        m_bitmapHeight = bitmapHeight;
-        m_vertexCount = 6;
-        m_indexCount = 6;
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
+        _bitmapWidth = bitmapWidth;
+        _bitmapHeight = bitmapHeight;
+        _vertexCount = 6;
+        _indexCount = 6;
 
         // Вершины стартуют как нули — обновятся в Render() через UpdateBuffers.
-        var vertices = new VertexType[m_vertexCount];
+        var vertices = new VertexType[_vertexCount];
         var indices = new uint[] { 0, 1, 2, 3, 4, 5 };
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = vertices)
             gl.BufferData(
                 BufferTargetARB.ArrayBuffer,
@@ -81,8 +81,8 @@ public class Bitmap
             (void*)(3 * sizeof(float))
         );
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
             gl.BufferData(
                 BufferTargetARB.ElementArrayBuffer,
@@ -91,8 +91,8 @@ public class Bitmap
                 BufferUsageARB.StaticDraw
             );
 
-        m_Texture = new Texture();
-        if (!m_Texture.Initialize(OpenGL, textureFilename, textureUnit, false))
+        _texture = new Texture();
+        if (!_texture.Initialize(OpenGL, textureFilename, textureUnit, false))
             return false;
 
         return true;
@@ -100,28 +100,28 @@ public class Bitmap
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_Texture?.Shutdown(OpenGL);
-        m_Texture = null;
+        _texture?.Shutdown(OpenGL);
+        _texture = null;
         var gl = OpenGL.Gl;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexArrayId);
     }
 
     public bool SetRenderLocation(int posX, int posY)
     {
-        return posX != m_previousPosX || posY != m_previousPosY ? SetNewPos(posX, posY) : true;
+        return posX != _previousPosX || posY != _previousPosY ? SetNewPos(posX, posY) : true;
     }
 
     private bool SetNewPos(int posX, int posY)
     {
-        m_previousPosX = posX;
-        m_previousPosY = posY;
+        _previousPosX = posX;
+        _previousPosY = posY;
         return true;
     }
 
@@ -130,10 +130,10 @@ public class Bitmap
         var gl = OpenGL.Gl;
 
         // Обновляем позиции вершин исходя из screen coords.
-        float left = -((float)m_screenWidth / 2.0f) + m_previousPosX;
-        float right = left + m_bitmapWidth;
-        float top = ((float)m_screenHeight / 2.0f) - m_previousPosY;
-        float bottom = top - m_bitmapHeight;
+        float left = -((float)_screenWidth / 2.0f) + _previousPosX;
+        float right = left + _bitmapWidth;
+        float top = ((float)_screenHeight / 2.0f) - _previousPosY;
+        float bottom = top - _bitmapHeight;
 
         var v = new VertexType[6]
         {
@@ -187,7 +187,7 @@ public class Bitmap
             }, // bottom-right
         };
 
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = v)
             gl.BufferSubData(
                 BufferTargetARB.ArrayBuffer,
@@ -196,14 +196,14 @@ public class Bitmap
                 p
             );
 
-        gl.BindVertexArray(m_vertexArrayId);
+        gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
-            (uint)m_indexCount,
+            (uint)_indexCount,
             DrawElementsType.UnsignedInt,
             (void*)0
         );
     }
 
-    public int GetIndexCount() => m_indexCount;
+    public int GetIndexCount() => _indexCount;
 }

@@ -7,36 +7,36 @@ public class GraphicsFramework
     private const float SCREEN_DEPTH = 1000.0f;
     private const float SCREEN_NEAR = 0.3f;
 
-    private DX11 m_DirectX;
-    private Camera m_Camera;
-    private Model m_Model;
-    private TextureShader m_TextureShader;
-    private RenderTexture m_RenderTexture;
-    private DisplayPlane m_DisplayPlane;
-    private float m_rotation = MathF.Tau;
+    private DX11 _directX;
+    private Camera _camera;
+    private Model _model;
+    private TextureShader _textureShader;
+    private RenderTexture _renderTexture;
+    private DisplayPlane _displayPlane;
+    private float _rotation = MathF.Tau;
 
     public bool Initialize(DX11 DirectX)
     {
-        m_DirectX = DirectX;
+        _directX = DirectX;
 
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        m_Model = new Model();
-        if (!m_Model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
+        _model = new Model();
+        if (!_model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", true))
             return false;
 
-        m_TextureShader = new TextureShader();
-        if (!m_TextureShader.Initialize(DirectX))
+        _textureShader = new TextureShader();
+        if (!_textureShader.Initialize(DirectX))
             return false;
 
-        m_RenderTexture = new RenderTexture();
-        if (!m_RenderTexture.Initialize(DirectX, 256, 256, SCREEN_DEPTH, SCREEN_NEAR))
+        _renderTexture = new RenderTexture();
+        if (!_renderTexture.Initialize(DirectX, 256, 256, SCREEN_DEPTH, SCREEN_NEAR))
             return false;
 
-        m_DisplayPlane = new DisplayPlane();
-        if (!m_DisplayPlane.Initialize(DirectX, 1.0f, 1.0f))
+        _displayPlane = new DisplayPlane();
+        if (!_displayPlane.Initialize(DirectX, 1.0f, 1.0f))
             return false;
 
         return true;
@@ -44,23 +44,23 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        m_DisplayPlane?.Shutdown();
-        m_RenderTexture?.Shutdown();
-        m_TextureShader?.Shutdown();
-        m_Model?.Shutdown();
-        m_DisplayPlane = null;
-        m_RenderTexture = null;
-        m_TextureShader = null;
-        m_Model = null;
-        m_Camera = null;
-        m_DirectX = null;
+        _displayPlane?.Shutdown();
+        _renderTexture?.Shutdown();
+        _textureShader?.Shutdown();
+        _model?.Shutdown();
+        _displayPlane = null;
+        _renderTexture = null;
+        _textureShader = null;
+        _model = null;
+        _camera = null;
+        _directX = null;
     }
 
     public bool Frame()
     {
-        m_rotation -= 0.0174532925f * 1.0f;
-        if (m_rotation < 0.0f)
-            m_rotation += MathF.Tau;
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation < 0.0f)
+            _rotation += MathF.Tau;
         if (!RenderSceneToTexture())
             return false;
         return Render();
@@ -68,52 +68,52 @@ public class GraphicsFramework
 
     private bool RenderSceneToTexture()
     {
-        m_RenderTexture.SetRenderTarget(m_DirectX);
-        m_RenderTexture.ClearRenderTarget(m_DirectX, 0.0f, 0.5f, 1.0f, 1.0f);
+        _renderTexture.SetRenderTarget(_directX);
+        _renderTexture.ClearRenderTarget(_directX, 0.0f, 0.5f, 1.0f, 1.0f);
 
-        m_Camera.SetPosition(0.0f, 0.0f, -5.0f);
-        m_Camera.Render();
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
+        _camera.Render();
 
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_RenderTexture.GetProjectionMatrix();
-        var world = Matrix4X4.CreateRotationY(m_rotation);
+        var view = _camera.GetViewMatrix();
+        var projection = _renderTexture.GetProjectionMatrix();
+        var world = Matrix4X4.CreateRotationY(_rotation);
 
-        m_Model.Render(m_DirectX);
+        _model.Render(_directX);
         if (
-            !m_TextureShader.Render(
-                m_DirectX,
-                m_Model.GetIndexCount(),
+            !_textureShader.Render(
+                _directX,
+                _model.GetIndexCount(),
                 world,
                 view,
                 projection,
-                m_Model.GetTextureView()
+                _model.GetTextureView()
             )
         )
             return false;
 
-        m_DirectX.SetBackBufferRenderTarget();
-        m_DirectX.ResetViewport();
+        _directX.SetBackBufferRenderTarget();
+        _directX.ResetViewport();
 
         return true;
     }
 
     private bool Render()
     {
-        m_DirectX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
-        m_Camera.SetPosition(0.0f, 0.0f, -10.0f);
-        m_Camera.Render();
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.Render();
 
-        var view = m_Camera.GetViewMatrix();
-        var projection = m_DirectX.GetProjectionMatrix();
-        var rtSrv = m_RenderTexture.GetShaderResourceView();
+        var view = _camera.GetViewMatrix();
+        var projection = _directX.GetProjectionMatrix();
+        var rtSrv = _renderTexture.GetShaderResourceView();
 
         var world1 = Matrix4X4.CreateTranslation(0.0f, 1.5f, 0.0f);
-        m_DisplayPlane.Render(m_DirectX);
+        _displayPlane.Render(_directX);
         if (
-            !m_TextureShader.Render(
-                m_DirectX,
-                m_DisplayPlane.GetIndexCount(),
+            !_textureShader.Render(
+                _directX,
+                _displayPlane.GetIndexCount(),
                 world1,
                 view,
                 projection,
@@ -123,11 +123,11 @@ public class GraphicsFramework
             return false;
 
         var world2 = Matrix4X4.CreateTranslation(-1.5f, -1.5f, 0.0f);
-        m_DisplayPlane.Render(m_DirectX);
+        _displayPlane.Render(_directX);
         if (
-            !m_TextureShader.Render(
-                m_DirectX,
-                m_DisplayPlane.GetIndexCount(),
+            !_textureShader.Render(
+                _directX,
+                _displayPlane.GetIndexCount(),
                 world2,
                 view,
                 projection,
@@ -137,11 +137,11 @@ public class GraphicsFramework
             return false;
 
         var world3 = Matrix4X4.CreateTranslation(1.5f, -1.5f, 0.0f);
-        m_DisplayPlane.Render(m_DirectX);
+        _displayPlane.Render(_directX);
         if (
-            !m_TextureShader.Render(
-                m_DirectX,
-                m_DisplayPlane.GetIndexCount(),
+            !_textureShader.Render(
+                _directX,
+                _displayPlane.GetIndexCount(),
                 world3,
                 view,
                 projection,
@@ -150,7 +150,7 @@ public class GraphicsFramework
         )
             return false;
 
-        m_DirectX.EndScene();
+        _directX.EndScene();
         return true;
     }
 }
