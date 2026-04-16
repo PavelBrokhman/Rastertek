@@ -14,7 +14,7 @@ public class FontShader
 
     public void Shutdown(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DetachShader(_shaderProgram, _vertexShader);
         gl.DetachShader(_shaderProgram, _fragmentShader);
         gl.DeleteShader(_vertexShader);
@@ -22,7 +22,7 @@ public class FontShader
         gl.DeleteProgram(_shaderProgram);
     }
 
-    public void SetShader(GL4 OpenGL) => OpenGL.Gl.UseProgram(_shaderProgram);
+    public void SetShader(GL4 OpenGL) => OpenGL.Driver.UseProgram(_shaderProgram);
 
     public bool SetShaderParameters(
         GL4 OpenGL,
@@ -33,7 +33,7 @@ public class FontShader
         float[] pixelColor
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         int loc;
         loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc == -1)
@@ -73,7 +73,7 @@ public class FontShader
 
     private bool InitializeShader(GL4 OpenGL, string vs, string ps)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         _vertexShader = gl.CreateShader(ShaderType.VertexShader);
         gl.ShaderSource(_vertexShader, File.ReadAllText(vs));
         gl.CompileShader(_vertexShader);

@@ -194,7 +194,7 @@ public class GraphicsFramework
         _openGL.EnableAlphaBlending();
 
         // Disable face culling for text rendering.
-        _openGL.Gl.Disable(Silk.NET.OpenGL.EnableCap.CullFace);
+        _openGL.Driver.Disable(Silk.NET.OpenGL.EnableCap.CullFace);
 
         // Update the render count text.
         UpdateRenderCountString(renderCount);
@@ -221,7 +221,7 @@ public class GraphicsFramework
         _renderCountString.Render(_openGL);
 
         // Re-enable face culling.
-        _openGL.Gl.Enable(Silk.NET.OpenGL.EnableCap.CullFace);
+        _openGL.Driver.Enable(Silk.NET.OpenGL.EnableCap.CullFace);
 
         // Re-enable Z buffer and disable alpha blending.
         _openGL.TurnZBufferOn();

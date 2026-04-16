@@ -66,8 +66,8 @@ public class Model
 
     public unsafe void Render(GL4 gl)
     {
-        gl.Gl.BindVertexArray(_vertexArrayId);
-        gl.Gl.DrawElements(
+        gl.Driver.BindVertexArray(_vertexArrayId);
+        gl.Driver.DrawElements(
             PrimitiveType.Triangles,
             (uint)_indexCount,
             DrawElementsType.UnsignedInt,
@@ -133,7 +133,7 @@ public class Model
 
     unsafe bool InitializeBuffers(GL4 gl)
     {
-        var glApi = gl.Gl;
+        var glApi = gl.Driver;
         var vertices = new VertexType[_vertexCount];
         var indices = new uint[_indexCount];
         for (int i = 0; i < _vertexCount; i++)
@@ -202,7 +202,7 @@ public class Model
 
     void ShutdownBuffers(GL4 gl)
     {
-        var glApi = gl.Gl;
+        var glApi = gl.Driver;
         glApi.DisableVertexAttribArray(0);
         glApi.DisableVertexAttribArray(1);
         glApi.DisableVertexAttribArray(2);

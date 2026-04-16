@@ -28,7 +28,7 @@ public class Text
         int maxLength
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         _maxLength = maxLength;
         _red = r;
         _green = g;
@@ -114,7 +114,7 @@ public class Text
         float startY = (screenHeight / 2.0f) - posY;
         font.BuildVertexArray(vertices, sentence, startX, startY);
 
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (float* p = vertices)
             gl.BufferSubData(
@@ -127,7 +127,7 @@ public class Text
 
     public void Shutdown(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
@@ -142,7 +142,7 @@ public class Text
 
     public unsafe void Render(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,

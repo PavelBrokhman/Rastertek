@@ -9,7 +9,7 @@ public class Texture
 
     public unsafe bool Initialize(GL4 OpenGL, string filename, uint textureUnit, bool wrap)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         if (!File.Exists(filename))
             GenerateCheckerboardTga(filename, 64);
         if (!LoadTga(filename, out int w, out int h, out byte[] px))
@@ -54,8 +54,8 @@ public class Texture
     {
         if (_loaded)
         {
-            OpenGL.Gl.ActiveTexture(TextureUnit.Texture0 + (int)tu);
-            OpenGL.Gl.BindTexture(TextureTarget.Texture2D, _textureId);
+            OpenGL.Driver.ActiveTexture(TextureUnit.Texture0 + (int)tu);
+            OpenGL.Driver.BindTexture(TextureTarget.Texture2D, _textureId);
         }
     }
 
@@ -63,7 +63,7 @@ public class Texture
     {
         if (_loaded)
         {
-            OpenGL.Gl.DeleteTexture(_textureId);
+            OpenGL.Driver.DeleteTexture(_textureId);
             _loaded = false;
         }
     }

@@ -6,13 +6,13 @@ namespace RastertekCS.OpenGL.Tutorial05.Graphics;
 
 public class GL4
 {
-    private GL _gl;
+    private GL _driver;
     private IWindow _window;
     private Matrix4X4<float> _worldMatrix;
     private Matrix4X4<float> _projectionMatrix;
     private string _videoCardDescription;
 
-    public GL Gl => _gl;
+    public GL Driver => _driver;
 
     public bool Initialize(
         IWindow window,
@@ -24,18 +24,18 @@ public class GL4
     )
     {
         _window = window;
-        _gl = GL.GetApi(window);
+        _driver = GL.GetApi(window);
 
-        var vendor = _gl.GetStringS(StringName.Vendor) ?? "";
-        var renderer = _gl.GetStringS(StringName.Renderer) ?? "";
+        var vendor = _driver.GetStringS(StringName.Vendor) ?? "";
+        var renderer = _driver.GetStringS(StringName.Renderer) ?? "";
         _videoCardDescription = vendor + " - " + renderer;
 
-        _gl.ClearDepth(1.0f);
-        _gl.Enable(EnableCap.DepthTest);
-        _gl.FrontFace(FrontFaceDirection.CW);
-        _gl.Enable(EnableCap.CullFace);
-        _gl.CullFace(TriangleFace.Back);
-        _gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
+        _driver.ClearDepth(1.0f);
+        _driver.Enable(EnableCap.DepthTest);
+        _driver.FrontFace(FrontFaceDirection.CW);
+        _driver.Enable(EnableCap.CullFace);
+        _driver.CullFace(TriangleFace.Back);
+        _driver.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
 
         _worldMatrix = Matrix4X4<float>.Identity;
 
@@ -49,14 +49,14 @@ public class GL4
 
     public void Shutdown()
     {
-        _gl?.Dispose();
-        _gl = null;
+        _driver?.Dispose();
+        _driver = null;
     }
 
     public void BeginScene(float r, float g, float b, float a)
     {
-        _gl.ClearColor(r, g, b, a);
-        _gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+        _driver.ClearColor(r, g, b, a);
+        _driver.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
     public void EndScene() { }

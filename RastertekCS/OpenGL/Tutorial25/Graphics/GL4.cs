@@ -6,14 +6,14 @@ namespace RastertekCS.OpenGL.Tutorial25.Graphics;
 
 public class GL4
 {
-    private GL _gl;
+    private GL _driver;
     private Matrix4X4<float> _worldMatrix;
     private Matrix4X4<float> _projectionMatrix;
     private int _screenWidth,
         _screenHeight;
     private string _videoCardDescription;
 
-    public GL Gl => _gl;
+    public GL Driver => _driver;
 
     public bool Initialize(
         IWindow window,
@@ -24,20 +24,20 @@ public class GL4
         bool vsync
     )
     {
-        _gl = GL.GetApi(window);
-        var vendor = _gl.GetStringS(StringName.Vendor) ?? "";
-        var renderer = _gl.GetStringS(StringName.Renderer) ?? "";
+        _driver = GL.GetApi(window);
+        var vendor = _driver.GetStringS(StringName.Vendor) ?? "";
+        var renderer = _driver.GetStringS(StringName.Renderer) ?? "";
         _videoCardDescription = vendor + " - " + renderer;
 
         _screenWidth = screenWidth;
         _screenHeight = screenHeight;
 
-        _gl.ClearDepth(1.0f);
-        _gl.Enable(EnableCap.DepthTest);
-        _gl.FrontFace(FrontFaceDirection.CW);
-        _gl.Enable(EnableCap.CullFace);
-        _gl.CullFace(TriangleFace.Back);
-        _gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
+        _driver.ClearDepth(1.0f);
+        _driver.Enable(EnableCap.DepthTest);
+        _driver.FrontFace(FrontFaceDirection.CW);
+        _driver.Enable(EnableCap.CullFace);
+        _driver.CullFace(TriangleFace.Back);
+        _driver.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
 
         _worldMatrix = Matrix4X4<float>.Identity;
         _projectionMatrix = PerspectiveFovLH(
@@ -52,14 +52,14 @@ public class GL4
 
     public void Shutdown()
     {
-        _gl?.Dispose();
-        _gl = null;
+        _driver?.Dispose();
+        _driver = null;
     }
 
     public void BeginScene(float r, float g, float b, float a)
     {
-        _gl.ClearColor(r, g, b, a);
-        _gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+        _driver.ClearColor(r, g, b, a);
+        _driver.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
     public void EndScene() { }
@@ -72,12 +72,12 @@ public class GL4
 
     public void SetBackBufferRenderTarget()
     {
-        _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        _driver.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
     public void ResetViewport()
     {
-        _gl.Viewport(0, 0, (uint)_screenWidth, (uint)_screenHeight);
+        _driver.Viewport(0, 0, (uint)_screenWidth, (uint)_screenHeight);
     }
 
     private static Matrix4X4<float> PerspectiveFovLH(

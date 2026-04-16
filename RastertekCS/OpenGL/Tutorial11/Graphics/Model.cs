@@ -45,7 +45,7 @@ public class Model
         bool wrap
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         // Загружаем геометрию из текстового файла.
         if (!LoadModel(modelFilename))
@@ -130,7 +130,7 @@ public class Model
     {
         _texture?.Shutdown(OpenGL);
         _texture = null;
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.DisableVertexAttribArray(2);
@@ -145,7 +145,7 @@ public class Model
 
     public unsafe void Render(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,

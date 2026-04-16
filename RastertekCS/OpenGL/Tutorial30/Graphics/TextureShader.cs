@@ -14,7 +14,7 @@ public class TextureShader
 
     public void Shutdown(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DetachShader(_shaderProgram, _vertexShader);
         gl.DetachShader(_shaderProgram, _fragmentShader);
         gl.DeleteShader(_vertexShader);
@@ -29,7 +29,7 @@ public class TextureShader
         Matrix4X4<float> projection
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.UseProgram(_shaderProgram);
         int loc;
         loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
@@ -49,7 +49,7 @@ public class TextureShader
 
     private bool InitializeShader(GL4 OpenGL, string vsFile, string psFile)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         _vertexShader = gl.CreateShader(ShaderType.VertexShader);
         gl.ShaderSource(_vertexShader, File.ReadAllText(vsFile));
         gl.CompileShader(_vertexShader);

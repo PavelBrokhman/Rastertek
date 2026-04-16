@@ -9,7 +9,7 @@ public class Texture
 
     public unsafe bool Initialize(GL4 OpenGL, string filename, uint textureUnit, bool wrap)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         // Если файл отсутствует, генерируем шахматный паттерн TGA на лету
         // (в оригинальном Rastertek используется stone01.tga).
@@ -69,7 +69,7 @@ public class Texture
     {
         if (_loaded)
         {
-            OpenGL.Gl.DeleteTexture(_textureId);
+            OpenGL.Driver.DeleteTexture(_textureId);
             _loaded = false;
         }
     }

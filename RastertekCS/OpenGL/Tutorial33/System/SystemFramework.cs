@@ -10,7 +10,7 @@ public class SystemFramework
 {
     private IWindow _window;
     private IInputContext _inputContext;
-    private GL4 _gl;
+    private GL4 _driver;
     private Input _input;
     private GraphicsFramework _graphics;
     private bool _done,
@@ -20,11 +20,11 @@ public class SystemFramework
     {
         int screenWidth = 0,
             screenHeight = 0;
-        _gl = new GL4();
+        _driver = new GL4();
         if (!InitWin(ref screenWidth, ref screenHeight))
             return false;
         if (
-            !_gl.Initialize(
+            !_driver.Initialize(
                 _window,
                 screenWidth,
                 screenHeight,
@@ -37,7 +37,7 @@ public class SystemFramework
         _input = new Input();
         _input.Initialize();
         _graphics = new GraphicsFramework();
-        if (!_graphics.Initialize(_gl, screenWidth, screenHeight))
+        if (!_graphics.Initialize(_driver, screenWidth, screenHeight))
             return false;
         _initialized = true;
         return true;
@@ -47,8 +47,8 @@ public class SystemFramework
     {
         _graphics?.Shutdown();
         _graphics = null;
-        _gl?.Shutdown();
-        _gl = null;
+        _driver?.Shutdown();
+        _driver = null;
         _inputContext?.Dispose();
         _inputContext = null;
         _window?.Dispose();
@@ -107,8 +107,8 @@ public class SystemFramework
             _done = true;
             _graphics?.Shutdown();
             _graphics = null;
-            _gl?.Shutdown();
-            _gl = null;
+            _driver?.Shutdown();
+            _driver = null;
         };
         _window.Initialize();
         screenWidth = _window.Size.X;

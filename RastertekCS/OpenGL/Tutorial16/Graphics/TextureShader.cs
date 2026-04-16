@@ -14,7 +14,7 @@ public class TextureShader
 
     public void Shutdown(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DetachShader(_shaderProgram, _vertexShader);
         gl.DetachShader(_shaderProgram, _fragmentShader);
         gl.DeleteShader(_vertexShader);
@@ -22,7 +22,7 @@ public class TextureShader
         gl.DeleteProgram(_shaderProgram);
     }
 
-    public void SetShader(GL4 OpenGL) => OpenGL.Gl.UseProgram(_shaderProgram);
+    public void SetShader(GL4 OpenGL) => OpenGL.Driver.UseProgram(_shaderProgram);
 
     public bool SetShaderParameters(
         GL4 OpenGL,
@@ -32,7 +32,7 @@ public class TextureShader
         int textureUnit
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         int loc;
 
         loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
@@ -65,7 +65,7 @@ public class TextureShader
 
     private bool InitializeShader(GL4 OpenGL, string vsFilename, string psFilename)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         string vsSrc = File.ReadAllText(vsFilename);
         string psSrc = File.ReadAllText(psFilename);
 

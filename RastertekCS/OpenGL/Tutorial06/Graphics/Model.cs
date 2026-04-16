@@ -24,7 +24,7 @@ public class Model
 
     public unsafe bool Initialize(GL4 OpenGL, string textureFilename, uint textureUnit, bool wrap)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         _indexCount = 3;
 
         var vertices = new VertexType[]
@@ -132,7 +132,7 @@ public class Model
     {
         _texture?.Shutdown(OpenGL);
         _texture = null;
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.DisableVertexAttribArray(2);
@@ -146,7 +146,7 @@ public class Model
 
     public unsafe void Render(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,

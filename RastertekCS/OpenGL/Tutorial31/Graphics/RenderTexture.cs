@@ -20,7 +20,7 @@ public class RenderTexture
         float screenDepth
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         _textureWidth = textureWidth;
         _textureHeight = textureHeight;
         _frameBufferId = gl.GenFramebuffer();
@@ -85,7 +85,7 @@ public class RenderTexture
 
     public void Shutdown(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DeleteRenderbuffer(_depthId);
         gl.DeleteTexture(_textureId);
         gl.DeleteFramebuffer(_frameBufferId);
@@ -93,20 +93,22 @@ public class RenderTexture
 
     public void SetRenderTarget(GL4 OpenGL)
     {
-        OpenGL.Gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
-        OpenGL.Gl.Viewport(0, 0, (uint)_textureWidth, (uint)_textureHeight);
+        OpenGL.Driver.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
+        OpenGL.Driver.Viewport(0, 0, (uint)_textureWidth, (uint)_textureHeight);
     }
 
     public void ClearRenderTarget(GL4 OpenGL, float r, float g, float b, float a)
     {
-        OpenGL.Gl.ClearColor(r, g, b, a);
-        OpenGL.Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+        OpenGL.Driver.ClearColor(r, g, b, a);
+        OpenGL.Driver.Clear(
+            (uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit)
+        );
     }
 
     public void SetTexture(GL4 OpenGL, uint tu)
     {
-        OpenGL.Gl.ActiveTexture(TextureUnit.Texture0 + (int)tu);
-        OpenGL.Gl.BindTexture(TextureTarget.Texture2D, _textureId);
+        OpenGL.Driver.ActiveTexture(TextureUnit.Texture0 + (int)tu);
+        OpenGL.Driver.BindTexture(TextureTarget.Texture2D, _textureId);
     }
 
     public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;

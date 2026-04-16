@@ -40,7 +40,7 @@ public class Sprite
         uint textureUnit
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         _screenWidth = screenWidth;
         _screenHeight = screenHeight;
         _currentTexture = 0;
@@ -118,7 +118,7 @@ public class Sprite
                 t?.Shutdown(OpenGL);
             _textures = null;
         }
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
@@ -154,7 +154,7 @@ public class Sprite
 
     public unsafe void Render(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         float left = -((float)_screenWidth / 2.0f) + _renderX;
         float right = left + _bitmapWidth;

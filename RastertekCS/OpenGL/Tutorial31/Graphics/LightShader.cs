@@ -13,7 +13,7 @@ public class LightShader
 
     public void Shutdown(GL4 gl)
     {
-        var glApi = gl.Gl;
+        var glApi = gl.Driver;
         glApi.DetachShader(_shaderProgram, _vertexShader);
         glApi.DetachShader(_shaderProgram, _fragmentShader);
         glApi.DeleteShader(_vertexShader);
@@ -31,7 +31,7 @@ public class LightShader
         float[] ambientColor
     )
     {
-        var glApi = gl.Gl;
+        var glApi = gl.Driver;
         glApi.UseProgram(_shaderProgram);
         int loc;
         loc = glApi.GetUniformLocation(_shaderProgram, "worldMatrix");
@@ -63,7 +63,7 @@ public class LightShader
 
     private bool Init(GL4 gl, string vertexShaderFile, string pixelShaderFile)
     {
-        var glApi = gl.Gl;
+        var glApi = gl.Driver;
         _vertexShader = glApi.CreateShader(ShaderType.VertexShader);
         glApi.ShaderSource(_vertexShader, File.ReadAllText(vertexShaderFile));
         glApi.CompileShader(_vertexShader);

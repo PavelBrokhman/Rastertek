@@ -16,7 +16,7 @@ public class LightShader
 
     public void Shutdown(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DetachShader(_shaderProgram, _vertexShader);
         gl.DetachShader(_shaderProgram, _fragmentShader);
         gl.DeleteShader(_vertexShader);
@@ -24,7 +24,7 @@ public class LightShader
         gl.DeleteProgram(_shaderProgram);
     }
 
-    public void SetShader(GL4 OpenGL) => OpenGL.Gl.UseProgram(_shaderProgram);
+    public void SetShader(GL4 OpenGL) => OpenGL.Driver.UseProgram(_shaderProgram);
 
     public bool SetShaderParameters(
         GL4 OpenGL,
@@ -36,7 +36,7 @@ public class LightShader
         float[] diffuseLightColor
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         int loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc == -1)
@@ -90,7 +90,7 @@ public class LightShader
 
     private bool InitializeShader(GL4 OpenGL, string vsFilename, string psFilename)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         string vsSource = File.ReadAllText(vsFilename);
         string psSource = File.ReadAllText(psFilename);
 

@@ -25,7 +25,7 @@ public class RenderTexture
         _textureWidth = textureWidth;
         _textureHeight = textureHeight;
 
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         // Generate and bind the framebuffer.
         _frameBufferId = gl.GenFramebuffer();
@@ -103,7 +103,7 @@ public class RenderTexture
 
     public void Shutdown()
     {
-        var gl = _openGLPtr.Gl;
+        var gl = _openGLPtr.Driver;
         gl.DeleteRenderbuffer(_depthBufferId);
         gl.DeleteTexture(_textureId);
         gl.DeleteFramebuffer(_frameBufferId);
@@ -112,21 +112,21 @@ public class RenderTexture
 
     public void SetRenderTarget()
     {
-        var gl = _openGLPtr.Gl;
+        var gl = _openGLPtr.Driver;
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
         gl.Viewport(0, 0, (uint)_textureWidth, (uint)_textureHeight);
     }
 
     public void ClearRenderTarget(float red, float green, float blue, float alpha)
     {
-        var gl = _openGLPtr.Gl;
+        var gl = _openGLPtr.Driver;
         gl.ClearColor(red, green, blue, alpha);
         gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
     public void SetTexture(uint textureUnit)
     {
-        var gl = _openGLPtr.Gl;
+        var gl = _openGLPtr.Driver;
         gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
         gl.BindTexture(TextureTarget.Texture2D, _textureId);
     }

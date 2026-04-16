@@ -5,7 +5,7 @@ namespace RastertekCS.OpenGL.Tutorial32.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 _gl;
+    private GL4 _driver;
     private Camera _camera;
     private Model _model,
         _windowModel;
@@ -16,7 +16,7 @@ public class GraphicsFramework
 
     public bool Initialize(GL4 gl, int screenWidth, int screenHeight)
     {
-        _gl = gl;
+        _driver = gl;
         _camera = new Camera();
         _camera.SetPosition(0, 0, -5);
         _camera.Render();
@@ -66,12 +66,12 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        _glassShader?.Shutdown(_gl);
-        _textureShader?.Shutdown(_gl);
-        _renderTexture?.Shutdown(_gl);
-        _windowModel?.Shutdown(_gl);
-        _model?.Shutdown(_gl);
-        _gl = null;
+        _glassShader?.Shutdown(_driver);
+        _textureShader?.Shutdown(_driver);
+        _renderTexture?.Shutdown(_driver);
+        _windowModel?.Shutdown(_driver);
+        _model?.Shutdown(_driver);
+        _driver = null;
     }
 
     public bool Frame()
@@ -86,35 +86,35 @@ public class GraphicsFramework
 
     bool RenderToTex(float rot)
     {
-        _renderTexture.SetRenderTarget(_gl);
-        _renderTexture.ClearRenderTarget(_gl, 0, 0, 0, 1);
+        _renderTexture.SetRenderTarget(_driver);
+        _renderTexture.ClearRenderTarget(_driver, 0, 0, 0, 1);
         var w = Matrix4X4.CreateRotationY<float>(rot);
         var v = _camera.GetViewMatrix();
-        var p = _gl.GetProjectionMatrix();
-        _textureShader.SetShaderParameters(_gl, w, v, p);
-        _model.SetTexture1(_gl, 0);
-        _model.Render(_gl);
-        _gl.SetBackBufferRenderTarget();
-        _gl.ResetViewport();
+        var p = _driver.GetProjectionMatrix();
+        _textureShader.SetShaderParameters(_driver, w, v, p);
+        _model.SetTexture1(_driver, 0);
+        _model.Render(_driver);
+        _driver.SetBackBufferRenderTarget();
+        _driver.ResetViewport();
         return true;
     }
 
     bool Render(float rot)
     {
-        _gl.BeginScene(0, 0, 0, 1);
+        _driver.BeginScene(0, 0, 0, 1);
         var v = _camera.GetViewMatrix();
-        var p = _gl.GetProjectionMatrix();
+        var p = _driver.GetProjectionMatrix();
         var w = Matrix4X4.CreateRotationY<float>(rot);
-        _textureShader.SetShaderParameters(_gl, w, v, p);
-        _model.SetTexture1(_gl, 0);
-        _model.Render(_gl);
+        _textureShader.SetShaderParameters(_driver, w, v, p);
+        _model.SetTexture1(_driver, 0);
+        _model.Render(_driver);
         w = Matrix4X4.CreateTranslation<float>(0, 0, -1.5f);
-        _glassShader.SetShaderParameters(_gl, w, v, p, 0.01f);
-        _renderTexture.SetTexture(_gl, 2);
-        _windowModel.SetTexture1(_gl, 0);
-        _windowModel.SetTexture2(_gl, 1);
-        _windowModel.Render(_gl);
-        _gl.EndScene();
+        _glassShader.SetShaderParameters(_driver, w, v, p, 0.01f);
+        _renderTexture.SetTexture(_driver, 2);
+        _windowModel.SetTexture1(_driver, 0);
+        _windowModel.SetTexture2(_driver, 1);
+        _windowModel.Render(_driver);
+        _driver.EndScene();
         return true;
     }
 }

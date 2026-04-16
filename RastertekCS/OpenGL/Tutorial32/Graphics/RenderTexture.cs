@@ -14,7 +14,7 @@ public class RenderTexture
 
     public unsafe bool Initialize(GL4 gl, int tw, int th, float screenNear, float screenDepth)
     {
-        var g = gl.Gl;
+        var g = gl.Driver;
         _textureWidth = tw;
         _textureHeight = th;
         _frameBufferId = g.GenFramebuffer();
@@ -79,7 +79,7 @@ public class RenderTexture
 
     public void Shutdown(GL4 gl)
     {
-        var g = gl.Gl;
+        var g = gl.Driver;
         g.DeleteRenderbuffer(_depth);
         g.DeleteTexture(_textures);
         g.DeleteFramebuffer(_frameBufferId);
@@ -87,20 +87,20 @@ public class RenderTexture
 
     public void SetRenderTarget(GL4 gl)
     {
-        gl.Gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
-        gl.Gl.Viewport(0, 0, (uint)_textureWidth, (uint)_textureHeight);
+        gl.Driver.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
+        gl.Driver.Viewport(0, 0, (uint)_textureWidth, (uint)_textureHeight);
     }
 
     public void ClearRenderTarget(GL4 gl, float r, float g2, float b, float a)
     {
-        gl.Gl.ClearColor(r, g2, b, a);
-        gl.Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+        gl.Driver.ClearColor(r, g2, b, a);
+        gl.Driver.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
     public void SetTexture(GL4 gl, uint tu)
     {
-        gl.Gl.ActiveTexture(TextureUnit.Texture0 + (int)tu);
-        gl.Gl.BindTexture(TextureTarget.Texture2D, _textures);
+        gl.Driver.ActiveTexture(TextureUnit.Texture0 + (int)tu);
+        gl.Driver.BindTexture(TextureTarget.Texture2D, _textures);
     }
 
     public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;

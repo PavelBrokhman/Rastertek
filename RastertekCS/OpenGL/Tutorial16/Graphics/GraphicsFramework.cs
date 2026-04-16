@@ -168,8 +168,8 @@ public class GraphicsFramework
 
         _openGL.TurnZBufferOff();
 
-        _openGL.Gl.Enable(EnableCap.Blend);
-        _openGL.Gl.BlendFuncSeparate(
+        _openGL.Driver.Enable(EnableCap.Blend);
+        _openGL.Driver.BlendFuncSeparate(
             BlendingFactor.SrcAlpha,
             BlendingFactor.OneMinusSrcAlpha,
             BlendingFactor.One,
@@ -187,7 +187,7 @@ public class GraphicsFramework
         _mouseStrings[1].Render(_openGL);
         _mouseStrings[2].Render(_openGL);
 
-        _openGL.Gl.Disable(EnableCap.Blend);
+        _openGL.Driver.Disable(EnableCap.Blend);
         _openGL.TurnZBufferOn();
         _openGL.EndScene();
         return true;

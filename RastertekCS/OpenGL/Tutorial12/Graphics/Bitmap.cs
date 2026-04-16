@@ -37,7 +37,7 @@ public class Bitmap
         int bitmapHeight
     )
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         _screenWidth = screenWidth;
         _screenHeight = screenHeight;
         _bitmapWidth = bitmapWidth;
@@ -102,7 +102,7 @@ public class Bitmap
     {
         _texture?.Shutdown(OpenGL);
         _texture = null;
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
@@ -127,7 +127,7 @@ public class Bitmap
 
     public unsafe void Render(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         // Обновляем позиции вершин исходя из screen coords.
         float left = -((float)_screenWidth / 2.0f) + _previousPosX;

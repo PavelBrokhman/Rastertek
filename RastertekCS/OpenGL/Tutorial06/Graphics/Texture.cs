@@ -9,7 +9,7 @@ public class Texture
 
     public unsafe bool Initialize(GL4 OpenGL, string filename, uint textureUnit, bool wrap)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         if (!File.Exists(filename))
         {
@@ -65,7 +65,7 @@ public class Texture
     {
         if (_loaded)
         {
-            OpenGL.Gl.DeleteTexture(_textureId);
+            OpenGL.Driver.DeleteTexture(_textureId);
             _loaded = false;
         }
     }

@@ -31,7 +31,7 @@ public class DisplayPlane
 
     public unsafe void Render(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.BindVertexArray(_vertexArrayId);
         gl.DrawElements(
             PrimitiveType.Triangles,
@@ -43,7 +43,7 @@ public class DisplayPlane
 
     private unsafe bool InitializeBuffers(GL4 OpenGL, float width, float height)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
 
         _vertexCount = 6;
         _indexCount = _vertexCount;
@@ -142,7 +142,7 @@ public class DisplayPlane
 
     private void ShutdownBuffers(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
+        var gl = OpenGL.Driver;
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);

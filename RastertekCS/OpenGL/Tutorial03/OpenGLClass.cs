@@ -9,7 +9,7 @@ namespace RastertekCS.OpenGL.Tutorial03;
 
 public class OpenGLClass
 {
-    private GL _gl;
+    private GL _driver;
     private IWindow _window;
 
     private Matrix4X4<float> _worldMatrix;
@@ -19,7 +19,7 @@ public class OpenGLClass
 
     // В C++ все 31 функция OpenGL загружалась вручную через wglGetProcAddress.
     // Silk.NET делает это автоматически — GL объект получает все функции сразу.
-    public GL Gl => _gl;
+    public GL Driver => _driver;
 
     public bool Initialize(
         IWindow window,
@@ -33,28 +33,28 @@ public class OpenGLClass
         _window = window;
 
         // Получаем GL API из окна Silk.NET (замена wglCreateContextAttribsARB + загрузки функций).
-        _gl = GL.GetApi(window);
+        _driver = GL.GetApi(window);
 
         // Сохраняем информацию о видеокарте.
-        var vendor = _gl.GetStringS(StringName.Vendor) ?? string.Empty;
-        var renderer = _gl.GetStringS(StringName.Renderer) ?? string.Empty;
+        var vendor = _driver.GetStringS(StringName.Vendor) ?? string.Empty;
+        var renderer = _driver.GetStringS(StringName.Renderer) ?? string.Empty;
         _videoCardDescription = vendor + " - " + renderer;
 
         // Устанавливаем depth buffer clear value.
-        _gl.ClearDepth(1.0f);
+        _driver.ClearDepth(1.0f);
 
         // Включаем depth testing.
-        _gl.Enable(EnableCap.DepthTest);
+        _driver.Enable(EnableCap.DepthTest);
 
         // Устанавливаем прямое направление для front faces.
-        _gl.FrontFace(FrontFaceDirection.Ccw);
+        _driver.FrontFace(FrontFaceDirection.Ccw);
 
         // Включаем back-face culling.
-        _gl.Enable(EnableCap.CullFace);
-        _gl.CullFace(TriangleFace.Back);
+        _driver.Enable(EnableCap.CullFace);
+        _driver.CullFace(TriangleFace.Back);
 
         // Задаём viewport.
-        _gl.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
+        _driver.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
 
         // Инициализируем world matrix в identity.
         _worldMatrix = Matrix4X4<float>.Identity;
@@ -77,15 +77,15 @@ public class OpenGLClass
 
     public void Shutdown()
     {
-        _gl?.Dispose();
-        _gl = null;
+        _driver?.Dispose();
+        _driver = null;
     }
 
     // В C++ было BeginScene(r,g,b,a) с glClearColor + glClear.
     public void BeginScene(float red, float green, float blue, float alpha)
     {
-        _gl.ClearColor(red, green, blue, alpha);
-        _gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+        _driver.ClearColor(red, green, blue, alpha);
+        _driver.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
     // В C++ было SwapBuffers(_deviceContext). Silk.NET.Windowing вызывает
