@@ -1,0 +1,62 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: glass.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec4 refractionPosition;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D colorTexture;
+uniform sampler2D normalTexture;
+uniform sampler2D refractionTexture;
+uniform float refractionScale;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec2 refractTexCoord;
+    vec4 normalMap;
+    vec3 normal;
+    vec4 refractionColor;
+    vec4 textureColor;
+
+
+    // Calculate the projected refraction texture coordinates.
+    refractTexCoord.x = refractionPosition.x / refractionPosition.w / 2.0f + 0.5f;
+    refractTexCoord.y = refractionPosition.y / refractionPosition.w / 2.0f + 0.5f;
+
+    // Sample the normal from the normal map texture.
+    normalMap = texture(normalTexture, texCoord);
+
+    // Expand the range of the normal from (0,1) to (-1,+1).
+    normal = (normalMap.xyz * 2.0f) - 1.0f;
+
+    // Re-position the texture coordinate sampling position by the normal map value to simulate light distortion through glass.
+    refractTexCoord = refractTexCoord + (normal.xy * refractionScale);
+
+    // Sample the texture pixel from the refraction texture using the perturbed texture coordinates.
+    refractionColor = texture(refractionTexture, refractTexCoord);
+
+    // Sample the texture pixel from the glass color texture.
+    textureColor = texture(colorTexture, texCoord);
+
+    // Evenly combine the glass color and refraction value for the final color.
+    outputColor = mix(refractionColor, textureColor, 0.5f);
+}

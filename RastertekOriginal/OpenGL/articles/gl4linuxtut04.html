@@ -1,0 +1,1751 @@
+<html><head><title>Tutorial 4: Buffers, Shaders, and GLSL</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 4: Buffers, Shaders, and GLSL
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will be the introduction to writing vertex and pixel shaders in OpenGL 4.0.
+It will also be the introduction to using vertex and index buffers in OpenGL 4.0.
+These are the most fundamental concepts that you need to understand and utilize to render 3D graphics.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Vertex Buffers</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first concept to understand is vertex buffers.  To illustrate this concept let us take the example of a 3D model of a sphere:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic0163.gif" width="256" height="256"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The 3D sphere model is actually composed of hundreds of triangles:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic0164.gif" width="256" height="256"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Each of the triangles in the sphere model has three points to it; we call each point a vertex.
+So, for us to render the sphere model we need to put all the vertices that form the sphere into a special data array that we call a vertex buffer.
+Once all the points of the sphere model are in the vertex buffer, we can then send the vertex buffer to the GPU so that it can render the model.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Index Buffers</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Index buffers are related to vertex buffers.  Their purpose is to record the location of each vertex that is in the vertex buffer.
+The GPU then uses the index buffer to quickly find specific vertices in the vertex buffer.  
+The concept of an index buffer is similar to the concept using an index in a book; it helps find the topic you are looking for at a much higher speed.
+As well using index buffers can also increase the possibility of caching the vertex data in faster locations in video memory.
+So, it is highly advised to use these for performance reasons as well.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Vertex Shaders</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Vertex shaders are small programs that are written mainly for transforming the vertices from the vertex buffer into 3D space. 
+There are other calculations that can be done such as calculating normals for each vertex. 
+The vertex shader program will be called by the GPU for each vertex it needs to process. 
+For example, a 5,000 polygon model will run your vertex shader program 15,000 times each frame just to draw that single model. 
+So, if you lock your graphics program to 60 fps it will call your vertex shader 900,000 times a second to draw just 5,000 triangles. 
+As you can tell writing efficient vertex shaders is important.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Pixel Shaders</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Pixel shaders are small programs that are written for doing the coloring of the polygons that we draw. 
+They are run by the GPU for every visible pixel that will be drawn to the screen. 
+Coloring, texturing, lighting, and most other effects you plan to do to your polygon faces are handled by the pixel shader program. 
+Pixel shaders must be efficiently written due to the number of times they will be called by the GPU.
+Often pixel shaders will also be referred to as fragment shaders in most OpenGL documentation, but the terms are interchangeable.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>GLSL</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+GLSL is the language we use in OpenGL 4.0 to code these small vertex and pixel shader programs. 
+The syntax is pretty much identical to the C language with some pre-defined types. 
+As this is the first GLSL tutorial we will do a very simple GLSL program using OpenGL 4.0 to get started. 
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Updated Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The framework has been updated for this tutorial.  Under ApplicationClass we have added three new classes called CameraClass, ModelClass, and ColorShaderClass.
+CameraClass will take care of the view matrix.
+It will handle the location of the camera in the world and pass it to shaders when they need to draw and figure out where we are looking at the scene from.  
+The ModelClass will handle the geometry of our 3D models, in this tutorial the 3D model will just be a single triangle for simplicity reasons.
+And finally, ColorShaderClass will be responsible for rendering the model to the screen by invoking our GLSL shaders.
+</font></p>
+
+<p align="center"><img border="0" src="../../images/pic5005.gif" width="496" height="182"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will begin the tutorial code by looking at the GLSL shader program first.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Color.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These will be our first shader programs.
+Shaders are small programs that do the actual rendering of models.
+These shaders are written in GLSL and stored in source files called color.vs and color.ps. 
+I generally include these files in the "Others" folder in my Code::Blocks solution for easy editing since they are not C++ source or header files.
+The purpose of this shader is just to draw colored triangles as I am keeping things simple as possible in this first GLSL tutorial. 
+Here is the code for the vertex shader first: 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: color.vs
+////////////////////////////////////////////////////////////////////////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The vertex shader begins by defining the version of GLSL that we are working with.
+The version we are working with is 4.0.
+The higher the version the more features that can be unlocked and used in the shader code.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>#version 400
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The next section in the vertex shader is the input vertex format.
+In this tutorial each vertex will be composed of an x, y, and z position as well as an r, g, and b color.
+These are floating point values and both of the input values have three floats each.
+You will notice we use a special type called vec3 instead of an array of floats.
+GLSL has useful types such as vec3, vec4, mat3, mat4 to make programming shaders easier and readable.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec3 inputColor;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This next section in the vertex shader is the output variables that will be sent into the pixel shader.
+The only output variable that is defined is the color since we will be sending the color into the pixel shader.
+Note that the transformed input vertex position will also be sent into the pixel shader, but it is sent inside a special predefined variable called gl_Position.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec3 color;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The next section in the vertex shader is the uniform variables.
+These are variables that we set once and do not change for each vertex.
+For this tutorial we will just set the three important matrices which are world, view, and projection.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The final section in the vertex shader is the code body.
+The code starts by multiplying the input vertex by the world, view, and then projection matrices.
+This will place the vertex in the correct location for rendering in 3D space according to our view and then onto the 2D screen.
+We store the result in the special gl_Position vector which will automatically get passed into the pixel shader.
+Also note that I do set the W value of the input position to 1.0 so we can do proper calculations using the 4x4 matrices.
+After that we set the output color from this vertex to be a copy of the input color.
+This will allow the pixel shader to access the color.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the input color for the pixel shader to use.
+    color = inputColor;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Color.ps</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The pixel shader draws each pixel on the polygons that will be rendered to the screen. 
+This pixel shader program is very simple as we just tell it to color the pixel the same as the input value of the color that we got from the vertex shader output.
+The pixel shader receives color as an input vector and sets the outputColor output variable which represents the final pixel color.
+We need to convert the input color from vec3 to vec4 so that it has an alpha component to match our overall 32-bit RGBA pixel format.
+Also remember that the pixel shader gets its input from the vertex shader output so naming variables consistently is important.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: color.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 color;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    outputColor = vec4(color, 1.0f);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Colorshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ColorShaderClass is the class that we will use to compile and execute our color GLSL shaders so that we can render the 3D models that are on the GPU.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: colorshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _COLORSHADERCLASS_H_
+#define _COLORSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: ColorShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class ColorShaderClass
+{
+public:
+    ColorShaderClass();
+    ColorShaderClass(const ColorShaderClass&);
+    ~ColorShaderClass();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The functions here handle initializing and shutdown of the shader.
+The SetShaderParameters function sets the shader code as the current rendering system and also sets the shader uniform variables (matrices in this case).
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    bool Initialize(OpenGLClass*);
+    void Shutdown();
+
+    bool SetShaderParameters(float*, float*, float*);
+
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+All of the private functions will be used to compile the vertex and pixel shader files that we just reviewed above.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Colorshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: colorshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "colorshaderclass.h"
+
+
+ColorShaderClass::ColorShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+ColorShaderClass::ColorShaderClass(const ColorShaderClass& other)
+{
+}
+
+
+ColorShaderClass::~ColorShaderClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function will call the initialization function for the shaders.
+We pass in the name of the GLSL shader files, in this tutorial they are named color.vs and color.ps.
+We also keep a copy of a pointer to the OpenGLClass since this function will be calling it often each frame.
+Note that you may need to change the location of where your vertex and pixel shader code resides if you are using a different folder for your GLSL shaders.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ColorShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+
+    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/color.vs");
+    strcpy(psFilename, "../Engine/color.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Shutdown function will call the shutdown of the shader and then release the pointer to the OpenGL object after.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ColorShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now we will start with one of the more important functions in this tutorial which is called InitializeShader. 
+This function is what actually loads the shader files and makes them useable to OpenGL and the GPU. 
+You will also see the setup of how the vertex buffer data is going to look on the graphics pipeline in the GPU. 
+The input variables will need to match the VertexType in the modelclass.h file (which will be covered shortly) as well as the inputs variables defined in the color.vs file. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ColorShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first section of this function is where we load the vertex and pixel shader source files and compile them.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Once the GLSL programs have compiled successfully we can create a shader program object and then attach the vertex and pixel shaders to it.
+We also bind the input variables and then finally link the program.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputColor");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+ShutdownShader releases the shaders and the shader program.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ColorShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LoadShaderSourceFile function reads the shader code into a character buffer so that it can be compiled via the buffer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>char* ColorShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The OutputShaderErrorMessage function writes out errors to a text file in case the GLSL shaders could not compile.
+The text file will contain the information needed to debug and correct the shader code.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ColorShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The OutputLinkerErrorMessage function writes out the linker errors to a text file in the event that the linking in the InitializeShader function was not successful.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ColorShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SetShaderVariables function sets our shader code as the current program on the GPU for drawing all graphics.
+It also sets all of the uniform variables in the shader.  And in this case, we are just setting the three matrices for the vertex shader. 
+The matrices used in this function are created inside the ApplicationClass, after which this function is called to sends them from there into the vertex shader
+during the Render function call.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Also we need to transpose our matrices before sending them in the vertex shader or the multiplication order will be incorrect.
+And when we use glUniformMatrix4fv we send in the transposed matrix, not the original one, or your model is not going to be rendered correctly.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now in this function if any of the get location functions return a negative one value, then that usually means any use of the variable has been commented out in the shader code.
+And often when we are debugging our code we are going to comment out lines in the shader and do not want errors returned from this function.
+However, once the shader is solid and you do want to be notified if any variables are not being set, then add return false to these get location calls.
+For now you can leave the cout warning there and just continue with execution.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ColorShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix)
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix is not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix is not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix is not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Modelclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ModelClass is responsible for encapsulating the geometry for 3D models.
+In this tutorial we will manually setup the data for a single green triangle.
+We will also create a vertex and index buffer for the triangle so that it can be rendered.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _MODELCLASS_H_
+#define _MODELCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;fstream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ModelClass
+////////////////////////////////////////////////////////////////////////////////
+class ModelClass
+{
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here is the definition of our vertex type that will be used with the vertex buffer in this ModelClass. 
+Also take note that this typedef must match the input variables layout in the ColorShaderClass as well as the GLSL vertex shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    struct VertexType
+    {
+        float x, y, z;
+        float r, g, b;
+    };
+
+public:
+    ModelClass();
+    ModelClass(const ModelClass&);
+    ~ModelClass();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The functions here handle initializing and shutdown of the model's vertex and index buffers.
+The Render function puts the model geometry on the video card and draws it using the GLSL color shader.
+</font></p>
+
+
+<PRE><font face=arial color=#aaffaa size=2>    bool Initialize(OpenGLClass*);
+    void Shutdown();
+    void Render();
+
+private:
+    bool InitializeBuffers();
+    void ShutdownBuffers();
+    void RenderBuffers();
+
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The private variables in the ModelClass are the vertex array object, vertex buffer, and index buffer IDs.
+Also, there are two integers to keep track of the size of the vertex and index buffers.
+We also keep a copy of the OpenGLClass since the Render function will need to access it each frame.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    OpenGLClass* m_OpenGLPtr;
+    int m_vertexCount, m_indexCount;
+    unsigned int m_vertexArrayId, m_vertexBufferId, m_indexBufferId;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Modelclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "modelclass.h"
+
+
+ModelClass::ModelClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+ModelClass::ModelClass(const ModelClass& other)
+{
+}
+
+
+ModelClass::~ModelClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function will call the initialization functions for the vertex and index buffers. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ModelClass::Initialize(OpenGLClass* OpenGL)
+{
+    bool result;
+
+
+    // Store a pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+
+    // Initialize the vertex and index buffer that hold the geometry for the triangle.
+    result = InitializeBuffers();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Shutdown function will call the shutdown functions for the buffers and related data and also release the OpenGLClass pointer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ModelClass::Shutdown()
+{
+    // Release the vertex and index buffers.
+    ShutdownBuffers();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render is called from the ApplicationClass::Render function. 
+This function calls RenderBuffers to put the vertex and index buffers on the graphics pipeline and uses the color shader to render them.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ModelClass::Render()
+{
+    // Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
+    RenderBuffers();
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The InitializeBuffers function is where we handle creating the vertex and index buffers. 
+Usually, you would read in a model and create the buffers from that data file. 
+For this tutorial we will just set the points in the vertex and index buffer manually since it is only a single triangle. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ModelClass::InitializeBuffers()
+{
+    VertexType* vertices;
+    unsigned int* indices;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+First create two temporary arrays to hold the vertex and index data that we will use later to populate the final buffers with. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the number of vertices in the vertex array.
+    m_vertexCount = 3;
+
+    // Set the number of indices in the index array.
+    m_indexCount = 3;
+
+    // Create the vertex array.
+    vertices = new VertexType[m_vertexCount];
+
+    // Create the index array.
+    indices = new unsigned int[m_indexCount];
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now fill both the vertex and index array with the three points of the triangle as well as the index to each of the points. 
+Please note that I create the points in the clockwise (left hand) order of drawing them. 
+If you do this counterclockwise (right hand) it will think the triangle is facing the opposite direction and not draw it due to back face culling. 
+Always remember that the order in which you send your vertices to the GPU is very important. 
+The color is set here as well since it is part of the vertex description. I set the color to green. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Load the vertex array with data.
+
+    // Bottom left.
+    vertices[0].x = -1.0f;  // Position.
+    vertices[0].y = -1.0f;
+    vertices[0].z =  0.0f;
+
+    vertices[0].r = 0.0f;  // Color.
+    vertices[0].g = 1.0f;
+    vertices[0].b = 0.0f;
+
+    // Top middle.
+    vertices[1].x = 0.0f;  // Position.
+    vertices[1].y = 1.0f;
+    vertices[1].z = 0.0f;
+
+    vertices[1].r = 0.0f;  // Color.
+    vertices[1].g = 1.0f;
+    vertices[1].b = 0.0f;
+
+    // Bottom right.
+    vertices[2].x =  1.0f;  // Position.
+    vertices[2].y = -1.0f;
+    vertices[2].z =  0.0f;
+
+    vertices[2].r = 0.0f;  // Color.
+    vertices[2].g = 1.0f;
+    vertices[2].b = 0.0f;
+
+    // Load the index array with data.
+    indices[0] = 0;  // Bottom left.
+    indices[1] = 1;  // Top middle.
+    indices[2] = 2;  // Bottom right.
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+With the vertex array and index array filled out we can now use those to create the vertex buffer and index buffer. 
+But first we must create a vertex array object which will store all the information about the buffers and attributes
+so that we can make a single call to the vertex array object to handle all the rendering for us.
+Once the vertex array object is bound, we can create the vertex and index buffers and load the data into them from the temporary arrays that we created above.
+We also bind the vertex array attributes so that it knows the format of the data inside the vertex buffer.
+Setting the last parameter in the glVertexAttribPointer function is important so that it knows the offset of where each vertex buffer element begins.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Allocate an OpenGL vertex array object.
+    m_OpenGLPtr->glGenVertexArrays(1, &m_vertexArrayId);
+
+    // Bind the vertex array object to store all the buffers and vertex attributes we create here.
+    m_OpenGLPtr->glBindVertexArray(m_vertexArrayId);
+
+    // Generate an ID for the vertex buffer.
+    m_OpenGLPtr->glGenBuffers(1, &m_vertexBufferId);
+
+    // Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer.
+    m_OpenGLPtr->glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+    m_OpenGLPtr->glBufferData(GL_ARRAY_BUFFER, m_vertexCount * sizeof(VertexType), vertices, GL_STATIC_DRAW);
+
+    // Enable the two vertex array attributes.
+    m_OpenGLPtr->glEnableVertexAttribArray(0);  // Vertex position.
+    m_OpenGLPtr->glEnableVertexAttribArray(1);  // Vertex color.
+
+    // Specify the location and format of the position portion of the vertex buffer.
+    m_OpenGLPtr->glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(VertexType), 0);
+
+    // Specify the location and format of the color portion of the vertex buffer.
+    m_OpenGLPtr->glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(VertexType), (unsigned char*)NULL + (3 * sizeof(float)));
+
+    // Generate an ID for the index buffer.
+    m_OpenGLPtr->glGenBuffers(1, &m_indexBufferId);
+
+    // Bind the index buffer and load the index data into it.
+    m_OpenGLPtr->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+    m_OpenGLPtr->glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexCount* sizeof(unsigned int), indices, GL_STATIC_DRAW);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+After the vertex buffer and index buffer have been created you can delete the vertex and index arrays as they are no longer needed 
+since the data was copied into the buffers via the glBufferData functions.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Now that the buffers have been loaded we can release the array data.
+    delete [] vertices;
+    vertices = 0;
+
+    delete [] indices;
+    indices = 0;
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ShutdownBuffers function releases the buffers, attributes, and vertex array object that were created in the InitializeBuffers function. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ModelClass::ShutdownBuffers()
+{
+    // Release the vertex array object.
+    m_OpenGLPtr->glBindVertexArray(0);
+    m_OpenGLPtr->glDeleteVertexArrays(1, &m_vertexArrayId);
+
+    // Release the vertex buffer.
+    m_OpenGLPtr->glBindBuffer(GL_ARRAY_BUFFER, 0);
+    m_OpenGLPtr->glDeleteBuffers(1, &m_vertexBufferId);
+
+    // Release the index buffer.
+    m_OpenGLPtr->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    m_OpenGLPtr->glDeleteBuffers(1, &m_indexBufferId);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+RenderBuffers is called from the Render function. 
+The purpose of this function is to set the vertex buffer and index buffer as active on the input assembler in the GPU by binding the OpenGL vertex array object.
+Once the GPU has an active vertex buffer it can then use the currently set shader to render that buffer. 
+This function also defines how those buffers should be drawn such as triangles, lines, fans, and so forth. 
+In this tutorial we set the vertex buffer and index buffer as active on the input assembler and tell the GPU that the buffers should be drawn as
+triangles using the glDrawElements OpenGL function.
+The glDrawElements function indicates also that we will be drawing using an index buffer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ModelClass::RenderBuffers()
+{
+    // Bind the vertex array object that stored all the information about the vertex and index buffers.
+    m_OpenGLPtr->glBindVertexArray(m_vertexArrayId);
+
+    // Render the vertex buffer using the index buffer.
+    glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Cameraclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have examined how to code GLSL shaders, how to setup vertex and index buffers, and how to invoke the GLSL 
+shaders to draw those buffers using the ColorShaderClass.
+The one thing we are missing however is the view point to draw them from.
+For this we will require a camera class to let OpenGL know from where and also how we are viewing the scene.
+The camera class will keep track of where the camera is and its current rotation.
+It will use the position and rotation information to generate a view matrix which will be passed into the GLSL shaders for rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: cameraclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _CAMERACLASS_H_
+#define _CAMERACLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;math.h&gt;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: CameraClass
+////////////////////////////////////////////////////////////////////////////////
+class CameraClass
+{
+private:
+    struct VectorType
+    {
+        float x, y, z;
+    };
+
+public:
+    CameraClass();
+    CameraClass(const CameraClass&);
+    ~CameraClass();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The CameraClass header is quite simple with just six functions that will be mostly used. 
+The SetPosition and SetRotation functions will be used to set the position and rotation of the camera object.
+The GetPosition and GetRotation functions will be used to return the position and rotation of the camera object.
+Render will be used to create the view matrix based on the position and rotation of the camera. 
+And finally, GetViewMatrix will be used to retrieve the view matrix from the camera object so that the shaders can use it for rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    void SetPosition(float, float, float);
+    void SetRotation(float, float, float);
+
+    void GetPosition(float*);
+    void GetRotation(float*);
+
+    void Render();
+    void GetViewMatrix(float*);
+
+private:
+    void MatrixRotationYawPitchRoll(float*, float, float, float);
+    void TransformCoord(VectorType&, float*);
+    void BuildViewMatrix(float*, VectorType, VectorType, VectorType);
+
+private:
+    float m_positionX, m_positionY, m_positionZ;
+    float m_rotationX, m_rotationY, m_rotationZ;
+    float m_viewMatrix[16];
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Cameraclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: cameraclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "cameraclass.h"
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The class constructor will initialize the position and rotation of the camera to be at the origin of the scene.
+We also set left hand as the default.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>CameraClass::CameraClass()
+{
+    m_positionX = 0.0f;
+    m_positionY = 0.0f;
+    m_positionZ = 0.0f;
+
+    m_rotationX = 0.0f;
+    m_rotationY = 0.0f;
+    m_rotationZ = 0.0f;
+}
+
+
+CameraClass::CameraClass(const CameraClass& other)
+{
+}
+
+
+CameraClass::~CameraClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SetPosition and SetRotation functions are used for setting up the position and rotation of the camera.
+The GetPosition and GetRotation functions return the position and rotation of the camera to calling objects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void CameraClass::SetPosition(float x, float y, float z)
+{
+    m_positionX = x;
+    m_positionY = y;
+    m_positionZ = z;
+    return;
+}
+
+
+void CameraClass::SetRotation(float x, float y, float z)
+{
+    m_rotationX = x;
+    m_rotationY = y;
+    m_rotationZ = z;
+    return;
+}
+
+
+void CameraClass::GetPosition(float* position)
+{
+    position[0] = m_positionX;
+    position[1] = m_positionY;
+    position[2] = m_positionZ;
+    return;
+}
+
+
+void CameraClass::GetRotation(float* rotation)
+{
+    rotation[0] = m_rotationX;
+    rotation[1] = m_rotationY;
+    rotation[2] = m_rotationZ;
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Render function uses the position and rotation of the camera to build and update the view matrix.
+We first setup our variables for up, position, rotation, and so forth.
+Then at the origin of the scene we first rotate the camera based on the x, y, and z rotation of the camera.
+Once it is properly rotated, we then translate the camera to the position in 3D space.
+With the correct values in the position, lookAt, and up we can then use the BuildViewMatrix function to create the view matrix to represent 
+the current camera rotation and translation.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void CameraClass::Render()
+{
+    VectorType up, position, lookAt;
+    float yaw, pitch, roll;
+    float rotationMatrix[9];
+
+
+    // Setup the vector that points upwards.
+    up.x = 0.0f;
+    up.y = 1.0f;
+    up.z = 0.0f;
+
+    // Setup the position of the camera in the world.
+    position.x = m_positionX;
+    position.y = m_positionY;
+    position.z = m_positionZ;
+
+    // Setup where the camera is looking by default.
+    lookAt.x = 0.0f;
+    lookAt.y = 0.0f;
+    lookAt.z = 1.0f;
+
+    // Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
+    pitch = m_rotationX * 0.0174532925f;
+    yaw   = m_rotationY * 0.0174532925f;
+    roll  = m_rotationZ * 0.0174532925f;
+
+    // Create the rotation matrix from the yaw, pitch, and roll values.
+    MatrixRotationYawPitchRoll(rotationMatrix, yaw, pitch, roll);
+
+    // Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
+    TransformCoord(lookAt, rotationMatrix);
+    TransformCoord(up, rotationMatrix);
+
+    // Translate the rotated camera position to the location of the viewer.
+    lookAt.x = position.x + lookAt.x;
+    lookAt.y = position.y + lookAt.y;
+    lookAt.z = position.z + lookAt.z;
+
+    // Finally create the view matrix from the three updated vectors.
+    BuildViewMatrix(m_viewMatrix, position, lookAt, up);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following function creates a rotation matrix from the yaw, pitch, and roll values.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void CameraClass::MatrixRotationYawPitchRoll(float* matrix, float yaw, float pitch, float roll)
+{
+    float cYaw, cPitch, cRoll, sYaw, sPitch, sRoll;
+
+
+    // Get the cosine and sin of the yaw, pitch, and roll.
+    cYaw = cosf(yaw);
+    cPitch = cosf(pitch);
+    cRoll = cosf(roll);
+
+    sYaw = sinf(yaw);
+    sPitch = sinf(pitch);
+    sRoll = sinf(roll);
+
+    // Calculate the yaw, pitch, roll rotation matrix.
+    matrix[0] = (cRoll * cYaw) + (sRoll * sPitch * sYaw);
+    matrix[1] = (sRoll * cPitch);
+    matrix[2] = (cRoll * -sYaw) + (sRoll * sPitch * cYaw);
+
+    matrix[3] = (-sRoll * cYaw) + (cRoll * sPitch * sYaw);
+    matrix[4] = (cRoll * cPitch);
+    matrix[5] = (sRoll * sYaw) + (cRoll * sPitch * cYaw);
+
+    matrix[6] = (cPitch * sYaw);
+    matrix[7] = -sPitch;
+    matrix[8] = (cPitch * cYaw);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following function multiplies a 3 float vector by a 3x3 matrix and returns the result back in the input vector.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void CameraClass::TransformCoord(VectorType& vector, float* matrix)
+{
+    float x, y, z;
+
+
+    // Transform the vector by the 3x3 matrix.
+    x = (vector.x * matrix[0]) + (vector.y * matrix[3]) + (vector.z * matrix[6]);
+    y = (vector.x * matrix[1]) + (vector.y * matrix[4]) + (vector.z * matrix[7]);
+    z = (vector.x * matrix[2]) + (vector.y * matrix[5]) + (vector.z * matrix[8]);
+
+    // Store the result in the reference.
+    vector.x = x;
+    vector.y = y;
+    vector.z = z;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following function builds the final view matrix.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void CameraClass::BuildViewMatrix(float* matrix, VectorType position, VectorType lookAt, VectorType up)
+{
+    VectorType zAxis, xAxis, yAxis;
+    float length, result1, result2, result3;
+
+
+    // zAxis = normal(lookAt - position)
+    zAxis.x = lookAt.x - position.x;
+    zAxis.y = lookAt.y - position.y;
+    zAxis.z = lookAt.z - position.z;
+    length = sqrt((zAxis.x * zAxis.x) + (zAxis.y * zAxis.y) + (zAxis.z * zAxis.z));
+    zAxis.x = zAxis.x / length;
+    zAxis.y = zAxis.y / length;
+    zAxis.z = zAxis.z / length;
+
+    // xAxis = normal(cross(up, zAxis))
+    xAxis.x = (up.y * zAxis.z) - (up.z * zAxis.y);
+    xAxis.y = (up.z * zAxis.x) - (up.x * zAxis.z);
+    xAxis.z = (up.x * zAxis.y) - (up.y * zAxis.x);
+    length = sqrt((xAxis.x * xAxis.x) + (xAxis.y * xAxis.y) + (xAxis.z * xAxis.z));
+    xAxis.x = xAxis.x / length;
+    xAxis.y = xAxis.y / length;
+    xAxis.z = xAxis.z / length;
+
+    // yAxis = cross(zAxis, xAxis)
+    yAxis.x = (zAxis.y * xAxis.z) - (zAxis.z * xAxis.y);
+    yAxis.y = (zAxis.z * xAxis.x) - (zAxis.x * xAxis.z);
+    yAxis.z = (zAxis.x * xAxis.y) - (zAxis.y * xAxis.x);
+
+    // -dot(xAxis, position)
+    result1 = ((xAxis.x * position.x) + (xAxis.y * position.y) + (xAxis.z * position.z)) * -1.0f;
+
+    // -dot(yaxis, position)
+    result2 = ((yAxis.x * position.x) + (yAxis.y * position.y) + (yAxis.z * position.z)) * -1.0f;
+
+    // -dot(zaxis, position)
+    result3 = ((zAxis.x * position.x) + (zAxis.y * position.y) + (zAxis.z * position.z)) * -1.0f;
+
+    // Set the computed values in the view matrix.
+    matrix[0]  = xAxis.x;
+    matrix[1]  = yAxis.x;
+    matrix[2]  = zAxis.x;
+    matrix[3]  = 0.0f;
+
+    matrix[4]  = xAxis.y;
+    matrix[5]  = yAxis.y;
+    matrix[6]  = zAxis.y;
+    matrix[7]  = 0.0f;
+
+    matrix[8]  = xAxis.z;
+    matrix[9]  = yAxis.z;
+    matrix[10] = zAxis.z;
+    matrix[11] = 0.0f;
+
+    matrix[12] = result1;
+    matrix[13] = result2;
+    matrix[14] = result3;
+    matrix[15] = 1.0f;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+After the Render function has been called to create the view matrix, we can provide the updated view matrix to calling functions using this GetViewMatrix function.
+The view matrix will be one of the three main matrices used in the GLSL vertex shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void CameraClass::GetViewMatrix(float* matrix)
+{
+    matrix[0]  = m_viewMatrix[0];
+    matrix[1]  = m_viewMatrix[1];
+    matrix[2]  = m_viewMatrix[2];
+    matrix[3]  = m_viewMatrix[3];
+
+    matrix[4]  = m_viewMatrix[4];
+    matrix[5]  = m_viewMatrix[5];
+    matrix[6]  = m_viewMatrix[6];
+    matrix[7]  = m_viewMatrix[7];
+
+    matrix[8]  = m_viewMatrix[8];
+    matrix[9]  = m_viewMatrix[9];
+    matrix[10] = m_viewMatrix[10];
+    matrix[11] = m_viewMatrix[11];
+
+    matrix[12] = m_viewMatrix[12];
+    matrix[13] = m_viewMatrix[13];
+    matrix[14] = m_viewMatrix[14];
+    matrix[15] = m_viewMatrix[15];
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+ApplicationClass now has the three new classes added to it. 
+CameraClass, ModelClass, and ColorShaderClass have headers added here as well as private member variables.
+Remember that ApplicationClass is the main class that is used to render the scene by invoking all the needed class objects for the project.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "openglclass.h"</FONT><font face=arial color=#aaaaff size=2>
+#include "colorshaderclass.h"
+#include "modelclass.h"
+#include "cameraclass.h"</FONT><font face=arial color=#aaffaa size=2>
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool Render();
+
+private:
+    OpenGLClass* m_OpenGL;</FONT><font face=arial color=#aaaaff size=2>
+    ColorShaderClass* m_ColorShader;
+    ModelClass* m_Model;
+    CameraClass* m_Camera;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first change to ApplicationClass is initializing the camera, model, and color shader objects in the class constructor to null. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;</FONT><font face=arial color=#aaaaff size=2>
+    m_ColorShader = 0;
+    m_Model = 0;
+    m_Camera = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function has also been updated to create and initialize the three new objects. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }</FONT><font face=arial color=#aaaaff size=2>
+
+    // Create and initialize the color shader object.
+    m_ColorShader = new ColorShaderClass;
+
+    result = m_ColorShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the color shader object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+    m_Camera->Render();
+
+    // Create and initialize the model object.
+    m_Model = new ModelClass;
+
+    result = m_Model->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the model object." << endl;
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Shutdown is also updated to shut down and release the three new objects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ApplicationClass::Shutdown()
+{</FONT><font face=arial color=#aaaaff size=2>
+    // Release the model object.
+    if(m_Model)
+    {
+        m_Model->Shutdown();
+        delete m_Model;
+        m_Model = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the color shader object.
+    if(m_ColorShader)
+    {
+        m_ColorShader->Shutdown();
+        delete m_ColorShader;
+        m_ColorShader = 0;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Frame function has remained the same as the previous tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Frame(InputClass* Input)
+{
+    bool result;
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+
+    // Render the graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+As you would expect the Render function had the most changes to it. 
+It still begins with clearing the scene to black. 
+Then we get our three main matrices from the camera and OpenGL objects.
+Next, we set the color GLSL shaders as the current rendering program so that anything drawn will use those vertex and pixel shaders.
+Then we call the ModelClass::Render function to draw the green triangle model geometry.
+The green triangle is now drawn to the back buffer. 
+With that the scene is complete and we call EndScene to display it to the screen. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Render()
+{</FONT><font face=arial color=#aaaaff size=2>
+    float worldMatrix[16], viewMatrix[16], projectionMatrix[16];
+    bool result;</FONT><font face=arial color=#aaffaa size=2>
+
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);</FONT><font face=arial color=#aaaaff size=2>
+
+    // Get the world, view, and projection matrices from the opengl and camera objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetProjectionMatrix(projectionMatrix);
+
+    // Set the color shader as the current shader program and set the matrices that it will use for rendering.
+    result = m_ColorShader->SetShaderParameters(worldMatrix, viewMatrix, projectionMatrix);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Render the model.
+    m_Model->Render();</FONT><font face=arial color=#aaffaa size=2>
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Final Word about Matrices</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Before I end this tutorial, I want to ensure you understand how the rendering matrices in this tutorial work.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Take a quick look at the color.vs vertex shader again.
+You will see I multiply each vertex that comes into that function by the world matrix, then the view matrix, and then the projection matrix.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+When you multiply the vertex by the world matrix you position that vertex in the 3D world.
+Your world matrix can have things applied to it such as translation, rotation, scaling, and so forth.
+So, this allows you to position that vertex in the 3D space correctly.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Next when you multiply the vertex by the view matrix you again update the position of the vertex to where we are now viewing it from, which is our camera position.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+And the finally when you multiply the vertex by the projection matrix you update the position of the vertex again to be rendered back to our 2D screen.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now a couple notes about existing OpenGL documentation and other tutorial websites is that you will often see the ModelView matrix referred to.
+This is because most of the time in that documentation the world and view matrix are concatenated together to form the ModelView matrix.
+In fact, you can concatenate all three matrices together and just send in a single matrix, however if you do that make sure they are multiplied in the correct order.
+Now the main reason I break these three matrices apart is for learning purposes.
+Most of the more advanced GLSL shaders will need to use the three matrices separately to achieve different effects.
+So, keep that in mind as you progress through the rest of the tutorials.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+So, in summary you should have learned the basics about how vertex and index buffers work and how the vertex array object encapsulates them.
+You should have also learned the basics of vertex and pixel shaders and how to write them using GLSL.
+And finally, you should understand how we've incorporated these new concepts into our frame work to produce a green triangle that renders to the screen.
+I also want to mention that I realize the code is fairly long just to draw a single triangle and it could have all been stuck inside a single main() function.
+However, I did it this way with a proper learning framework so that the coming tutorials require very few changes in the code to do far more complex graphics.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic0009.gif" width="200" height="200"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Compile and run the tutorial.  Ensure it draws a green triangle to the screen.  Press escape to quit once it does.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Change the color of the triangle to red.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Change the color of the triangle to have a different color at each vertex.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+4. Change the triangle to a square.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+5. Move the camera back 10 more units.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+6. Change the pixel shader to output the color half as bright.  (Huge hint: Multiply something in pixel shader by 0.5f)
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut04_src.tar.gz">gl4linuxtut04_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

@@ -1,0 +1,116 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: shadow.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 normal;
+in vec4 lightViewPosition;
+in vec3 lightPos;
+in vec4 lightViewPosition2;
+in vec3 lightPos2;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform sampler2D depthMapTexture;
+uniform sampler2D depthMapTexture2;
+uniform vec4 ambientColor;
+uniform vec4 diffuseColor;
+uniform vec4 diffuseColor2;
+uniform float bias;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 color;
+    vec2 projectTexCoord;
+    float depthValue;
+    float lightDepthValue;
+    float lightIntensity;
+    vec4 textureColor;
+
+
+    // Set the default output color to the ambient light value for all pixels.
+    color = ambientColor;
+
+    // Calculate the projected texture coordinates.
+    projectTexCoord.x = lightViewPosition.x / lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = lightViewPosition.y / lightViewPosition.w / 2.0f + 0.5f;
+
+    // Determine if the projected coordinates are in the 0 to 1 range.  If so then this pixel is in the view of the light.
+    if((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) && (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))
+    {
+        // Sample the shadow map depth value from the depth texture using the sampler at the projected texture coordinate location.
+        depthValue = texture(depthMapTexture, projectTexCoord).r;
+
+        // Calculate the depth of the light.
+        lightDepthValue = lightViewPosition.z / lightViewPosition.w;
+
+        // Subtract the bias from the lightDepthValue.
+        lightDepthValue = lightDepthValue - bias;
+
+        // Compare the depth of the shadow map value and the depth of the light to determine whether to shadow or to light this pixel.
+        // If the light is in front of the object then light the pixel, if not then shadow this pixel since an object (occluder) is casting a shadow on it.
+        if(lightDepthValue < depthValue)
+        {
+            // Calculate the amount of light on this pixel.
+            lightIntensity = clamp(dot(normal, lightPos), 0.0f, 1.0f);
+
+            if(lightIntensity > 0.0f)
+            {
+                // Determine the final diffuse color based on the diffuse color and the amount of light intensity.
+                color += (diffuseColor * lightIntensity);
+            }
+        }
+    }
+
+    ////////////////
+    // Second light: Use all the second light variables and textures for calculations.  Accumulate the additional light value into the color variable.
+    ////////////////
+
+    projectTexCoord.x = lightViewPosition2.x / lightViewPosition2.w / 2.0f + 0.5f;
+    projectTexCoord.y = lightViewPosition2.y / lightViewPosition2.w / 2.0f + 0.5f;
+
+    if((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) && (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))
+    {
+        depthValue = texture(depthMapTexture2, projectTexCoord).r;
+
+        lightDepthValue = lightViewPosition2.z / lightViewPosition2.w;
+        lightDepthValue = lightDepthValue - bias;
+
+        if(lightDepthValue < depthValue)
+        {
+            lightIntensity = clamp(dot(normal, lightPos2), 0.0f, 1.0f);
+
+            if(lightIntensity > 0.0f)
+            {
+                color += (diffuseColor2 * lightIntensity);
+            }
+        }
+    }
+
+    // Saturate the final light color of both lights.
+    color = clamp(color, 0.0f, 1.0f);
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Combine the light and texture color.
+    outputColor = color * textureColor;
+}

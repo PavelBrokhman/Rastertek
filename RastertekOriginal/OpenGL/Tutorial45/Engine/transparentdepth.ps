@@ -1,0 +1,51 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: transparentdepth.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec4 depthPosition;
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    float depthValue;
+    vec4 textureColor;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Test based on the alpha value of the texture.
+    if(textureColor.a > 0.8f)
+    {
+	// Get the depth value of the pixel by dividing the Z pixel depth by the homogeneous W coordinate.
+	depthValue = depthPosition.z / depthPosition.w;
+    }
+    else
+    {
+	// Otherwise discard this pixel entirely.
+	discard;
+    }
+
+    outputColor = vec4(depthValue, depthValue, depthValue, 1.0f);
+}

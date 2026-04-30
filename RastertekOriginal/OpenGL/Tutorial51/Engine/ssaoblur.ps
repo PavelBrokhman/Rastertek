@@ -1,0 +1,119 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblur.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out float colorSum;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D ssaoTexture;
+uniform sampler2D normalDepthTexture;
+uniform float screenWidth;
+uniform float screenHeight;
+uniform float blurType;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    float texelSize;
+    vec2 texOffset;
+    int radius;
+    float weightArray[11];
+    float weightSum;
+    vec4 centerDepth;
+    int i;
+    vec2 tex;
+    vec4 neighborDepth;
+    float ssaoValue;
+    float weight;
+
+
+    // Setup a horizontal blur if the blurType is 0.0f, otherwise setup a vertical blur.
+    if(blurType < 0.1f)
+    {
+        // Determine the floating point size of a texel for a screen with this specific width.
+        texelSize = 1.0f / screenWidth;
+        texOffset = vec2(texelSize, 0.0f);
+    }
+    else
+    {
+        // Determine the floating point size of a texel for a screen with this specific height.
+        texelSize = 1.0f / screenHeight;
+        texOffset = vec2(0.0f, texelSize);
+    }
+
+    // Set the blur radius.
+    radius = 5;
+
+    // Set an array of weights for how much a pixel contributes to the blur.
+    weightArray[0]  = 0.05f;
+    weightArray[1]  = 0.05f;
+    weightArray[2]  = 0.1f;
+    weightArray[3]  = 0.1f;
+    weightArray[4]  = 0.1f;
+    weightArray[5]  = 0.2f;
+    weightArray[6]  = 0.1f;
+    weightArray[7]  = 0.1f;
+    weightArray[8]  = 0.1f;
+    weightArray[9]  = 0.05f;
+    weightArray[10] = 0.05f;
+
+    // Start the blurring sum with the center pixel first (array goes -radius to +radius).  'textureLod' will be used instead of 'texture' to make sure we are not sampling a mipmap.
+    colorSum = weightArray[radius] * textureLod(ssaoTexture, texCoord, 0).r;
+    weightSum = weightArray[radius];
+
+    // Store the center pixel depth to help determine if we are encountering an edge or not.
+    centerDepth = textureLod(normalDepthTexture, texCoord, 0);
+
+    // Loop through all the neighbor pixels.
+    for(i=-radius; i<=radius; i++)
+    {
+        // Skip the center as we started with it and it is in the sum already.
+        if(i==0)
+        {
+            continue;
+        }
+
+        // Offset the texture sampling coordinates by the position in the radius.
+        tex = texCoord + (i * texOffset);
+
+        // Point sample the neighbor pixel depth from the G buffer normals that are in view space.
+        neighborDepth = textureLod(normalDepthTexture, tex, 0);
+
+        // We make the blur edge aware by only sampling values that do not differ too much.
+        // If the normal or depth value varies wildly then we are sampling across a discontinuity, and that cannot be included in the blur averaging.
+        if(dot(neighborDepth.xyz, centerDepth.xyz) >= 0.8f)
+        {
+            // Sample the neighbor value from the ambient occlusion map.
+            ssaoValue = textureLod(ssaoTexture, tex, 0).r;
+
+            // Get the weight that this pixel contributes to the blur from the weight array.
+            weight = weightArray[i + radius];
+
+            // Add neighbor ssao pixel to blur using the weight array to determine its contribution to the sum.
+            colorSum += (ssaoValue * weight);
+
+            // Increment the weight sum to perform an average later.
+            weightSum += weight;
+        }
+    }
+
+    // Get the blur average value based on the two sums.
+    colorSum = colorSum / weightSum;
+}

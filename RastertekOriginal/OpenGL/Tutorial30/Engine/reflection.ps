@@ -1,0 +1,49 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: reflection.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec4 reflectionPosition;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform sampler2D reflectionTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+    vec2 reflectTexCoord;
+    vec4 reflectionColor;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Calculate the projected reflection texture coordinates.
+    reflectTexCoord.x = reflectionPosition.x / reflectionPosition.w / 2.0f + 0.5f;
+    reflectTexCoord.y = reflectionPosition.y / reflectionPosition.w / 2.0f + 0.5f;
+
+    // Sample the texture pixel from the reflection texture using the projected texture coordinates.
+    reflectionColor = texture(reflectionTexture, reflectTexCoord);
+
+    // Use the mix function to perform a linear interpolation between the two texture values for a blend effect.
+    outputColor = mix(textureColor, reflectionColor, 0.15f);
+}

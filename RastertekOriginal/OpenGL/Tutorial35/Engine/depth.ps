@@ -1,0 +1,50 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: depth.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec4 depthPosition;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    float depthValue;
+    vec4 color;
+
+
+    // Get the depth value of the pixel by dividing the Z pixel depth by the homogeneous W coordinate.
+    depthValue = depthPosition.z / depthPosition.w;
+
+    // First 10% of the depth buffer color red.
+    if(depthValue < 0.9f)
+    {
+	color = vec4(1.0, 0.0f, 0.0f, 1.0f);
+    }
+
+    // The next 0.025% portion of the depth buffer color green.
+    if(depthValue > 0.9f)
+    {
+	color = vec4(0.0, 1.0f, 0.0f, 1.0f);
+    }
+
+    // The remainder of the depth buffer color blue.
+    if(depthValue > 0.925f)
+    {
+	color = vec4(0.0, 0.0f, 1.0f, 1.0f);
+    }
+
+    outputColor = color;
+}

@@ -1,0 +1,7 @@
+Terrain Filename: ../Engine/data/heightmap.r16
+Color Map Filename: ../Engine/data/colormap.tga
+Terrain Height: 1025
+Terrain Width: 1025
+Terrain Scaling: 300.0
+Diffuse Texture: ../Engine/data/textures/dirt01d.tga
+Normal Texture: ../Engine/data/textures/dirt01n.tga

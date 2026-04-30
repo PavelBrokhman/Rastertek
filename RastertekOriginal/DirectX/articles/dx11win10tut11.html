@@ -1,0 +1,1406 @@
+<html><head><title>Tutorial 11: Multiple Point Lights</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 11: Multiple Point Lights
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will cover how to implement multiple point lights in DirectX 11 using HLSL and C++. 
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5023.gif" width="600" height="260"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Most of the tutorials I have used directional light since it simpler to understand and debug visually.
+However, point lights are important for simulating the vast majority of light sources.
+Pretty much anything that is illuminated with a light bulb is a point light.
+Point lights have a position of origin and a color, they do not require a direction.
+They illuminate strongest at the center or origin and dissipate in an even circular fashion as the light moves away from the source.
+Point lights also use different types of attenuation and range to more accurately simulate how different point lights dissipate over a distance.
+I will just cover the basic point light without attenuation and range for this tutorial. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The second concept I will be covering in this tutorial is multiple light sources.
+Point lights work perfectly with this concept as most scenes only have a single directional light but will have numerous point lights.
+For example, think about being inside a factory.
+It may have a single directional light coming through the windows but there will be hundreds of light fixtures used to properly illuminate the building.
+Also note that DirectX 11 with HLSL has no limitation on the number of point lights you can have in a scene, it is completely up to you.
+However, if you are looking to render thousands of point lights at the same time then you may want to look into deferred shading. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The third thing I want to introduce in this tutorial is the use of arrays of vectors in HLSL, and how to send in large arrays of vectors into the shaders for rendering. 
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.vs</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.vs
+////////////////////////////////////////////////////////////////////////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+HLSL allows the use of defines.
+For this point light tutorial, we will define how many point lights this shader can use.
+Both the vertex shader and pixel shader will need the same define. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>/////////////
+// DEFINES //
+/////////////
+#define NUM_LIGHTS 4</FONT><font face=arial color=#00ffff size=2>
+
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer MatrixBuffer
+{
+    matrix worldMatrix;
+    matrix viewMatrix;
+    matrix projectionMatrix;
+};
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+HLSL also allows the use of array with defines to determine the number of elements in the array.
+This array is for the four positions of the four point lights. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>cbuffer LightPositionBuffer
+{
+    float4 lightPosition[NUM_LIGHTS];
+};</FONT><font face=arial color=#00ffff size=2>
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct VertexInputType
+{
+    float4 position : POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
+};
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The PixelInputType has been modified to hold the array of the four updated positions of the point lights. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;</FONT><font face=arial color=#aaaaff size=2>
+    float3 lightPos[NUM_LIGHTS] : TEXCOORD1;</FONT><font face=arial color=#00ffff size=2>
+ };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+PixelInputType LightVertexShader(VertexInputType input)
+{
+    PixelInputType output;
+    float4 worldPosition;</FONT><font face=arial color=#aaaaff size=2>
+    int i;</FONT><font face=arial color=#00ffff size=2>
+
+
+    // Change the position vector to be 4 units for proper matrix calculations.
+    input.position.w = 1.0f;
+
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    output.position = mul(input.position, worldMatrix);
+    output.position = mul(output.position, viewMatrix);
+    output.position = mul(output.position, projectionMatrix);
+    
+    // Store the texture coordinates for the pixel shader.
+    output.tex = input.tex;
+    
+    // Calculate the normal vector against the world matrix only.
+    output.normal = mul(input.normal, (float3x3)worldMatrix);
+	
+    // Normalize the normal vector.
+    output.normal = normalize(output.normal);
+
+    // Calculate the position of the vertex in the world.
+    worldPosition = mul(input.position, worldMatrix);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The position of the four lights in the world in relation to the vertex must be calculated, normalized, and then sent into the pixel shader.
+You can see we are able to use a for loop the same as C++ to access and manipulate the HLSL arrays of data. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    for(i=0; i&lt;NUM_LIGHTS; i++)
+    {
+        // Determine the light positions based on the position of the lights and the position of the vertex in the world.
+        output.lightPos[i] = lightPosition[i].xyz - worldPosition.xyz;
+
+        // Normalize the light position vectors.
+        output.lightPos[i] = normalize(output.lightPos[i]);
+    }</FONT><font face=arial color=#00ffff size=2>
+
+    return output;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The pixel shader will require the same light number define as the vertex shader. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>/////////////
+// DEFINES //
+/////////////
+#define NUM_LIGHTS 4</FONT><font face=arial color=#00ffff size=2>
+
+
+/////////////
+// GLOBALS //
+/////////////
+Texture2D shaderTexture : register(t0);
+SamplerState SampleType : register(s0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This array is for the four colors of the four point lights.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>cbuffer LightColorBuffer
+{
+    float4 diffuseColor[NUM_LIGHTS];
+};</FONT><font face=arial color=#00ffff size=2>
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The PixelInputType has been modified the same as the vertex shader to hold the input array of the four updated positions of the point lights. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;</FONT><font face=arial color=#aaaaff size=2>
+    float3 lightPos[NUM_LIGHTS] : TEXCOORD1;</FONT><font face=arial color=#00ffff size=2>
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+float4 LightPixelShader(PixelInputType input) : SV_TARGET
+{
+    float4 textureColor;</FONT><font face=arial color=#aaaaff size=2>
+    float lightIntensity[NUM_LIGHTS];
+    float4 colorArray[NUM_LIGHTS];
+    float4 colorSum;</FONT><font face=arial color=#00ffff size=2>
+    float4 color;</FONT><font face=arial color=#aaaaff size=2>
+    int i;</FONT><font face=arial color=#00ffff size=2>
+
+
+    // Sample the texture pixel at this location.
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The light intensity for each of the four point lights is calculated using the position of the light and the normal vector.
+The amount of color contributed by each point light is calculated from the intensity of the point light and the light color. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    for(i=0; i&lt;NUM_LIGHTS; i++)
+    {
+        // Calculate the different amounts of light on this pixel based on the positions of the lights.
+        lightIntensity[i] = saturate(dot(input.normal, input.lightPos[i]));
+
+        // Determine the diffuse color amount of each of the four lights.
+        colorArray[i] = diffuseColor[i] * lightIntensity[i];
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We add all the four point lights together to get the final light color for this pixel.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Initialize the sum of colors.
+    colorSum = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Add all of the light colors up.
+    for(i=0; i&lt;NUM_LIGHTS; i++)
+    {
+        colorSum.r += colorArray[i].r;
+        colorSum.g += colorArray[i].g;
+        colorSum.b += colorArray[i].b;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We multiply the summed light color by the texture pixel and the calculations are complete.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Multiply the texture pixel by the combination of all four light colors to get the final result.
+    color = saturate(colorSum) * textureColor;</FONT><font face=arial color=#00ffff size=2>
+
+    return color;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LightShaderClass is similar to the previous tutorials just that it has been modified to handle multiple point lights.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _LIGHTSHADERCLASS_H_
+#define _LIGHTSHADERCLASS_H_
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The number of lights the shader uses is also defined here and must match what is inside the shaders.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>/////////////
+// GLOBALS //
+/////////////
+const int NUM_LIGHTS = 4;</FONT><font face=arial color=#aaffaa size=2>
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;d3d11.h&gt;
+#include &lt;d3dcompiler.h&gt;
+#include &lt;directxmath.h&gt;
+#include &lt;fstream&gt;
+using namespace DirectX;
+using namespace std;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: LightShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class LightShaderClass
+{
+private:
+    struct MatrixBufferType
+    {
+        XMMATRIX world;
+        XMMATRIX view;
+        XMMATRIX projection;
+    };
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+There are two new structures for the diffuse color and light position arrays that are used in the vertex and pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    struct LightColorBufferType
+    {
+        XMFLOAT4 diffuseColor[NUM_LIGHTS];
+    };
+
+    struct LightPositionBufferType
+    {
+        XMFLOAT4 lightPosition[NUM_LIGHTS];
+    };</FONT><font face=arial color=#aaffaa size=2>
+
+public:
+    LightShaderClass();
+    LightShaderClass(const LightShaderClass&);
+    ~LightShaderClass();
+
+    bool Initialize(ID3D11Device*, HWND);
+    void Shutdown();</FONT><font face=arial color=#aaaaff size=2>
+    bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, XMFLOAT4[], XMFLOAT4[]);</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
+    void ShutdownShader();
+    void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);</FONT><font face=arial color=#aaaaff size=2>
+
+    bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, XMFLOAT4[], XMFLOAT4[]);</FONT><font face=arial color=#aaffaa size=2>
+    void RenderShader(ID3D11DeviceContext*, int);
+
+private:
+    ID3D11VertexShader* m_vertexShader;
+    ID3D11PixelShader* m_pixelShader;
+    ID3D11InputLayout* m_layout;
+    ID3D11SamplerState* m_sampleState;
+    ID3D11Buffer* m_matrixBuffer;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+There are two new buffers for the diffuse color array and light position array.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    ID3D11Buffer* m_lightColorBuffer;
+    ID3D11Buffer* m_lightPositionBuffer;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "lightshaderclass.h"
+
+
+LightShaderClass::LightShaderClass()
+{
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    m_layout = 0;
+    m_sampleState = 0;
+    m_matrixBuffer = 0;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Initialize the light color and light position buffers to null in the class constructor.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    m_lightColorBuffer = 0;
+    m_lightPositionBuffer = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+LightShaderClass::LightShaderClass(const LightShaderClass& other)
+{
+}
+
+
+LightShaderClass::~LightShaderClass()
+{
+}
+
+
+bool LightShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
+{
+    wchar_t vsFilename[128];
+    wchar_t psFilename[128];
+    int error;
+    bool result;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Load the modified light.vs and light.ps HLSL shader files which now handle point lights.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the filename of the vertex shader.
+    error = wcscpy_s(vsFilename, 128, L"../Engine/light.vs");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Set the filename of the pixel shader.
+    error = wcscpy_s(psFilename, 128, L"../Engine/light.ps");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(device, hwnd, vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void LightShaderClass::Shutdown()
+{
+    // Shutdown the vertex and pixel shaders as well as the related objects.
+    ShutdownShader();
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The render function takes in as input two new arrays for the point light diffuse color and the point light position.
+These two arrays will be set in the shader first before rendering takes place. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
+                              ID3D11ShaderResourceView* texture, XMFLOAT4 diffuseColor[], XMFLOAT4 lightPosition[])</FONT><font face=arial color=#aaffaa size=2>
+{
+    bool result;
+
+
+    // Set the shader parameters that it will use for rendering.</FONT><font face=arial color=#aaaaff size=2>
+    result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, diffuseColor, lightPosition);</FONT><font face=arial color=#aaffaa size=2>
+    if(!result)
+    {
+        return false;
+    }
+
+    // Now render the prepared buffers with the shader.
+    RenderShader(deviceContext, indexCount);
+
+    return true;
+}
+
+
+bool LightShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+{
+    HRESULT result;
+    ID3D10Blob* errorMessage;
+    ID3D10Blob* vertexShaderBuffer;
+    ID3D10Blob* pixelShaderBuffer;
+    D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+    unsigned int numElements;
+    D3D11_SAMPLER_DESC samplerDesc;
+    D3D11_BUFFER_DESC matrixBufferDesc;</FONT><font face=arial color=#aaaaff size=2>
+    D3D11_BUFFER_DESC lightColorBufferDesc;
+    D3D11_BUFFER_DESC lightPositionBufferDesc;</FONT><font face=arial color=#aaffaa size=2>
+
+
+    // Initialize the pointers this function will use to null.
+    errorMessage = 0;
+    vertexShaderBuffer = 0;
+    pixelShaderBuffer = 0;
+
+    // Compile the vertex shader code.
+    result = D3DCompileFromFile(vsFilename, NULL, NULL, "LightVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the shader file itself.
+        else
+        {
+            MessageBox(hwnd, vsFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Compile the pixel shader code.
+    result = D3DCompileFromFile(psFilename, NULL, NULL, "LightPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the file itself.
+        else
+        {
+            MessageBox(hwnd, psFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Create the vertex shader from the buffer.
+    result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the pixel shader from the buffer.
+    result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the vertex input layout description.
+    polygonLayout[0].SemanticName = "POSITION";
+    polygonLayout[0].SemanticIndex = 0;
+    polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+    polygonLayout[0].InputSlot = 0;
+    polygonLayout[0].AlignedByteOffset = 0;
+    polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[0].InstanceDataStepRate = 0;
+
+    polygonLayout[1].SemanticName = "TEXCOORD";
+    polygonLayout[1].SemanticIndex = 0;
+    polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+    polygonLayout[1].InputSlot = 0;
+    polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+    polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[1].InstanceDataStepRate = 0;
+
+    polygonLayout[2].SemanticName = "NORMAL";
+    polygonLayout[2].SemanticIndex = 0;
+    polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+    polygonLayout[2].InputSlot = 0;
+    polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+    polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[2].InstanceDataStepRate = 0;
+
+    // Get a count of the elements in the layout.
+    numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+    // Create the vertex input layout.
+    result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), 
+                                       &m_layout);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+    vertexShaderBuffer->Release();
+    vertexShaderBuffer = 0;
+
+    pixelShaderBuffer->Release();
+    pixelShaderBuffer = 0;
+
+    // Create a texture sampler state description.
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    samplerDesc.BorderColor[0] = 0;
+    samplerDesc.BorderColor[1] = 0;
+    samplerDesc.BorderColor[2] = 0;
+    samplerDesc.BorderColor[3] = 0;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    // Create the texture sampler state.
+    result = device->CreateSamplerState(&samplerDesc, &m_sampleState);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+    matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+    matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    matrixBufferDesc.MiscFlags = 0;
+    matrixBufferDesc.StructureByteStride = 0;
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The light color array buffer is setup and created here.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Setup the description of the dynamic constant buffer that is in the pixel shader.
+    lightColorBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    lightColorBufferDesc.ByteWidth = sizeof(LightColorBufferType);
+    lightColorBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    lightColorBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    lightColorBufferDesc.MiscFlags = 0;
+    lightColorBufferDesc.StructureByteStride = 0;
+
+    // Create the constant buffer pointer so we can access the pixel shader constant buffer from within this class.
+    result = device->CreateBuffer(&lightColorBufferDesc, NULL, &m_lightColorBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The light position array buffer is setup and created here.
+Note that I did make the position a four float vector so that this function won't fail to meet the multiple of 16 requirement. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Setup the description of the dynamic constant buffer that is in the vertex shader.
+    lightPositionBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    lightPositionBufferDesc.ByteWidth = sizeof(LightPositionBufferType);
+    lightPositionBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    lightPositionBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    lightPositionBufferDesc.MiscFlags = 0;
+    lightPositionBufferDesc.StructureByteStride = 0;
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    result = device->CreateBuffer(&lightPositionBufferDesc, NULL, &m_lightPositionBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+
+
+void LightShaderClass::ShutdownShader()
+{</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Release the two new light buffers here in the ShutdownShader function.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Release the light constant buffers.
+    if(m_lightColorBuffer)
+    {
+        m_lightColorBuffer->Release();
+        m_lightColorBuffer = 0;
+    }
+
+    if(m_lightPositionBuffer)
+    {
+        m_lightPositionBuffer->Release();
+        m_lightPositionBuffer = 0;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Release the matrix constant buffer.
+    if(m_matrixBuffer)
+    {
+        m_matrixBuffer->Release();
+        m_matrixBuffer = 0;
+    }
+
+    // Release the sampler state.
+    if(m_sampleState)
+    {
+        m_sampleState->Release();
+        m_sampleState = 0;
+    }
+
+    // Release the layout.
+    if(m_layout)
+    {
+        m_layout->Release();
+        m_layout = 0;
+    }
+
+    // Release the pixel shader.
+    if(m_pixelShader)
+    {
+        m_pixelShader->Release();
+        m_pixelShader = 0;
+    }
+
+    // Release the vertex shader.
+    if(m_vertexShader)
+    {
+        m_vertexShader->Release();
+        m_vertexShader = 0;
+    }
+
+    return;
+}
+
+
+void LightShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+{
+    char* compileErrors;
+    unsigned __int64 bufferSize, i;
+    ofstream fout;
+
+
+    // Get a pointer to the error message text buffer.
+    compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+    // Get the length of the message.
+    bufferSize = errorMessage->GetBufferSize();
+
+    // Open a file to write the error message to.
+    fout.open("shader-error.txt");
+
+    // Write out the error message.
+    for(i=0; i&lt;bufferSize; i++)
+    {
+        fout << compileErrors[i];
+    }
+
+    // Close the file.
+    fout.close();
+
+    // Release the error message.
+    errorMessage->Release();
+    errorMessage = 0;
+
+    // Pop a message up on the screen to notify the user to check the text file for compile errors.
+    MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
+
+    return;
+}</FONT><font face=arial color=#aaaaff size=2>
+
+
+bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
+                                           ID3D11ShaderResourceView* texture, XMFLOAT4 diffuseColor[], XMFLOAT4 lightPosition[])</FONT><font face=arial color=#aaffaa size=2>
+{
+    HRESULT result;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    unsigned int bufferNumber;
+    MatrixBufferType* dataPtr;</FONT><font face=arial color=#aaaaff size=2>
+    LightPositionBufferType* dataPtr2;
+    LightColorBufferType* dataPtr3;</FONT><font face=arial color=#aaffaa size=2>
+
+
+    // Transpose the matrices to prepare them for the shader.
+    worldMatrix = XMMatrixTranspose(worldMatrix);
+    viewMatrix = XMMatrixTranspose(viewMatrix);
+    projectionMatrix = XMMatrixTranspose(projectionMatrix);
+
+    // Lock the constant buffer so it can be written to.
+    result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the constant buffer.
+    dataPtr = (MatrixBufferType*)mappedResource.pData;
+
+    // Copy the matrices into the constant buffer.
+    dataPtr->world = worldMatrix;
+    dataPtr->view = viewMatrix;
+    dataPtr->projection = projectionMatrix;
+
+    // Unlock the constant buffer.
+    deviceContext->Unmap(m_matrixBuffer, 0);
+
+    // Set the position of the constant buffer in the vertex shader.
+    bufferNumber = 0;
+
+    // Now set the constant buffer in the vertex shader with the updated values.
+    deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The light position array buffer that will be used in the vertex shader is setup here.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Lock the light position constant buffer so it can be written to.
+    result = deviceContext->Map(m_lightPositionBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the constant buffer.
+    dataPtr2 = (LightPositionBufferType*)mappedResource.pData;
+
+    // Copy the light position variables into the constant buffer.
+    dataPtr2->lightPosition[0] = lightPosition[0];
+    dataPtr2->lightPosition[1] = lightPosition[1];
+    dataPtr2->lightPosition[2] = lightPosition[2];
+    dataPtr2->lightPosition[3] = lightPosition[3];
+
+    // Unlock the constant buffer.
+    deviceContext->Unmap(m_lightPositionBuffer, 0);
+
+    // Set the position of the constant buffer in the vertex shader.
+    bufferNumber = 1;
+
+    // Finally set the constant buffer in the vertex shader with the updated values.
+    deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_lightPositionBuffer);</FONT><font face=arial color=#aaffaa size=2>
+
+    // Set shader texture resource in the pixel shader.
+    deviceContext->PSSetShaderResources(0, 1, &texture);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The light color array buffer that will be used in the pixel shader is setup here. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Lock the light color constant buffer so it can be written to.
+    result = deviceContext->Map(m_lightColorBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the constant buffer.
+    dataPtr3 = (LightColorBufferType*)mappedResource.pData;
+
+    // Copy the light color variables into the constant buffer.
+    dataPtr3->diffuseColor[0] = diffuseColor[0];
+    dataPtr3->diffuseColor[1] = diffuseColor[1];
+    dataPtr3->diffuseColor[2] = diffuseColor[2];
+    dataPtr3->diffuseColor[3] = diffuseColor[3];
+
+    // Unlock the constant buffer.
+    deviceContext->Unmap(m_lightColorBuffer, 0);
+
+    // Set the position of the constant buffer in the pixel shader.
+    bufferNumber = 0;
+
+    // Finally set the constant buffer in the pixel shader with the updated values.
+    deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightColorBuffer);</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+
+
+void LightShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+{
+    // Set the vertex input layout.
+    deviceContext->IASetInputLayout(m_layout);
+
+    // Set the vertex and pixel shaders that will be used for rendering.
+    deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+    deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+
+    // Set the sampler state in the pixel shader.
+    deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+    // Render the data.
+    deviceContext->DrawIndexed(indexCount, 0, 0);
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LightClass has been modified to handle being a point light also.
+It has variables and helper functions for position and color which are all that are needed for point lights in this tutorial.
+Note that I have set the position to be a XMFLOAT4 even though it only requires and x, y, and z value.
+The reason is that I will be sending arrays of the light positions into the shaders, and the position vector would require padding on each one to ensure the multiple of 16 requirement is met.
+So, I just handle this issue now here in the light class.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _LIGHTCLASS_H_
+#define _LIGHTCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;directxmath.h&gt;
+using namespace DirectX;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: LightClass
+////////////////////////////////////////////////////////////////////////////////
+class LightClass
+{
+public:
+    LightClass();
+    LightClass(const LightClass&);
+    ~LightClass();
+
+    void SetAmbientColor(float, float, float, float);
+    void SetDiffuseColor(float, float, float, float);
+    void SetDirection(float, float, float);
+    void SetSpecularColor(float, float, float, float);
+    void SetSpecularPower(float);</FONT><font face=arial color=#aaaaff size=2>
+    void SetPosition(float, float, float);</FONT><font face=arial color=#aaffaa size=2>
+
+    XMFLOAT4 GetAmbientColor();
+    XMFLOAT4 GetDiffuseColor();
+    XMFLOAT3 GetDirection();
+    XMFLOAT4 GetSpecularColor();
+    float GetSpecularPower();</FONT><font face=arial color=#aaaaff size=2>
+    XMFLOAT4 GetPosition();</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    XMFLOAT4 m_ambientColor;
+    XMFLOAT4 m_diffuseColor;
+    XMFLOAT3 m_direction;
+    XMFLOAT4 m_specularColor;
+    float m_specularPower;</FONT><font face=arial color=#aaaaff size=2>
+    XMFLOAT4 m_position;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "lightclass.h"
+
+
+LightClass::LightClass()
+{
+}
+
+
+LightClass::LightClass(const LightClass& other)
+{
+}
+
+
+LightClass::~LightClass()
+{
+}
+
+
+void LightClass::SetAmbientColor(float red, float green, float blue, float alpha)
+{
+    m_ambientColor = XMFLOAT4(red, green, blue, alpha);
+    return;
+}
+
+
+void LightClass::SetDiffuseColor(float red, float green, float blue, float alpha)
+{
+    m_diffuseColor = XMFLOAT4(red, green, blue, alpha);
+    return;
+}
+
+
+void LightClass::SetDirection(float x, float y, float z)
+{
+    m_direction = XMFLOAT3(x, y, z);
+    return;
+}
+
+
+void LightClass::SetSpecularColor(float red, float green, float blue, float alpha)
+{
+    m_specularColor = XMFLOAT4(red, green, blue, alpha);
+    return;
+}
+
+
+void LightClass::SetSpecularPower(float power)
+{
+    m_specularPower = power;
+    return;
+}</FONT><font face=arial color=#aaaaff size=2>
+
+
+void LightClass::SetPosition(float x, float y, float z)
+{
+    m_position = XMFLOAT4(x, y, z, 1.0f);
+    return;
+}</FONT><font face=arial color=#aaffaa size=2>
+
+
+XMFLOAT4 LightClass::GetAmbientColor()
+{
+    return m_ambientColor;
+}
+
+
+XMFLOAT4 LightClass::GetDiffuseColor()
+{
+    return m_diffuseColor;
+}
+
+
+XMFLOAT3 LightClass::GetDirection()
+{
+    return m_direction;
+}
+
+
+XMFLOAT4 LightClass::GetSpecularColor()
+{
+    return m_specularColor;
+}
+
+
+float LightClass::GetSpecularPower()
+{
+    return m_specularPower;
+}</FONT><font face=arial color=#aaaaff size=2>
+
+
+XMFLOAT4 LightClass::GetPosition()
+{
+    return m_position;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "d3dclass.h"
+#include "cameraclass.h"
+#include "modelclass.h"
+#include "lightshaderclass.h"
+#include "lightclass.h"
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_NEAR = 0.3f;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(int, int, HWND);
+    void Shutdown();
+    bool Frame();
+
+private:
+    bool Render();
+
+private:
+    D3DClass* m_Direct3D;
+    CameraClass* m_Camera;
+    ModelClass* m_Model;
+    LightShaderClass* m_LightShader;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will create four different point lights in this tutorial to implement both point lights and multiple light sources.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    LightClass* m_Lights;
+    int m_numLights;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_Direct3D = 0;
+    m_Camera = 0;
+    m_Model = 0;
+    m_LightShader = 0;</FONT><font face=arial color=#aaaaff size=2>
+    m_Lights = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
+{
+    char modelFilename[128];
+    char textureFilename[128];
+    bool result;
+
+
+    // Create and initialize the Direct3D object.
+    m_Direct3D = new D3DClass;
+
+    result = m_Direct3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize Direct3D", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will set the camera up and back a bit so it can see the entire scene easier.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the camera object.
+    m_Camera = new CameraClass;
+
+    // Set the initial position of the camera.</FONT><font face=arial color=#aaaaff size=2>
+    m_Camera->SetPosition(0.0f, 2.0f, -12.0f);</FONT><font face=arial color=#aaffaa size=2>
+    m_Camera->Render();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial we will use a flat plane as the object we are illuminating with our point lights. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the file name of the model.</FONT><font face=arial color=#aaaaff size=2>
+    strcpy_s(modelFilename, "../Engine/data/plane.txt");</FONT><font face=arial color=#aaffaa size=2>
+
+    // Set the file name of the texture file that we will be loading.
+    strcpy_s(textureFilename, "../Engine/data/stone01.tga");
+
+    // Create and initialize the model object.
+    m_Model = new ModelClass;
+
+    result = m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+        return false;
+    }
+
+    // Create and initialize the light shader object.
+    m_LightShader = new LightShaderClass;
+
+    result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we create our array of four lights.
+We will create a red, green, blue, and white light and place each in positions just above the four corners of the flat plane. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Set the number of lights we will use.
+    m_numLights = 4;
+
+    // Create and initialize the light objects array.
+    m_Lights = new LightClass[m_numLights];
+
+    // Manually set the color and position of each light.
+    m_Lights[0].SetDiffuseColor(1.0f, 0.0f, 0.0f, 1.0f);  // Red
+    m_Lights[0].SetPosition(-3.0f, 1.0f, 3.0f);
+
+    m_Lights[1].SetDiffuseColor(0.0f, 1.0f, 0.0f, 1.0f);  // Green
+    m_Lights[1].SetPosition(3.0f, 1.0f, 3.0f);
+
+    m_Lights[2].SetDiffuseColor(0.0f, 0.0f, 1.0f, 1.0f);  // Blue
+    m_Lights[2].SetPosition(-3.0f, 1.0f, -3.0f);
+
+    m_Lights[3].SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);  // White
+    m_Lights[3].SetPosition(3.0f, 1.0f, -3.0f);</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We release our new light objects array here.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Release the light objects.
+    if(m_Lights)
+    {
+        delete [] m_Lights;
+        m_Lights = 0;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Release the light shader object.
+    if(m_LightShader)
+    {
+        m_LightShader->Shutdown();
+        delete m_LightShader;
+        m_LightShader = 0;
+    }
+
+    // Release the model object.
+    if(m_Model)
+    {
+        m_Model->Shutdown();
+        delete m_Model;
+        m_Model = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the Direct3D object.
+    if(m_Direct3D)
+    {
+        m_Direct3D->Shutdown();
+        delete m_Direct3D;
+        m_Direct3D = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame()
+{
+    bool result;
+
+
+    // Render the graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::Render()
+{
+    XMMATRIX worldMatrix, viewMatrix, projectionMatrix;</FONT><font face=arial color=#aaaaff size=2>
+    XMFLOAT4 diffuseColor[4], lightPosition[4];
+    int i;</FONT><font face=arial color=#aaffaa size=2>
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and projection matrices from the camera and d3d objects.
+    m_Direct3D->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_Direct3D->GetProjectionMatrix(projectionMatrix);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We setup the two arrays (color and position) from the four point lights.
+This makes it easier to just send in the two array variables instead of the eight different light components. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Get the light properties.
+    for(i=0; i&lt;m_numLights; i++)
+    {
+        // Create the diffuse color array from the four light colors.
+        diffuseColor[i] = m_Lights[i].GetDiffuseColor();
+
+        // Create the light position array from the four light positions.
+        lightPosition[i] = m_Lights[i].GetPosition();
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Put the plane model on the graphics pipeline.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+    m_Model->Render(m_Direct3D->GetDeviceContext());
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render the plane model using the light shader and the four point lights. 
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Render the model using the light shader.
+    result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(),
+                                   diffuseColor, lightPosition);
+    if(!result)
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Present the rendered scene to the screen.
+    m_Direct3D->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now you should understand the basic concept of illuminating models with point lights and multiple light sources.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5023.gif" width="600" height="260"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Recompile and run the program. You should see a plane illuminated by four different point lights.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Position the red, green, and blue point lights at the same location. You should see the resulting point light is white. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Change the color and position of the point lights to see the different effects. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+4. Add a fifth point light.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+5. Only render one point light to see the effect it produces by itself.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+6. Research and implement the original fixed function point light equation to include the different types of attenuation and so forth.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/dx11win10tut11_src.zip">dx11win10tut11_src.zip</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutdx11win10.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

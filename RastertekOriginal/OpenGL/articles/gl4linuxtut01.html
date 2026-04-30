@@ -1,0 +1,179 @@
+<html><head><title>Tutorial 1: OpenGL, Linux, and Code::Blocks</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 1: OpenGL, Linux, and Code::Blocks
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Why OpenGL?</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+OpenGL is the leading cross platform graphics API that utilizes hardware acceleration on modern video cards.
+OpenGL 4.0 is the equivalent API to DirectX 11 in terms of features and modern hardware utilization; however, its main advantage is being cross platform.
+Also, OpenGL is an easier language to start learning graphics development with, especially on Linux.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>What about Vulkan?</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Vulkan is an expert's API. It is written solely for developers who have already mastered OpenGL 4 but still require even more low-level control over the rendering pipeline due to increased performance requirements.
+The person learning Vulkan should generally already have written a very complex OpenGL 4 engine and have thorough knowledge of all of its aspects.
+If this doesn't describe your situation then you are better suited to learn OpenGL 4.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The focus of Vulkan is really around being able to parallelize your graphics workflow to take efficient control of all the GPUs at your disposal.
+But to do so means writing large chunks of code to do even simple things that you could write with a single line in OpenGL 4.
+Also, an inexperienced usage of Vulkan can actually perform worse than using OpenGL 4.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Why OpenGL 4.0?</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+OpenGL 4.0 if the base version of OpenGL 4.
+It is a feature complete API that provides all the graphics functionality that most applications will ever need.
+The later versions (4.1, 4.2, etc.) just add additional functions and small features that won't be needed for this tutorial series.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Linux Operating System</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Linux based operating systems are currently the most resource efficient, secure, and high-performance operating systems available.
+This lends itself well to writing 3D graphics applications that are already demanding on the operating system in terms of resources.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+As well most Linux distributions are completely free.
+And if you are already familiar with Windows and unfamiliar with Linux, then you will find using current versions of Linux very similar to using Windows.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>First Steps</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+First thing to do is choose a distribution of Linux that you like.
+For these tutorials I will be using Ubuntu 24 (Desktop Edition).
+You can choose anything you prefer, but some of the setup steps might have slightly different syntax.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Before writing any graphics code we'll need to have the tools to do so.
+On Linux you can use the g++ compiler for C++ from the command line, and text editors such as emacs or vi.
+But to speed things up I would recommend using one of the free IDEs that are available such as Code::Blocks.
+I will still provide makefiles for command line if you prefer that way of doing things.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Installing Code::Blocks</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+First thing you need to do is install the GNU C++ compiler and the make utility.
+You can search the application installer in Linux for the software.
+Or on Ubuntu you can enter the following from the command line ("Terminal" is the name of the program to start the command line) to download and install the software:
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+$ sudo apt install g++
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+$ sudo apt install make
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The second step is to install the OpenGL development libraries.  Enter the following command to do so on from the command line:
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+$ sudo apt install libglu1-mesa-dev
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The third step is to install the X11 development libraries since we will be using the X11 window system on Linux.  Enter the following command from the command line:
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+$ sudo apt install libx11-dev
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The final step is to now install Code::Blocks.  Enter the following command from the command line:
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+$ sudo apt install codeblocks
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+So now Code::Blocks should be installed and ready for use.
+You can find and launch Code::Blocks from the "Show Apps" button.
+I recommend to "Add to Favorites" by right clicking on it and selecting that option so that it is easy to find and launch.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Setting up Code::Blocks</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+First launch Code::Blocks and it should find gcc as the default compiler.
+Next select the option on the first screen to "Create a new project".
+From the options of projects choose the "Empty project" option.
+You will then be asked to name the project and set the location where the files will be placed.  Once that is done click on "Next".
+On the next page you will be asked about configurations you want.  You can leave the configurations default settings for debug and release and just click on "Finish".
+From here you can now click on "Project" and "Add files..." to start loading your project with your source files.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now before compiling you will need to set your linker options to link in OpenGL and X11.
+First select "Project" and then "Build Options".
+Then make sure to select the overall project in the left bar, not just the debug or release, so that these settings will be applied to both types of builds.
+Next click on "Linker Settings".
+Click into the "Other linker options" box and put each option on its own line:
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+-l GL
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+-l X11
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now both OpenGL and X11 functions will compile in your project.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Important Note: You may need to go into Plugins, Manage Plugins, and then disable the Code completion plugin if you are experiencing crashes in newer versions of Linux.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Our Linux development environment should now be setup and ready for us to start writing OpenGL 4.0 applications.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5021.gif" width="800" height="437"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Have a quick review of some of the documentation and code resources available on the opengl.org website.
+</font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

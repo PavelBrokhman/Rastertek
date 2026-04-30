@@ -1,0 +1,1268 @@
+<html><head><title>Tutorial 10: Specular Lighting</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 10: Specular Lighting
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will be an introduction to using specular lighting in OpenGL 4.0 with GLSL.
+The code in this tutorial builds on the code from the previous tutorial.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Specular lighting is the use of bright spot highlights to give visual clues for light source locations.
+For example, a red sphere with just ambient and diffuse lighting looks like the following:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5018.gif" width="300" height="300"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now if we add a white specular highlight, we get the following result:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5019.gif" width="300" height="300"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Specular lighting is most commonly used to give light reflection off of metallic surfaces such as mirrors and highly polished/reflective metal surfaces.
+It is also used on other materials such as reflecting sunlight off of water.
+Used well it can add a degree of photo realism to most 3D scenes.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The equation for specular lighting is the following:
+</font></p>
+ 
+<PRE><font face=arial color=#FFFFFF size=2>	SpecularLighting = SpecularColor * (SpecularColorOfLight * ((NormalVector dot HalfWayVector) power SpecularReflectionPower) * Attentuation * Spotlight)
+</FONT></PRE>
+ 
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will modify the equation to produce just the basic specular lighting effect as follows:
+</font></p>
+ 
+<PRE><font face=arial color=#FFFFFF size=2>	SpecularLighting = SpecularLightColor * (ViewingDirection dot ReflectionVector) power SpecularReflectionPower
+</FONT></PRE>
+ 
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The reflection vector in this equation has to be produced by multiplying double the light intensity by the vertex normal.
+The direction of the light is subtracted which then gives the reflection vector between the light source and the viewing angle: 
+</font></p>
+ 
+<PRE><font face=arial color=#FFFFFF size=2>	ReflectionVector = 2 * LightIntensity * VertexNormal - LightDirection
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The viewing direction in the equation is produced by subtracting the location of the camera by the position of the vertex:
+</font></p>
+ 
+<PRE><font face=arial color=#FFFFFF size=2>	ViewingDirection = CameraPosition - VertexPosition
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Let's take a look at the modified light shader to see how this is implemented:
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.vs</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+in vec3 inputNormal;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We add an output variable for the viewing direction.
+This needs to be calculated in the vertex shader and then sent into the pixel shader for specular lighting calculations.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec2 texCoord;
+out vec3 normal;</FONT><font face=arial color=#aaaaff size=2>
+out vec3 viewDirection;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We add a new input variable to hold the camera information.
+In this shader we require the position of the camera to determine where this vertex is being viewed from for specular calculations.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;</FONT><font face=arial color=#aaaaff size=2>
+uniform vec3 cameraPosition;</FONT><font face=arial color=#00ffff size=2>
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{</FONT><font face=arial color=#aaaaff size=2>
+    vec4 worldPosition;</FONT><font face=arial color=#00ffff size=2>
+
+
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the texture coordinates for the pixel shader.
+    texCoord = inputTexCoord;
+
+    // Calculate the normal vector against the world matrix only.
+    normal = inputNormal * mat3(worldMatrix);
+
+    // Normalize the normal vector.
+    normal = normalize(normal);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The viewing direction is calculated here in the vertex shader.
+We calculate the world position of the vertex and subtract that from the camera position to determine where we are viewing the scene from.
+The final value is normalized and sent into the pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Calculate the position of the vertex in the world.
+    worldPosition = vec4(inputPosition, 1.0f) * worldMatrix;
+
+    // Determine the viewing direction based on the position of the camera and the position of the vertex in the world.
+    viewDirection = cameraPosition.xyz - worldPosition.xyz;
+
+    // Normalize the viewing direction vector.
+    viewDirection = normalize(viewDirection);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The input view direction that comes from the vertex shader is added here.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 normal;</FONT><font face=arial color=#aaaaff size=2>
+in vec3 viewDirection;</FONT><font face=arial color=#00ffff size=2>
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The pixel shader has new input variables for specularColor and specularPower values.
+These are used for specular lighting calculations.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform vec3 lightDirection;
+uniform vec4 diffuseLightColor;
+uniform vec4 ambientLight;</FONT><font face=arial color=#aaaaff size=2>
+uniform float specularPower;
+uniform vec4 specularColor;</FONT><font face=arial color=#00ffff size=2>
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+    vec4 color;
+    vec3 lightDir;
+    float lightIntensity;</FONT><font face=arial color=#aaaaff size=2>
+    vec3 reflection;
+    vec4 specular;
+    float specValue;</FONT><font face=arial color=#00ffff size=2>
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Set the default output color to the ambient light value for all pixels.
+    color = ambientLight;</FONT><font face=arial color=#aaaaff size=2>
+
+    // Initialize the specular color.
+    specular = vec4(0.0f, 0.0f, 0.0f, 1.0f);</FONT><font face=arial color=#00ffff size=2>
+
+    // Invert the light direction for calculations.
+    lightDir = -lightDirection;
+
+    // Calculate the amount of light on this pixel.
+    lightIntensity = clamp(dot(normal, lightDir), 0.0f, 1.0f);
+
+    if(lightIntensity > 0.0f)
+    {
+        // Determine the final diffuse color based on the diffuse color and the amount of light intensity.
+        color += (diffuseLightColor * lightIntensity);
+
+        // Clamp the combined ambient and diffuse color.
+        color = clamp(color, 0.0f, 1.0f);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The reflection vector for specular lighting is calculated here in the pixel shader provided the light intensity is greater than zero.
+This is the same equation as listed at the beginning of the tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>        // Calculate the reflection vector based on the light intensity, normal vector, and light direction.
+        reflection = normalize(2.0f * lightIntensity * normal - lightDir);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The amount of specular light is then calculated using the reflection vector and the viewing direction.
+The smaller the angle between the viewer and the light source the greater the specular light reflection will be.
+The result is taken to the power of the specularPower value.
+The lower the specularPower value the greater the final effect is.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>        // Determine the amount of specular light based on the reflection vector, viewing direction, and specular power.
+        specValue = pow(clamp(dot(reflection, viewDirection), 0.0f, 1.0f), specularPower);
+        specular = vec4(specValue, specValue, specValue, 1.0f);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we modify the specular light to use the input specular color.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>        // Multiply the amount of specular light by the input specular color to get the final specular color value.
+        specular = specular * specularColor;</FONT><font face=arial color=#00ffff size=2>
+    }
+
+    // Multiply the texture pixel and the final diffuse color to get the final pixel color result.
+    color = color * textureColor;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We add the specular effect at the very end.
+It is a highlight and needs to be added to the final value or it will not show up properly.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Add the specular component last to the output color.
+    outputColor = clamp(color + specular, 0.0f, 1.0f);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LightShaderClass has been modified from the previous tutorial to handle specular lighting now.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _LIGHTSHADERCLASS_H_
+#define _LIGHTSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: LightShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class LightShaderClass
+{
+public:
+    LightShaderClass();
+    LightShaderClass(const LightShaderClass&);
+    ~LightShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();</FONT><font face=arial color=#aaaaff size=2>
+
+    bool SetShaderParameters(float*, float*, float*, float*, float*, float*, float*, float*, float);</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "lightshaderclass.h"
+
+
+LightShaderClass::LightShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+LightShaderClass::LightShaderClass(const LightShaderClass& other)
+{
+}
+
+
+LightShaderClass::~LightShaderClass()
+{
+}
+
+
+bool LightShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+
+    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/light.vs");
+    strcpy(psFilename, "../Engine/light.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void LightShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+
+
+bool LightShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 2, "inputNormal");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+
+
+void LightShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+
+
+char* LightShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+
+
+void LightShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+
+
+void LightShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SetShaderParameters function has been modified to take as input cameraPosition, specularColor, and specularPower.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool LightShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float* lightDirection, float* diffuseLightColor, float* ambientLight,
+                                           float* cameraPosition, float* specularColor, float specularPower)</FONT><font face=arial color=#aaffaa size=2>
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix not set." << endl;
+    }
+    m_OpenGLPtr ->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we set the camera position in the vertex shader.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Set the camera position in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "cameraPosition");
+    if(location == -1)
+    {
+        cout << "Camera position not set." << endl;
+    }
+    m_OpenGLPtr->glUniform3fv(location, 1, cameraPosition);</FONT><font face=arial color=#aaffaa size=2>
+
+    // Set the texture in the pixel shader to use the data from the first texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "shaderTexture");
+    if(location == -1)
+    {
+        cout << "Shader texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 0);
+
+    // Set the light direction in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "lightDirection");
+    if(location == -1)
+    {
+        cout << "Light direction not set." << endl;
+    }
+    m_OpenGLPtr->glUniform3fv(location, 1, lightDirection);
+
+    // Set the diffuse light color in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "diffuseLightColor");
+    if(location == -1)
+    {
+        cout << "Diffuse light color not set." << endl;
+    }
+    m_OpenGLPtr->glUniform4fv(location, 1, diffuseLightColor);
+
+    // Set the ambient light in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "ambientLight");
+    if(location == -1)
+    {
+        cout << "Ambient light not set." << endl;
+    }
+    m_OpenGLPtr->glUniform4fv(location, 1, ambientLight);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+And here we set the specular power and specular color in the pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Set the specular light power in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "specularPower");
+    if(location == -1)
+    {
+        cout << "Specular power not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, specularPower);
+
+    // Set the specular light color in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "specularColor");
+    if(location == -1)
+    {
+        cout << "Specular color not set." << endl;
+    }
+    m_OpenGLPtr->glUniform4fv(location, 1, specularColor);</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LightClass has been modified for this tutorial to include specular components and specular related helper functions.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _LIGHTCLASS_H_
+#define _LIGHTCLASS_H_
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: LightClass
+////////////////////////////////////////////////////////////////////////////////
+class LightClass
+{
+public:
+    LightClass();
+    LightClass(const LightClass&);
+    ~LightClass();
+
+    void SetDiffuseColor(float, float, float, float);
+    void SetDirection(float, float, float);
+    void SetAmbientLight(float, float, float, float);</FONT><font face=arial color=#aaaaff size=2>
+    void SetSpecularColor(float, float, float, float);
+    void SetSpecularPower(float);</FONT><font face=arial color=#aaffaa size=2>
+
+    void GetDiffuseColor(float*);
+    void GetDirection(float*);
+    void GetAmbientLight(float*);</FONT><font face=arial color=#aaaaff size=2>
+    void GetSpecularColor(float*);
+    void GetSpecularPower(float&);</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    float m_diffuseColor[4];
+    float m_direction[3];
+    float m_ambientLight[4];</FONT><font face=arial color=#aaaaff size=2>
+    float m_specularColor[4];
+    float m_specularPower;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "lightclass.h"
+
+
+LightClass::LightClass()
+{
+}
+
+
+LightClass::LightClass(const LightClass& other)
+{
+}
+
+
+LightClass::~LightClass()
+{
+}
+
+
+void LightClass::SetDiffuseColor(float red, float green, float blue, float alpha)
+{
+    m_diffuseColor[0] = red;
+    m_diffuseColor[1] = green;
+    m_diffuseColor[2] = blue;
+    m_diffuseColor[3] = alpha;
+    return;
+}
+
+
+void LightClass::SetDirection(float x, float y, float z)
+{
+    m_direction[0] = x;
+    m_direction[1] = y;
+    m_direction[2] = z;
+    return;
+}
+
+
+void LightClass::SetAmbientLight(float red, float green, float blue, float alpha)
+{
+    m_ambientLight[0] = red;
+    m_ambientLight[1] = green;
+    m_ambientLight[2] = blue;
+    m_ambientLight[3] = alpha;
+    return;
+}</FONT><font face=arial color=#aaaaff size=2>
+
+
+void LightClass::SetSpecularColor(float red, float green, float blue, float alpha)
+{
+    m_specularColor[0] = red;
+    m_specularColor[1] = green;
+    m_specularColor[2] = blue;
+    m_specularColor[3] = alpha;
+    return;
+}
+
+
+void LightClass::SetSpecularPower(float power)
+{
+    m_specularPower = power;
+    return;
+}</FONT><font face=arial color=#aaffaa size=2>
+
+
+void LightClass::GetDiffuseColor(float* color)
+{
+    color[0] = m_diffuseColor[0];
+    color[1] = m_diffuseColor[1];
+    color[2] = m_diffuseColor[2];
+    color[3] = m_diffuseColor[3];
+    return;
+}
+
+
+void LightClass::GetDirection(float* direction)
+{
+    direction[0] = m_direction[0];
+    direction[1] = m_direction[1];
+    direction[2] = m_direction[2];
+    return;
+}
+
+
+void LightClass::GetAmbientLight(float* ambient)
+{
+    ambient[0] = m_ambientLight[0];
+    ambient[1] = m_ambientLight[1];
+    ambient[2] = m_ambientLight[2];
+    ambient[3] = m_ambientLight[3];
+    return;
+}
+</FONT><font face=arial color=#aaaaff size=2>
+
+void LightClass::GetSpecularColor(float* specular)
+{
+    specular[0] = m_specularColor[0];
+    specular[1] = m_specularColor[1];
+    specular[2] = m_specularColor[2];
+    specular[3] = m_specularColor[3];
+    return;
+}
+
+
+void LightClass::GetSpecularPower(float& power)
+{
+    power = m_specularPower;
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The header file for the ApplicationClass has not changed for this tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "openglclass.h"
+#include "modelclass.h"
+#include "cameraclass.h"
+#include "lightshaderclass.h"
+#include "lightclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool Render(float);
+
+private:
+    OpenGLClass* m_OpenGL;
+    ModelClass* m_Model;
+    CameraClass* m_Camera;
+    LightShaderClass* m_LightShader;
+    LightClass* m_Light;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;
+    m_Model = 0;
+    m_Camera = 0;
+    m_LightShader = 0;
+    m_Light = 0;
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    char modelFilename[128];
+    char textureFilename[128];
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+    m_Camera->Render();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial we will load a sphere model so the specular effect can be seen easily.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Set the file name of the model.
+    strcpy(modelFilename, "../Engine/data/sphere.txt");</FONT><font face=arial color=#aaffaa size=2>
+
+    // Set the file name of the texture.
+    strcpy(textureFilename, "../Engine/data/stone01.tga");
+
+    // Create and initialize the model object.
+    m_Model = new ModelClass;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will set the texture wrap to true since this is a sphere we are rendering now.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    result = m_Model->Initialize(m_OpenGL, modelFilename, textureFilename, true);</FONT><font face=arial color=#aaffaa size=2>
+    if(!result)
+    {
+        cout << "Error: Could not initialize the model object." << endl;
+        return false;
+    }
+
+    // Create and initialize the light shader object.
+    m_LightShader = new LightShaderClass;
+
+    result = m_LightShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the light shader object." << endl;
+        return false;
+    }
+
+    // Create and initialize the light object.
+    m_Light = new LightClass;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the light class object, we now set the specular color and the specular power.
+For this tutorial we set the specular color to white and set the specular power to 32.
+Remember that the lower the specular power value the greater the specular effect will be.
+Also, the direction is set to be at an angle so the specular effect can be seen easily.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);</FONT><font face=arial color=#aaaaff size=2>
+    m_Light->SetDirection(1.0f, 0.0f, 1.0f);</FONT><font face=arial color=#aaffaa size=2>
+    m_Light->SetAmbientLight(0.15f, 0.15f, 0.15f, 1.0f);</FONT><font face=arial color=#aaaaff size=2>
+    m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_Light->SetSpecularPower(32.0f);</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{
+    // Release the light object.
+    if(m_Light)
+    {
+        delete m_Light;
+        m_Light = 0;
+    }
+
+    // Release the light shader object.
+    if(m_LightShader)
+    {
+        m_LightShader->Shutdown();
+        delete m_LightShader;
+        m_LightShader = 0;
+    }
+
+    // Release the model object.
+    if(m_Model)
+    {
+        m_Model->Shutdown();
+        delete m_Model;
+        m_Model = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame(InputClass* Input)
+{
+    static float rotation = 360.0f;
+    bool result;
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+
+    // Update the rotation variable each frame.
+    rotation -= 0.0174532925f * 1.0f;
+    if(rotation <= 0.0f)
+    {
+        rotation += 360.0f;
+    }
+
+    // Render the graphics scene.
+    result = Render(rotation);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::Render(float rotation)
+{
+    float worldMatrix[16], viewMatrix[16], projectionMatrix[16];</FONT><font face=arial color=#aaaaff size=2>
+    float diffuseLightColor[4], lightDirection[3], ambientLight[4], cameraPosition[3], specularColor[4];
+    float specularPower;</FONT><font face=arial color=#aaffaa size=2>
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and projection matrices from the opengl and camera objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetProjectionMatrix(projectionMatrix);
+
+    // Rotate the world matrix by the rotation value so that the triangle will spin.
+    m_OpenGL->MatrixRotationY(worldMatrix, rotation);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now also retrieve the specular power and specular color from the light object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Get the light properties.
+    m_Light->GetDirection(lightDirection);
+    m_Light->GetDiffuseColor(diffuseLightColor);
+    m_Light->GetAmbientLight(ambientLight);</FONT><font face=arial color=#aaaaff size=2>
+    m_Light->GetSpecularColor(specularColor);
+    m_Light->GetSpecularPower(specularPower);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We get the position of the camera from the camera object since the specular effect requires the camera's location.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Get the camera position.
+    m_Camera->GetPosition(cameraPosition);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The light shader SetShaderParameters function now also takes in the camera position, the light specular color, and the light specular power.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the light shader as the current shader program and set the matrices and light values that it will use for rendering.</FONT><font face=arial color=#aaaaff size=2>
+    result = m_LightShader->SetShaderParameters(worldMatrix, viewMatrix, projectionMatrix, lightDirection, diffuseLightColor, ambientLight, cameraPosition, specularColor, specularPower);</FONT><font face=arial color=#aaffaa size=2>
+    if(!result)
+    {
+        return false;
+    }
+
+    // Set the texture for the model in the pixel shader.
+    m_Model->SetTexture(0);
+
+    // Render the model.
+    m_Model->Render();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+With the addition of specular lighting, we now get a bright white light reflection from where the sphere faces the light direction.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5020.gif" width="300" height="300"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Recompile and run the project and ensure you get a spinning sphere with a bright specular highlight.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Change the direction of the light to see the effect if the light source is from a different direction.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Modify the specular power and color.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut10_src.tar.gz">gl4linuxtut10_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

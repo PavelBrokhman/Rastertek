@@ -1,0 +1,71 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////
+// DEFINES //
+/////////////
+#define NUM_LIGHTS 4
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 normal;
+in vec3 lightPos[NUM_LIGHTS];
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform vec4 diffuseColor[NUM_LIGHTS];
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    float lightIntensity[NUM_LIGHTS];
+    vec4 color[NUM_LIGHTS];
+    vec4 colorSum;
+    vec4 textureColor;
+    int i;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    for(i=0; i<NUM_LIGHTS; i++)
+    {
+        // Calculate the different amounts of light on this pixel based on the positions of the lights.
+        lightIntensity[i] = clamp(dot(normal, lightPos[i]), 0.0f, 1.0f);
+
+        // Determine the diffuse color amount of each of the four lights.
+        color[i] = diffuseColor[i] * lightIntensity[i];
+    }
+
+    // Initialize the sum of colors.
+    colorSum = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Add all of the light colors up.
+    for(i=0; i<NUM_LIGHTS; i++)
+    {
+        colorSum.r += color[i].r;
+        colorSum.g += color[i].g;
+        colorSum.b += color[i].b;
+    }
+
+    // Multiply the texture pixel by the combination of all four light colors to get the final result.
+    outputColor = clamp(colorSum, 0.0f, 1.0f) * textureColor;
+}

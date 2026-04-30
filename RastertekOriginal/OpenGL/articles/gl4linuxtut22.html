@@ -1,0 +1,586 @@
+<html><head><title>Tutorial 22: Managing Multiple Shaders</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 22: Managing Multiple Shaders
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+One of the issues that quickly arises in a graphics application that uses multiple shaders is how to manage them.
+In the OpenGL 4.0 tutorial series I generally don't show how manage them as it makes the tutorials less focused and harder to comprehend.
+So, in this tutorial I will present one of the simpler methods for managing multiple shaders.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial we will use a new class called ShaderManagerClass.
+What this class does is it encapsulates the loading, unloading, and usage of all the shaders that the application requires.
+In design patterns terminology this is usually referred to as a facade pattern as we are encapsulating and providing a singular simplified interface to a much larger body of code.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this tutorial the ShaderManagerClass will contain the texture, light, and normal map shader objects.
+It will load and unload all three of them, and it will also provide interfaces to have them render objects.
+This allows us to create just a single ShaderManagerClass object and then pass a single pointer to the class object around the application so that rendering objects is just a single function call using the object pointer.
+This is similar to how the OpenGLClass has been used in previous tutorials.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following image shows a sphere being rendered with a texture shader, a light shader, and a normal map shader all at the same time through the use of the ShaderManagerClass:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5050.gif" width="490" height="394"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now that we have encapsulated all the shaders inside ShaderManagerClass our frame work will look like the following:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5051.gif" width="764" height="219"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will start the code section by examining the ShaderManagerClass.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Shadermanagerclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: shadermanagerclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SHADERMANAGERCLASS_H_
+#define _SHADERMANAGERCLASS_H_
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here is where we include each shader class header file that we want to use in the application.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "textureshaderclass.h"
+#include "lightshaderclass.h"
+#include "normalmapshaderclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: ShaderManagerClass
+////////////////////////////////////////////////////////////////////////////////
+class ShaderManagerClass
+{
+public:
+    ShaderManagerClass();
+    ShaderManagerClass(const ShaderManagerClass&);
+    ~ShaderManagerClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We create a single render function for each shader that the ShaderManagerClass handles.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    bool RenderTextureShader(float*, float*, float*);
+    bool RenderLightShader(float*, float*, float*, float*, float*);
+    bool RenderNormalMapShader(float*, float*, float*, float*, float*);
+
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ShaderManagerClass contains a private class object for each shader type the application will be using.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    TextureShaderClass* m_TextureShader;
+    LightShaderClass* m_LightShader;
+    NormalMapShaderClass* m_NormalMapShader;
+};
+
+#endif
+</FONT></PRE>
+
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Shadermanagerclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: shadermanagerclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "shadermanagerclass.h"
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Initialize the private shader class objects to null in the class constructor.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>ShaderManagerClass::ShaderManagerClass()
+{
+    m_TextureShader = 0;
+    m_LightShader = 0;
+    m_NormalMapShader = 0;
+}
+
+
+ShaderManagerClass::ShaderManagerClass(const ShaderManagerClass& other)
+{
+}
+
+
+ShaderManagerClass::~ShaderManagerClass()
+{
+}
+
+
+bool ShaderManagerClass::Initialize(OpenGLClass* OpenGL)
+{
+    bool result;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create and initialize the texture shader object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the texture shader object.
+    m_TextureShader = new TextureShaderClass;
+
+    result = m_TextureShader->Initialize(OpenGL);
+    if(!result)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create and initialize the light shader object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the light shader object.
+    m_LightShader = new LightShaderClass;
+
+    result = m_LightShader->Initialize(OpenGL);
+    if(!result)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create and initialize the normal map shader object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the normal map shader object.
+    m_NormalMapShader = new NormalMapShaderClass;
+
+    result = m_NormalMapShader->Initialize(OpenGL);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Shutdown function releases all the shaders that were in use by the application.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ShaderManagerClass::Shutdown()
+{
+    // Release the normal map shader object.
+    if(m_NormalMapShader)
+    {
+        m_NormalMapShader->Shutdown();
+        delete m_NormalMapShader;
+        m_NormalMapShader = 0;
+    }
+
+    // Release the light shader object.
+    if(m_LightShader)
+    {
+        m_LightShader->Shutdown();
+        delete m_LightShader;
+        m_LightShader = 0;
+    }
+
+    // Release the texture shader object.
+    if(m_TextureShader)
+    {
+        m_TextureShader->Shutdown();
+        delete m_TextureShader;
+        m_TextureShader = 0;
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here is where we create a specialized render function for each shader type that ShaderManagerClass uses.
+In the application we can now just pass around a pointer to the ShaderManagerClass object and then make a call to one of the following functions to render any model with the desired shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ShaderManagerClass::RenderTextureShader(float* worldMatrix, float* viewMatrix, float* projectionMatrix)
+{
+    return m_TextureShader->SetShaderParameters(worldMatrix, viewMatrix, projectionMatrix);
+}
+
+
+bool ShaderManagerClass::RenderLightShader(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float* lightDirection, float* diffuseLightColor)
+{
+    return m_LightShader->SetShaderParameters(worldMatrix, viewMatrix, projectionMatrix, lightDirection, diffuseLightColor);
+}
+
+
+bool ShaderManagerClass::RenderNormalMapShader(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float* lightDirection, float* diffuseLightColor)
+{
+    return m_NormalMapShader->SetShaderParameters(worldMatrix, viewMatrix, projectionMatrix, lightDirection, diffuseLightColor);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the ApplicationClass we include just the header for the ShaderManagerClass instead of all the individual shader headers.
+Likewise, we only need one ShaderManagerClass object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "openglclass.h"
+#include "cameraclass.h"
+#include "modelclass.h"
+#include "lightclass.h"
+#include "shadermanagerclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool Render(float);
+
+private:
+    OpenGLClass* m_OpenGL;
+    CameraClass* m_Camera;
+    ModelClass* m_Model;
+    LightClass* m_Light;
+    ShaderManagerClass* m_ShaderManager;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;
+    m_Camera = 0;
+    m_Model = 0;
+    m_Light = 0;
+    m_ShaderManager = 0;
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    char modelFilename[128], textureFilename1[128], textureFilename2[128];
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->Render();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will just load a single model of a sphere with the two textures it needs.
+When we render, we will just render this model each time with the different shaders.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the file name of the model.
+    strcpy(modelFilename, "../Engine/data/sphere.txt");
+
+    // Set the file name of the textures.
+    strcpy(textureFilename1, "../Engine/data/stone01.tga");
+    strcpy(textureFilename2, "../Engine/data/normal01.tga");
+
+    // Create and initialize the model object.
+    m_Model = new ModelClass;
+
+    result = m_Model->Initialize(m_OpenGL, modelFilename, textureFilename1, true, textureFilename2, true, NULL, true);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the model object." << endl;
+        return false;
+    }
+
+    // Create and initialize the light object.
+    m_Light = new LightClass;
+
+    m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We create and initialize the ShaderManagerClass object here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the shader manager object.
+    m_ShaderManager = new ShaderManagerClass;
+
+    result = m_ShaderManager->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the shader manager object." << endl;
+        return false;
+    }
+
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{
+    // Release the shader manager object.
+    if(m_ShaderManager)
+    {
+        m_ShaderManager->Shutdown();
+        delete m_ShaderManager;
+        m_ShaderManager = 0;
+    }
+
+    // Release the light object.
+    if(m_Light)
+    {
+        delete m_Light;
+        m_Light = 0;
+    }
+
+    // Release the model object.
+    if(m_Model)
+    {
+        m_Model->Shutdown();
+        delete m_Model;
+        m_Model = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame(InputClass* Input)
+{
+    static float rotation = 360.0f;
+    bool result;
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+
+    // Update the rotation variable each frame.
+    rotation -= 0.0174532925f * 1.0f;
+    if(rotation <= 0.0f)
+    {
+        rotation += 360.0f;
+    }
+
+    // Render the graphics scene.
+    result = Render(rotation);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::Render(float rotation)
+{
+    float worldMatrix[16], viewMatrix[16], projectionMatrix[16], rotateMatrix[16], translateMatrix[16];
+    float diffuseLightColor[4], lightDirection[3];
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and projection matrices from the opengl and camera objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetProjectionMatrix(projectionMatrix);
+
+    // Setup the rotation matrix.
+    m_OpenGL->MatrixRotationY(rotateMatrix, rotation);
+
+    // Get the light properties.
+    m_Light->GetDirection(lightDirection);
+    m_Light->GetDiffuseColor(diffuseLightColor);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render the first sphere model using the texture shader from the ShaderManagerClass object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Setup matrices.
+    m_OpenGL->MatrixTranslation(translateMatrix, 0.0f, 1.0f, 0.0f);
+    m_OpenGL->MatrixMultiply(worldMatrix, rotateMatrix, translateMatrix);
+
+    // Render the model using the texture shader.
+    result = m_ShaderManager->RenderTextureShader(worldMatrix, viewMatrix, projectionMatrix);  if(!result) { return false; }
+    m_Model->SetTexture1(0);  // Color
+    m_Model->Render();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render the second sphere model using the light shader from the ShaderManagerClass object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Setup matrices.
+    m_OpenGL->MatrixTranslation(translateMatrix, -1.5f, -1.0f, 0.0f);
+    m_OpenGL->MatrixMultiply(worldMatrix, rotateMatrix, translateMatrix);
+
+    // Render the model using the light shader.
+    result = m_ShaderManager->RenderLightShader(worldMatrix, viewMatrix, projectionMatrix, lightDirection, diffuseLightColor);  if(!result) { return false; }
+    m_Model->SetTexture1(0);  // Color
+    m_Model->Render();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render the third sphere model using the normal map shader from the ShaderManagerClass object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Setup matrices.
+    m_OpenGL->MatrixTranslation(translateMatrix, 1.5f, -1.0f, 0.0f);
+    m_OpenGL->MatrixMultiply(worldMatrix, rotateMatrix, translateMatrix);
+
+    // Render the model using the normal map shader.
+    result = m_ShaderManager->RenderNormalMapShader(worldMatrix, viewMatrix, projectionMatrix, lightDirection, diffuseLightColor);  if(!result) { return false; }
+    m_Model->SetTexture1(0);  // Color
+    m_Model->SetTexture2(1);  // Normal
+    m_Model->Render();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now we have a single class which encapsulates all the shading functionality that our graphics application will need.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5050.gif" width="490" height="394"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Compile and run the code. You should see three spheres each shaded with a different shader. Press escape to quit.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Add another shader to the ShaderManagerClass and render a fourth sphere using that shader.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut22_src.tar.gz">gl4linuxtut22_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

@@ -1,0 +1,72 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: softshadow.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 normal;
+in vec4 viewPosition;
+in vec3 lightPos;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform sampler2D shadowTexture;
+uniform vec4 ambientColor;
+uniform vec4 diffuseColor;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 color;
+    float lightIntensity;
+    vec4 textureColor;
+    vec2 projectTexCoord;
+    float shadowValue;
+
+
+    // Set the default output color to the ambient light value for all pixels.
+    color = ambientColor;
+
+    // Calculate the amount of light on this pixel.
+    lightIntensity = clamp(dot(normal, lightPos), 0.0f, 1.0f);
+    if(lightIntensity > 0.0f)
+    {
+        // Determine the final diffuse color based on the diffuse color and the amount of light intensity.
+        color += (diffuseColor * lightIntensity);
+
+        // Saturate the light color.
+        color = clamp(color, 0.0f, 1.0f);
+    }
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Combine the light and texture color.
+    color = color * textureColor;
+
+    // Calculate the projected texture coordinates to be used with the shadow texture.
+    projectTexCoord.x = viewPosition.x / viewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = viewPosition.y / viewPosition.w / 2.0f + 0.5f;
+
+    // Sample the shadow map depth value from the depth texture using the sampler at the projected texture coordinate location.
+    shadowValue = texture(shadowTexture, projectTexCoord).r;
+
+    // Combine the shadows with the final color.
+    outputColor = color * shadowValue;
+}

@@ -1,0 +1,1280 @@
+<html><head><title>Tutorial 58: Xbox Controller Input</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 58: Xbox Controller Input
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Linux supports Xbox controllers natively through the Linux kernel.
+You only need to include linux/input.h to use the defines for the different buttons and triggers.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+When you plug in an Xbox controller to Linux you will see a file show up in /dev/input/.
+This then allows you to call the regular read function for dealing with system devices to query its status.
+In Ubuntu specifically you will see two files show up in the /dev/input/ directory.
+The first file will be called eventX with X being the next free number for a device, so something like device25.
+You will also see a new file show up called js0.
+The jsX devices are the older joystick interfaces, but these don't support modern functionality such as force feedback.
+So just use the eventX devices instead.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+A quick way of verifying that a device is connected and working is to use the evtest program.
+If you don't have it installed already you can just do a sudo apt install evtest.
+When you run evtest it will detect all devices and let you pick which one to test.
+Once you choose it then it will show you all the buttons and such that device has to interface with.
+You can also press buttons and triggers on your controller and it will show you the event that happens and the define you need to use to interact with that event.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this tutorial we will cover the basics for getting Xbox controllers working.
+We will cover controller detection, using some of the buttons, accessing the individual triggers, and the basics of using the thumb sticks.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The framework for this tutorial is similar to the input tutorial except that we will add the new XboxInputClass for handling modern controller input. 
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5133.gif" width="617" height="212"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will start the code section by looking at a simple initial implementation of a XboxInputClass object. 
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Xboxinputclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: xboxinputclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _XBOXINPUTCLASS_H_
+#define _XBOXINPUTCLASS_H_
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The linux/input.h header contains the defines for input events.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>//////////////
+// INCLUDES //
+//////////////
+#include &lt;linux/input.h&gt;
+#include &lt;string.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;math.h&gt;
+#include &lt;stdio.h&gt;
+
+
+/////////////
+// DEFINES //
+/////////////
+#define XINPUT_GAMEPAD_TRIGGER_THRESHOLD 30
+#define XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE 7849
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: XboxInputClass
+////////////////////////////////////////////////////////////////////////////////
+class XboxInputClass
+{
+public:
+    XboxInputClass();
+    XboxInputClass(const XboxInputClass&);
+    ~XboxInputClass();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The XboxInputClass will have a basic Initialize, Shutdown, and Frame function like other input classes would.
+We will also have a couple of functions to provide some initial functionality to the controllers connected.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    bool Initialize();
+    void Shutdown();
+    bool Frame();
+
+    bool IsControllerActive(int);
+
+    bool IsButtonADown(int);
+    bool IsButtonBDown(int);
+
+    float GetLeftTrigger(int);
+    float GetRightTrigger(int);
+
+    void GetLeftThumbStickLocation(int, int&, int&);
+
+private:
+    bool CheckControllerStatus(int);
+    bool IsLeftThumbStickInDeadZone(int);
+    
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial we will support four controllers, and so all the Xbox controller input related arrays will be sized to four elements.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    int m_controller[4];
+    bool m_controllerActive[4];
+    bool m_buttonADown[4];
+    bool m_buttonBDown[4];
+    int m_leftTrigger[4];
+    int m_rightTrigger[4];
+    int m_thumbLeftX[4];
+    int m_thumbLeftY[4];
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Xboxinputclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: xboxinputclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "xboxinputclass.h"
+
+
+XboxInputClass::XboxInputClass()
+{
+}
+
+
+XboxInputClass::XboxInputClass(const XboxInputClass& other)
+{
+}
+
+
+XboxInputClass::~XboxInputClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function will start by initializing all of our status arrays for the four controllers.
+Then we will query all the devices and see if there are up to four controllers and get their IDs for interfacing with them.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool XboxInputClass::Initialize()
+{
+    char filename[256], deviceName[256], tempString[16];
+    int i, j, id;
+
+
+    // Initialize all of the controllers.
+    for(i=0; i<4; i++)
+    {
+        m_controllerActive[i] = false;
+        m_buttonADown[i] = false;
+        m_buttonBDown[i] = false;
+        m_leftTrigger[i] = 0;
+        m_rightTrigger[i] = 0;
+        m_thumbLeftX[i] = 0;
+        m_thumbLeftY[i] = 0;
+    }
+
+    // Loop through the first 50 event devices to find up to four xbox controllers.
+    j=0;
+    for(i=0; i<50; i++)
+    {
+        strcpy(filename, "/dev/input/event");
+        sprintf(tempString, "%d", i);
+        strcat(filename, tempString);
+
+        // See if you can open the event device.
+        id = open(filename, O_RDONLY | O_NONBLOCK);
+        if(id != -1)
+        {
+            // If it can be opened then get the device name.
+            ioctl(id, EVIOCGNAME(sizeof(deviceName)), deviceName);
+
+            // Check if it has a name similar to Microsoft Xbox Series S|X Controller
+            if((deviceName[0] == 'M') && (deviceName[10] == 'X'))
+            {
+                // Make sure we haven't gone over four controllers.
+                if(j != 4)
+                {
+                    // Store the id to the controller.
+                    m_controller[j] = id;
+                    m_controllerActive[j] = true;
+                    j++;
+                }
+            }
+        }
+    }
+
+    // Exit out if no controllers were found.
+    if(j == 0)
+    {
+        return false;
+    }
+	
+    return true;
+}
+
+
+void XboxInputClass::Shutdown()
+{
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Each frame we need to get the current state of all four possible connected controllers.
+Also, always assume batteries and such can die at any moment, cords can be pulled out by mistake, and so forth.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool XboxInputClass::Frame()
+{
+    int i;
+    bool result;
+    
+    
+    // Loop through all four possible XboxInput devices connected via USB.
+    for(i=0; i<4; i++)
+    {
+        result = CheckControllerStatus(i);
+        if(!result)
+        {
+            return false;
+        }
+    }
+  
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The CheckControllerStatus function will get the current state from the controller that we are interested in.
+It will store the state in our different private arrays.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool XboxInputClass::CheckControllerStatus(int index)
+{
+    input_event event;
+    int result;
+
+
+    if(m_controllerActive[index] == true)
+    {
+        // Zero out the state structure prior to retrieving the new state for it.
+        memset(&event, 0, sizeof(event));
+
+        // Read events from the controller.
+        result = read(m_controller[index], &event, sizeof(event));
+
+        // If there is an event then process it.
+        if(result == -1)
+        {
+            return true;
+        }
+
+        if(event.type == EV_KEY)
+        {
+            // A button.
+            if(event.code == BTN_SOUTH)
+            {
+                if((int)event.value == 0)
+                {
+                    m_buttonADown[index] = false;
+                }
+                if((int)event.value == 1)
+                {
+                    m_buttonADown[index] = true;
+                }
+            }
+
+            // B button.
+            if(event.code == BTN_EAST)
+            {
+                if((int)event.value == 0)
+                {
+                    m_buttonBDown[index] = false;
+                }
+                if((int)event.value == 1)
+                {
+                    m_buttonBDown[index] = true;
+                }
+            }
+        }
+
+        if(event.type == EV_ABS)
+        {
+            // Left trigger.
+            if(event.code == ABS_Z)
+            {
+                m_leftTrigger[index] = (int)event.value;
+            }
+
+            // Right trigger.
+            if(event.code == ABS_RZ)
+            {
+                m_rightTrigger[index] = (int)event.value;
+            }
+
+            // Thumb left stick X.
+            if(event.code == ABS_X)
+            {
+                m_thumbLeftX[index] = (int)event.value;
+            }
+
+            // Thumb left stick Y.
+            if(event.code == ABS_Y)
+            {
+                m_thumbLeftY[index] = (int)event.value;
+            }
+        }
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will require a helper function to let the calling program know if controllers are active or not.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool XboxInputClass::IsControllerActive(int index)
+{
+    // Boundary check.
+    if((index < 0) || (index > 3))
+    {
+        return false;
+    }
+
+    return m_controllerActive[index];
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These functions get the states of the buttons.
+I have implemented two buttons for this tutorial.
+I will leave it to you to add all of the other buttons.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool XboxInputClass::IsButtonADown(int index)
+{
+    // Boundary check.
+    if((index < 0) || (index > 3))
+    {
+        return false;
+    }
+    
+    return m_buttonADown[index];
+}
+
+
+bool XboxInputClass::IsButtonBDown(int index)
+{
+    // Boundary check.
+    if((index < 0) || (index > 3))
+    {
+        return false;
+    }
+    
+    return m_buttonBDown[index];
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following two functions get the status of the triggers.
+I convert the 0 - 1023 state of the trigger to a 0.0 - 1.0 float since I find that is more intuitive to work with.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>float XboxInputClass::GetLeftTrigger(int index)
+{
+    int triggerValue;
+    float finalValue;
+
+
+    // Boundary check.
+    if((index < 0) || (index > 3))
+    {
+        return 0.0f;
+    }
+
+    // Get the amount the left trigger is pressed.
+    triggerValue = m_leftTrigger[index];
+ 
+    // If it is really light then return zero to avoid being oversensitive.
+    if((triggerValue / 4) < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+    {
+        return 0.0f;
+    }
+
+    // Otherwise convert from 0-1023 int to 0.0-1.0 float range.
+    finalValue = (float)triggerValue / 1023.0f;
+
+    return finalValue;
+}
+
+
+float XboxInputClass::GetRightTrigger(int index)
+{
+    int triggerValue;
+    float finalValue;
+
+
+    // Boundary check.
+    if((index < 0) || (index > 3))
+    {
+        return 0.0f;
+    }
+
+    // Get the amount the right trigger is pressed.
+    triggerValue = m_rightTrigger[index];
+ 
+    // If it is really light then return zero to avoid being oversensitive.
+    if((triggerValue / 4) < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+    {
+        return 0.0f;
+    }
+
+    // Otherwise convert from 0-1023 int to 0.0-1.0 float range.
+    finalValue = (float)triggerValue / 1023.0f;
+
+    return finalValue;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this tutorial we will cover just the left thumb stick.
+Do note that these thumb sticks are extremely sensitive.
+A controller not even being touched can still have very slight movement registered.
+It is recommended to use a dead zone calculation to ignore the first 15 to 20 percent of the thumb stick's initial range.
+This way you don't register really slight movement that would make the controller feel overly sensitive.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void XboxInputClass::GetLeftThumbStickLocation(int index, int& thumbLeftX, int& thumbLeftY)
+{
+    // Boundary check.
+    if((index < 0) || (index > 3))
+    {
+        thumbLeftX = 0;
+        thumbLeftY = 0;
+        return;
+    }
+    
+    // Get the current state of the left thumb stick.
+    thumbLeftX = m_thumbLeftX[index];
+    thumbLeftY = m_thumbLeftY[index];
+
+    // Check for dead zone, if so return zero to reduce the noise.
+    if(IsLeftThumbStickInDeadZone(index) == true)
+    {
+        thumbLeftX = 0;
+        thumbLeftY = 0;
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will use the magnitude and the recommended define for XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE as a basic dead zone calculation.
+Note that the right and left thumb stick have different sensitivity and hence different defines for their recommended dead zone value.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool XboxInputClass::IsLeftThumbStickInDeadZone(int index)
+{
+    int thumbLeftX, thumbLeftY, magnitude;
+
+
+    // Get the current state of the left thumb stick.
+    thumbLeftX = m_thumbLeftX[index];
+    thumbLeftY = m_thumbLeftY[index];
+
+    // Determine how far the controller is pushed.
+    magnitude = (int)sqrt((thumbLeftX * thumbLeftX) + (thumbLeftY * thumbLeftY));
+
+    // Check if the controller is inside a circular dead zone.
+    if(magnitude < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+    {
+        return true;
+    }
+
+    return false;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial I have included the xboxinputclass.h header in the ApplicationClass.
+But it may make more sense to incorporate it into the actual InputClass for your own projects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "xboxinputclass.h"
+#include "openglclass.h"
+#include "cameraclass.h"
+#include "fontshaderclass.h"
+#include "fontclass.h"
+#include "textclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool Render();
+    bool UpdateControllerStrings();
+  
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We create the new XInputClass object here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    XboxInputClass* m_XboxInput;
+    OpenGLClass* m_OpenGL;
+    CameraClass* m_Camera;
+    FontShaderClass* m_FontShader;
+    FontClass* m_Font;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We create a number of text strings for rendering the states of the different things we are interested in on the controller for this tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    TextClass* m_ActiveStrings;
+    TextClass* m_ButtonStrings;
+    TextClass* m_TriggerStrings;
+    TextClass* m_ThumbStrings;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_XboxInput = 0;
+    m_OpenGL = 0;
+    m_Camera = 0;
+    m_FontShader = 0;
+    m_Font = 0;
+    m_ActiveStrings = 0;
+    m_ButtonStrings = 0;
+    m_TriggerStrings = 0;
+    m_ThumbStrings = 0;
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    char activeString[32], buttonString[32], triggerString[32], thumbString[32];
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we create and initialize the XboxInputClass object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the Xbox input object.
+    m_XboxInput = new XboxInputClass;
+
+    result = m_XboxInput->Initialize();
+    if(!result)
+    {
+        cout << "Could not initialize the Xbox input object.  Make sure a controller is actually connected." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->Render();
+    
+    // Create and initialize the font shader object.
+    m_FontShader = new FontShaderClass;
+
+    result = m_FontShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the font shader object." << endl;
+        return false;
+    }
+
+    // Create and initialize the font object.
+    m_Font = new FontClass;
+
+    result = m_Font->Initialize(m_OpenGL, 0);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the font object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These will be our text strings for displaying whether the four controllers are connected or not.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the text objects for the controllers active strings.
+    m_ActiveStrings = new TextClass[4];
+
+    strcpy(activeString, "Controller Active: No");
+
+    result = m_ActiveStrings[0].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, activeString, 10, 10, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    result = m_ActiveStrings[1].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, activeString, 10, 35, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    result = m_ActiveStrings[2].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, activeString, 10, 60, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    result = m_ActiveStrings[3].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, activeString, 10, 85, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These will be our text strings for the A and B button status on just the first controller.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the text objects for the button strings.
+    m_ButtonStrings = new TextClass[2];
+
+    strcpy(buttonString, "A Button Down: No");
+
+    result = m_ButtonStrings[0].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, buttonString, 10, 120, 1.0f, 0.0f, 0.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    strcpy(buttonString, "B Button Down: No");
+
+    result = m_ButtonStrings[1].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, buttonString, 10, 145, 1.0f, 0.0f, 0.0f);
+    if(!result)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These will be our text strings for displaying how much each of the triggers is currently pressed on just the first controller.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the text objects for the trigger strings.
+    m_TriggerStrings = new TextClass[2];
+
+    strcpy(triggerString, "Left Trigger: 0.0");
+
+    result = m_TriggerStrings[0].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, triggerString, 10, 180, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    strcpy(triggerString, "Right Trigger: 0.0");
+
+    result = m_TriggerStrings[1].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, triggerString, 10, 205, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These will be our text strings for displaying the current X and Y position of the left thumb stick on just the first controller.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the text objects for the thumb stick strings.
+    m_ThumbStrings = new TextClass[2];
+
+    strcpy(thumbString, "Left Thumb X: 0");
+
+    result = m_ThumbStrings[0].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, thumbString, 10, 240, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    strcpy(thumbString, "Left Thumb Y: 0");
+
+    result = m_ThumbStrings[1].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, thumbString, 10, 265, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+    
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{
+    // Release the text objects for the thumb stick strings.
+    if(m_ThumbStrings)
+    {
+        m_ThumbStrings[0].Shutdown();
+        m_ThumbStrings[1].Shutdown();
+
+        delete [] m_ThumbStrings;
+        m_ThumbStrings = 0;
+    }
+
+    // Release the text objects for the trigger strings.
+    if(m_TriggerStrings)
+    {
+        m_TriggerStrings[0].Shutdown();
+        m_TriggerStrings[1].Shutdown();
+
+        delete [] m_TriggerStrings;
+        m_TriggerStrings = 0;
+    }
+
+    // Release the text objects for the button strings.
+    if(m_ButtonStrings)
+    {
+        m_ButtonStrings[0].Shutdown();
+        m_ButtonStrings[1].Shutdown();
+
+        delete [] m_ButtonStrings;
+        m_ButtonStrings = 0;
+    }
+
+    // Release the text objects for the controllers active strings.
+    if(m_ActiveStrings)
+    {
+        m_ActiveStrings[0].Shutdown();
+        m_ActiveStrings[1].Shutdown();
+        m_ActiveStrings[2].Shutdown();
+        m_ActiveStrings[3].Shutdown();
+
+        delete [] m_ActiveStrings;
+        m_ActiveStrings = 0;
+    }
+    
+    // Release the font object.
+    if(m_Font)
+    {
+        m_Font->Shutdown();
+        delete m_Font;
+        m_Font = 0;
+    }
+
+    // Release the font shader object.
+    if(m_FontShader)
+    {
+        m_FontShader->Shutdown();
+        delete m_FontShader;
+        m_FontShader = 0;
+    }
+    
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the Xbox input object.
+    if(m_XboxInput)
+    {
+        m_XboxInput->Shutdown();
+        delete m_XboxInput;
+        m_XboxInput = 0;
+    }
+    
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame(InputClass* Input)
+{
+    bool result;
+
+  
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Each frame we need to get the current state of the four possible controllers.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Do the frame processing for the Xbox input object.
+    m_XboxInput->Frame();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Each frame we will update the strings for the controller's states that we are interested in for this tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Update the controller strings each frame.
+    result = UpdateControllerStrings();
+    if(!result)
+    {
+        return false;
+    }
+    
+    // Render the graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::Render()
+{
+    float worldMatrix[16], viewMatrix[16], orthoMatrix[16];
+    float pixelColor[4];
+    int i;
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and projection matrices from the opengl and camera objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetOrthoMatrix(orthoMatrix);
+
+    // Disable the Z buffer and enable alpha blending for 2D rendering.
+    m_OpenGL->TurnZBufferOff();
+    m_OpenGL->EnableAlphaBlending();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render all the strings for the controller states that we are looking at in this tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Render the controllers active text strings using the font shader.
+    for(i=0; i<4; i++)
+    {
+        m_ActiveStrings[i].GetPixelColor(pixelColor);
+
+        result = m_FontShader->SetShaderParameters(worldMatrix, viewMatrix, orthoMatrix, pixelColor);
+        if(!result)
+        {
+            return false;
+        }	
+
+        m_Font->SetTexture(0);
+	
+        m_ActiveStrings[i].Render();
+    }
+
+    // Render the button down strings.
+    for(i=0; i<2; i++)
+    {
+        m_ButtonStrings[i].GetPixelColor(pixelColor);
+
+        result = m_FontShader->SetShaderParameters(worldMatrix, viewMatrix, orthoMatrix, pixelColor);
+        if(!result)
+        {
+            return false;
+        }	
+
+        m_Font->SetTexture(0);
+	
+        m_ButtonStrings[i].Render();
+    }
+
+    // Render the trigger strings.
+    for(i=0; i<2; i++)
+    {
+        m_TriggerStrings[i].GetPixelColor(pixelColor);
+
+        result = m_FontShader->SetShaderParameters(worldMatrix, viewMatrix, orthoMatrix, pixelColor);
+        if(!result)
+        {
+            return false;
+        }	
+
+        m_Font->SetTexture(0);
+	
+        m_TriggerStrings[i].Render();
+    }
+
+    for(i=0; i<2; i++)
+    {
+        m_ThumbStrings[i].GetPixelColor(pixelColor);
+
+        result = m_FontShader->SetShaderParameters(worldMatrix, viewMatrix, orthoMatrix, pixelColor);
+        if(!result)
+        {
+            return false;
+        }	
+
+        m_Font->SetTexture(0);
+	
+        m_ThumbStrings[i].Render();
+    }
+
+    // Enable the Z buffer and disable alpha blending now that 2D rendering is complete.
+    m_OpenGL->TurnZBufferOn();
+    m_OpenGL->DisableAlphaBlending();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+
+
+bool ApplicationClass::UpdateControllerStrings()
+{
+    char activeString[32], buttonString[32], triggerString[32];
+    int i, yPos, leftX, leftY;
+    float value;
+    bool result;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The m_ActiveStrings will let us know on the screen which of the four controllers is currently connected or disconnected.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Update the controllers active strings.
+    yPos = 10;
+    for(i=0; i<4; i++)
+    {
+        if(m_XboxInput->IsControllerActive(i) == true)
+        {
+            strcpy(activeString, "Controller Active: Yes");
+            result = m_ActiveStrings[i].UpdateText(m_Font, activeString, 10, yPos, 0.0f, 1.0f, 0.0f);
+        }
+        else
+        {
+            strcpy(activeString, "Controller Active: No");
+            result = m_ActiveStrings[i].UpdateText(m_Font, activeString, 10, yPos, 1.0f, 0.0f, 0.0f);
+        }
+
+        // Confirm the string did update.
+        if(!result)
+        {
+            return false;
+        }
+
+        // Increment the string drawing location.
+        yPos += 25;
+    }
+    yPos += 10;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The m_ButtonStrings will let us know the state of the A and B button on just the first connected controller.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Update the buttons pressed strings.
+    if(m_XboxInput->IsControllerActive(0) == true)
+    {
+        // A button.
+        if(m_XboxInput->IsButtonADown(0) == true)
+        {
+            strcpy(buttonString, "A Button Down: Yes");
+            result = m_ButtonStrings[0].UpdateText(m_Font, buttonString, 10, yPos, 0.0f, 1.0f, 0.0f);
+        }
+        else
+        {
+            strcpy(buttonString, "A Button Down: No");
+            result = m_ButtonStrings[0].UpdateText(m_Font, buttonString, 10, yPos, 1.0f, 0.0f, 0.0f);
+        }
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+
+        // B button.
+        if(m_XboxInput->IsButtonBDown(0) == true)
+        {
+            strcpy(buttonString, "B Button Down: Yes");
+            result = m_ButtonStrings[1].UpdateText(m_Font, buttonString, 10, yPos, 0.0f, 1.0f, 0.0f);
+        }
+        else
+        {
+            strcpy(buttonString, "B Button Down: No");
+            result = m_ButtonStrings[1].UpdateText(m_Font, buttonString, 10, yPos, 1.0f, 0.0f, 0.0f);
+        }
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+    }
+    else
+    {
+        strcpy(buttonString, "A Button Down: No");
+		
+        result = m_ButtonStrings[0].UpdateText(m_Font, buttonString, 10, yPos, 1.0f, 0.0f, 0.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+
+        strcpy(buttonString, "B Button Down: No");
+		
+        result = m_ButtonStrings[1].UpdateText(m_Font, buttonString, 10, yPos, 1.0f, 0.0f, 0.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+    }
+    yPos += 10;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The m_TriggerStrings will keep us updated on how much the left and right trigger are currently pressed.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Controller 1 triggers.
+    if(m_XboxInput->IsControllerActive(0) == true)
+    {
+        // Left trigger.
+        value = m_XboxInput->GetLeftTrigger(0);
+        sprintf(triggerString, "Left Trigger: %f", value);
+
+        result = m_TriggerStrings[0].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+
+        // Right trigger.
+        value = m_XboxInput->GetRightTrigger(0);
+        sprintf(triggerString, "Right Trigger: %f", value);
+
+        result = m_TriggerStrings[1].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+    }
+    else
+    {
+        strcpy(triggerString, "Left Trigger: 0.0");
+
+        result = m_TriggerStrings[0].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+
+        strcpy(triggerString, "Right Trigger: 0.0");
+
+        result = m_TriggerStrings[1].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+    }
+    yPos += 10;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The m_ThumbStrings will let us know the X and Y position of the left thumb stick.
+Do note we are using a dead zone calculation so that the thumb stick must be moved a decent amount before anything is registered.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Controller 1 left thumb.
+    if(m_XboxInput->IsControllerActive(0) == true)
+    {
+        m_XboxInput->GetLeftThumbStickLocation(0, leftX, leftY);
+
+        // Left X.
+        sprintf(triggerString, "Left Thumb X: %d", leftX);
+
+        result = m_ThumbStrings[0].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+
+        // Left Y.
+        sprintf(triggerString, "Left Thumb Y: %d", leftY);
+
+        result = m_ThumbStrings[1].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+    }
+    else
+    {
+        strcpy(triggerString, "Left Thumb X: 0");
+
+        result = m_ThumbStrings[0].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+
+        strcpy(triggerString, "Left Thumb Y: 0");
+
+        result = m_ThumbStrings[1].UpdateText(m_Font, triggerString, 10, yPos, 1.0f, 1.0f, 1.0f);
+        if(!result)
+        {
+            return false;
+        }
+        yPos += 25;
+    }
+  
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now have the basics implemented to use four Xbox compatible controllers as input for our programs. 
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6113.gif" width="300" height="300"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Compile and run the program to test connection and some feature of a Xbox compatible controller.  Press escape to quit.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Remove the dead zone check for the left thumb stick to see how sensitive it is without the check in place.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Add functionality for all the buttons, thumb sticks, dpads, and so forth for all four possible controllers.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+4. Use the evtest program to see all the basic defines available for programming the controller.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+5. Implement rumble controls.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+6. Review the official online programming guide to learn about other programmable features such as headset audio, trigger tapping, and so forth.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+7. Remember to always add the capability of remapping controls for preference and accessibility reasons.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut58_src.tar.gz">gl4linuxtut58_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

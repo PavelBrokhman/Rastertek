@@ -1,0 +1,1086 @@
+<html><head><title>Tutorial 16: Mouse Input</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 16: Mouse Input
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will cover using X11 to handle mouse input. The code in this tutorial will be based on the previous tutorials.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In X11 we use the event system to subscribe for mouse down and mouse up events, similar to how we receive keyboard input from X11.
+For the location of the mouse, we can directly query for the location of the mouse pointer, although you can also receive event for mouse motion too.
+We will use the TextClass to display to the screen the current location of the mouse pointer, as well as whether the first mouse button is pressed or not.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Also, there are newer libraries that grant access to subpixel accuracy for input devices, but this first mouse tutorial will just cover the traditional basics of using a mouse in X11.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will start the tutorial by looking at the changes that have been made to the SystemClass.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Systemclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The header for the SystemClass has not changed for this tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SYSTEMCLASS_H_
+#define _SYSTEMCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;time.h&gt;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "applicationclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: SystemClass
+////////////////////////////////////////////////////////////////////////////////
+class SystemClass
+{
+public:
+    SystemClass();
+    SystemClass(const SystemClass&);
+    ~SystemClass();
+
+    bool Initialize();
+    void Shutdown();
+    void Frame();
+
+private:
+    bool InitializeWindow(int&, int&);
+    void ShutdownWindow();
+    void ReadInput();
+
+private:
+    ApplicationClass* m_Application;
+    InputClass* m_Input;
+    Display* m_videoDisplay;
+    Window m_hwnd;
+    GLXContext m_renderingContext;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Systemclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "systemclass.h"
+
+
+SystemClass::SystemClass()
+{
+    m_Input = 0;
+    m_Application = 0;
+}
+
+
+SystemClass::SystemClass(const SystemClass& other)
+{
+}
+
+
+SystemClass::~SystemClass()
+{
+}
+
+
+bool SystemClass::Initialize()
+{
+    int screenWidth, screenHeight;
+    bool result;
+
+
+    // Create and initialize the input object.
+    m_Input = new InputClass;
+
+    m_Input->Initialize();
+
+    // Initialize the screen size.
+    screenWidth = 0;
+    screenHeight = 0;
+
+    // Initialize the X11 window.
+    result = InitializeWindow(screenWidth, screenHeight);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Create and initialize the application object.
+    m_Application = new ApplicationClass;
+
+    result = m_Application->Initialize(m_videoDisplay, m_hwnd, screenWidth, screenHeight);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void SystemClass::Shutdown()
+{
+    // Release the application object.
+    if(m_Application)
+    {
+        m_Application->Shutdown();
+        delete m_Application;
+        m_Application = 0;
+    }
+
+    // Release the X11 window.
+    ShutdownWindow();
+
+    // Release the input object.
+    if(m_Input)
+    {
+        delete m_Input;
+        m_Input = 0;
+    }
+
+    return;
+}
+
+
+void SystemClass::Frame()
+{
+    bool done, result;
+
+
+    // Loop until the application is finished running.
+    done = false;
+    while(!done)
+    {
+        // Read the X11 input.
+        ReadInput();
+
+        // Do the frame processing for the application object.
+        result = m_Application->Frame(m_Input);
+        if(!result)
+        {
+            done = true;
+        }
+    }
+
+    return;
+}
+
+
+bool SystemClass::InitializeWindow(int& screenWidth, int& screenHeight)
+{
+    Window rootWindow;
+    XVisualInfo* visualInfo;
+    GLint attributeList[15];
+    Colormap colorMap;
+    XSetWindowAttributes setWindowAttributes;
+    Screen* defaultScreen;
+    bool result;
+    int majorVersion;
+    Atom wmState, fullScreenState, motifHints;
+    XEvent fullScreenEvent;
+    long motifHintList[5];
+    int status, posX, posY, defaultScreenWidth, defaultScreenHeight;
+    
+
+    // Open a connection to the X server on the local computer.
+    m_videoDisplay = XOpenDisplay(NULL);
+    if(m_videoDisplay == NULL)
+    {
+        return false;
+    }
+
+    // Get a handle to the root window.
+    rootWindow = DefaultRootWindow(m_videoDisplay);
+
+    // Setup the OpenGL attributes for the window.
+    attributeList[0]  = GLX_RGBA;  // Support for 24 bit color and an alpha channel.
+    attributeList[1]  = GLX_DEPTH_SIZE;  // Support for 24 bit depth buffer.
+    attributeList[2]  = 24;
+    attributeList[3]  = GLX_STENCIL_SIZE;  // Support for 8 bit stencil buffer.
+    attributeList[4]  = 8;
+    attributeList[5]  = GLX_DOUBLEBUFFER;  // Support for double buffering.
+    attributeList[6]  = GLX_RED_SIZE;  // 8 bits for each channel.
+    attributeList[7]  = 8;
+    attributeList[8]  = GLX_GREEN_SIZE;
+    attributeList[9]  = 8;
+    attributeList[10] = GLX_BLUE_SIZE;
+    attributeList[11] = 8;
+    attributeList[12] = GLX_ALPHA_SIZE;
+    attributeList[13] = 8;
+    attributeList[14] = None;  // Null terminate the attribute list.
+
+    // Query for a visual format that fits the attributes we want.
+    visualInfo = glXChooseVisual(m_videoDisplay, 0, attributeList);
+    if(visualInfo == NULL)
+    {
+        return false;
+    }
+
+    // Create a color map for the window for the specified visual type.
+    colorMap = XCreateColormap(m_videoDisplay, rootWindow, visualInfo->visual, AllocNone);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Notice here that we already subscribe the window to two important events; the button press and the button release.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Fill out the structure for setting the window attributes.
+    setWindowAttributes.colormap = colorMap;
+    setWindowAttributes.event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask;
+
+    // Get the size of the default screen.
+    if(FULL_SCREEN)
+    {
+        defaultScreen = XDefaultScreenOfDisplay(m_videoDisplay);
+        screenWidth = XWidthOfScreen(defaultScreen);
+        screenHeight = XHeightOfScreen(defaultScreen);
+    }
+    else
+    {
+        screenWidth = 1024;
+        screenHeight = 768;
+    }
+
+    // Create the window with the desired settings.
+    m_hwnd = XCreateWindow(m_videoDisplay, rootWindow, 0, 0, screenWidth, screenHeight, 0, visualInfo->depth, InputOutput, visualInfo->visual, CWColormap | CWEventMask, &setWindowAttributes);
+
+    // Map the newly created window to the video display.
+    XMapWindow(m_videoDisplay, m_hwnd);
+
+    // Set the name of the window.
+    XStoreName(m_videoDisplay, m_hwnd, "Engine");
+
+    // If full screen mode then we send the full screen event and remove the border decoration.
+    if(FULL_SCREEN)
+    {
+        // Setup the full screen states. 
+        wmState = XInternAtom(m_videoDisplay, "_NET_WM_STATE", False);
+        fullScreenState = XInternAtom(m_videoDisplay, "_NET_WM_STATE_FULLSCREEN", False);
+
+        // Setup the X11 event message that we need to send to make the screen go full screen mode.
+        memset(&fullScreenEvent, 0, sizeof(fullScreenEvent));
+
+        fullScreenEvent.type = ClientMessage;
+        fullScreenEvent.xclient.window = m_hwnd;
+        fullScreenEvent.xclient.message_type = wmState;
+        fullScreenEvent.xclient.format = 32;
+        fullScreenEvent.xclient.data.l[0] = 1;
+        fullScreenEvent.xclient.data.l[1] = fullScreenState;
+        fullScreenEvent.xclient.data.l[2] = 0;
+        fullScreenEvent.xclient.data.l[3] = 0;
+        fullScreenEvent.xclient.data.l[4] = 0;
+
+        // Send the full screen event message to the X11 server.
+        status = XSendEvent(m_videoDisplay, DefaultRootWindow(m_videoDisplay), False, SubstructureRedirectMask | SubstructureNotifyMask, &fullScreenEvent);
+        if(status != 1)
+        {
+            return false;
+        }
+
+        // Setup the motif hints to remove the border in full screen mode.
+        motifHints = XInternAtom(m_videoDisplay, "_MOTIF_WM_HINTS", False);
+
+        motifHintList[0] = 2;  // Remove border.
+        motifHintList[1] = 0;
+        motifHintList[2] = 0;
+        motifHintList[3] = 0;
+        motifHintList[4] = 0;
+
+        // Change the window property and remove the border.
+        status = XChangeProperty(m_videoDisplay, m_hwnd, motifHints, motifHints, 32, PropModeReplace, (unsigned char*)&motifHintList, 5);
+        if(status != 1)
+        {
+            return false;
+        }
+
+        // Flush the display to apply all the full screen settings.
+        status = XFlush(m_videoDisplay);
+        if(status != 1)
+        {
+            return false;
+        }
+
+        // Now sleep for one second for the flush to occur before making a gl context, or if too early the screen gets squished in full screen sometimes.
+        sleep(1);
+    }
+
+    // Create an OpenGL rendering context.
+    m_renderingContext = glXCreateContext(m_videoDisplay, visualInfo, NULL, GL_TRUE);
+    if(m_renderingContext == NULL)
+    {
+        return false;
+    }
+
+    // Attach the OpenGL rendering context to the newly created window.
+    result = glXMakeCurrent(m_videoDisplay, m_hwnd, m_renderingContext);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Check that OpenGL 4.0 is supported at a minimum.
+    glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+    if(majorVersion < 4)
+    {
+        return false;
+    }
+
+    // Confirm that we have a direct rendering context.
+    result = glXIsDirect(m_videoDisplay, m_renderingContext);
+    if(!result)
+    {
+        return false;
+    }
+
+    // If windowed then move the window to the middle of the screen.
+    if(!FULL_SCREEN)
+    {
+        defaultScreen = XDefaultScreenOfDisplay(m_videoDisplay);
+        defaultScreenWidth = XWidthOfScreen(defaultScreen);
+        defaultScreenHeight = XHeightOfScreen(defaultScreen);
+
+        posX = (defaultScreenWidth - screenWidth) / 2;
+        posY = (defaultScreenHeight - screenHeight) / 2;
+
+        status = XMoveWindow(m_videoDisplay, m_hwnd, posX, posY);
+        if(status != 1)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+void SystemClass::ShutdownWindow()
+{
+    // Shutdown and close the window.
+    glXMakeCurrent(m_videoDisplay, None, NULL);
+    glXDestroyContext(m_videoDisplay, m_renderingContext);
+    XUnmapWindow(m_videoDisplay, m_hwnd);
+    XDestroyWindow(m_videoDisplay, m_hwnd);
+    XCloseDisplay(m_videoDisplay);
+
+    return;
+}
+
+
+void SystemClass::ReadInput()
+{
+    XEvent event;
+    long eventMask;</FONT><font face=arial color=#aaaaff size=2>
+    bool foundEvent, mouseResult;</FONT><font face=arial color=#aaffaa size=2>
+    char keyBuffer[32];
+    KeySym keySymbol;</FONT><font face=arial color=#aaaaff size=2>
+    Window rootWindow, childWindow;
+    int rootX, rootY, mouseX, mouseY, windowPositionX, windowPositionY;
+    unsigned int mask;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now that we subscribed to mouse events, we need to update our mask to include the mouse button events when calling XCheckWindowEvent.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the event mask to the types of events we are interested in.</FONT><font face=arial color=#aaaaff size=2>
+    eventMask = KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask;</FONT><font face=arial color=#aaffaa size=2>
+
+    // Perform the frame processing for the application.
+    foundEvent = XCheckWindowEvent(m_videoDisplay, m_hwnd, eventMask, &event);
+    if(foundEvent)
+    {
+        // Key press.
+        if(event.type == KeyPress)
+        {
+            XLookupString(&event.xkey, keyBuffer, sizeof(keyBuffer), &keySymbol, NULL);
+            m_Input->KeyDown((int)keySymbol);
+        }
+
+        // Key release.
+        if(event.type == KeyRelease)
+        {
+            XLookupString(&event.xkey, keyBuffer, sizeof(keyBuffer), &keySymbol, NULL);
+            m_Input->KeyUp((int)keySymbol);
+        }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+When we receive generic mouse button press and release event notifications, we use the InputClass object to set whether the mouse button is up or down.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>        // Button press.
+        if(event.type == ButtonPress)
+        {
+            m_Input->MouseDown();
+        }
+
+        // Button release.
+        if(event.type == ButtonRelease)
+        {
+            m_Input->MouseUp();
+        }</FONT><font face=arial color=#aaffaa size=2>
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For the mouse location we will just call the XQueryPointer each frame to determine where the mouse pointer is.
+However, note that XQueryPointer will return the overall position of the mouse on the entire screen, and not the location of the mouse in your window.
+So, we need to also call XTranslateCoordinates to get the offset of our window and then subtract the two to determine where the mouse is in our window using the upper left corner of the window as 0,0.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Note that if we are running full screen then we don't need to translate the coordinates as XQueryPointer is already returning the full screen position of the mouse pointer.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Check for the cursor mouse position.
+    mouseResult = XQueryPointer(m_videoDisplay, DefaultRootWindow(m_videoDisplay), &rootWindow, &childWindow, &rootX, &rootY, &mouseX, &mouseY, &mask);
+    if(mouseResult)
+    {
+        if(!FULL_SCREEN)
+        {
+            // If this is not in fullscreen then get the position of the window first since it won't be at 0,0.
+            XTranslateCoordinates(m_videoDisplay, m_hwnd, DefaultRootWindow(m_videoDisplay), 0, 0, &windowPositionX, &windowPositionY, &childWindow);
+
+            // Now subtract the mouse location on the desktop from the window position to get the position of the mouse inside the window.
+            mouseX = mouseX - windowPositionX;
+            mouseY = mouseY - windowPositionY;
+
+            // If the mouse is moving outside of the left or top of the window then ignore it and cull it back to the edge of the window.
+            if(mouseX < 0)  { mouseX = 0; }
+            if(mouseY < 0)  { mouseY = 0; }
+        }
+
+        // Now send the mouse position to the input object.
+        m_Input->ProcessMouse(mouseX, mouseY);
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Inputclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The InputClass now has functions and variables for handling the mouse pointer and button states.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: inputclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _INPUTCLASS_H_
+#define _INPUTCLASS_H_
+
+
+/////////////
+// DEFINES //
+/////////////
+const int KEY_ESCAPE = 0;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: InputClass
+////////////////////////////////////////////////////////////////////////////////
+class InputClass
+{
+public:
+    InputClass();
+    InputClass(const InputClass&);
+    ~InputClass();
+
+    void Initialize();
+
+    void KeyDown(int);
+    void KeyUp(int);
+
+    bool IsEscapePressed();</FONT><font face=arial color=#aaaaff size=2>
+
+    void ProcessMouse(int, int);
+    void GetMouseLocation(int&, int&);
+
+    void MouseDown();
+    void MouseUp();
+
+    bool IsMousePressed();</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    bool m_keyboardState[256];</FONT><font face=arial color=#aaaaff size=2>
+    int m_mouseX, m_mouseY;
+    bool m_mousePressed;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Inputclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: inputclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "inputclass.h"
+
+
+InputClass::InputClass()
+{
+}
+
+
+InputClass::InputClass(const InputClass& other)
+{
+}
+
+
+InputClass::~InputClass()
+{
+}
+
+
+void InputClass::Initialize()
+{
+    int i;
+
+
+    // Initialize the keyboard state.
+    for(i=0; i<256; i++)
+    {
+        m_keyboardState[i] = false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We initialize the state of the mouse location and the mouse button.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Initialize the mouse state.
+    m_mouseX = 0;
+    m_mouseY = 0;
+    m_mousePressed = false;</FONT><font face=arial color=#aaffaa size=2>
+
+    return;
+}
+
+
+void InputClass::KeyDown(int keySymbol)
+{
+    if(keySymbol == 65307) { m_keyboardState[KEY_ESCAPE] = true; }
+
+    return;
+}
+
+
+void InputClass::KeyUp(int keySymbol)
+{
+    if(keySymbol == 65307) { m_keyboardState[KEY_ESCAPE] = false; }
+
+    return;
+}
+
+
+bool InputClass::IsEscapePressed()
+{
+    return m_keyboardState[KEY_ESCAPE];
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ProcessMouse function takes in the mouse location from X11 and stores it in this class object.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>void InputClass::ProcessMouse(int mouseMotionX, int mouseMotionY)
+{
+    m_mouseX = mouseMotionX;
+    m_mouseY = mouseMotionY;
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The GetMouseLocation function returns the mouse location to calling functions.
+In this tutorial we will call it in ApplicationClass so we can draw the mouse location coordinates to the screen.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>void InputClass::GetMouseLocation(int& mouseX, int& mouseY)
+{
+    mouseX = m_mouseX;
+    mouseY = m_mouseY;
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The MouseDown and MouseUp functions are called from the SystemClass.
+We get the mouse button press and release from X11 and then set it here so our application can query the mouse button status whenever it needs to.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>void InputClass::MouseDown()
+{
+    m_mousePressed = true;
+    return;
+}
+
+
+void InputClass::MouseUp()
+{
+    m_mousePressed = false;
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The IsMousePressed functions is called to determine the status of the mouse button.
+We will call this from the ApplicationClass and then render whether the button is pressed or not.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool InputClass::IsMousePressed()
+{
+    return m_mousePressed;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial we have added an UpdateMouseStrings function for updating the mouse location and button text strings each frame.
+We have also added TextClass objects for each mouse string we need to render.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "openglclass.h"
+#include "cameraclass.h"
+#include "fontshaderclass.h"
+#include "fontclass.h"
+#include "textclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool Render();</FONT><font face=arial color=#aaaaff size=2>
+    bool UpdateMouseStrings(int, int, bool);</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    OpenGLClass* m_OpenGL;
+    CameraClass* m_Camera;
+    FontShaderClass* m_FontShader;
+    FontClass* m_Font;</FONT><font face=arial color=#aaaaff size=2>
+    TextClass* m_MouseStrings;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;
+    m_Camera = 0;
+    m_FontShader = 0;
+    m_Font = 0;</FONT><font face=arial color=#aaaaff size=2>
+    m_MouseStrings = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{</FONT><font face=arial color=#aaaaff size=2>
+    char mouseString1[32], mouseString2[32], mouseString3[32];</FONT><font face=arial color=#aaffaa size=2>
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->Render();
+
+    // Create and initialize the font shader object.
+    m_FontShader = new FontShaderClass;
+
+    result = m_FontShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the font shader object." << endl;
+        return false;
+    }
+
+    // Create and initialize the font object.
+    m_Font = new FontClass;
+
+    result = m_Font->Initialize(m_OpenGL, 0);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the font object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we setup the three mouse strings and TextClass objects.
+Two for the position of the mouse, and one for the button status.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Set the initial mouse strings.
+    strcpy(mouseString1, "Mouse X: 0");
+    strcpy(mouseString2, "Mouse Y: 0");
+    strcpy(mouseString3, "Mouse Button: No");
+
+    // Create and initialize the text objects for the mouse strings.
+    m_MouseStrings = new TextClass[3];
+
+    result = m_MouseStrings[0].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, mouseString1, 10, 10, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        cout << "Error: Could not initialize mouse string 0." << endl;
+        return false;
+    }
+
+    result = m_MouseStrings[1].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, mouseString2, 10, 35, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        cout << "Error: Could not initialize mouse string 1." << endl;
+        return false;
+    }
+
+    result = m_MouseStrings[2].Initialize(m_OpenGL, screenWidth, screenHeight, 32, m_Font, mouseString3, 10, 60, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        cout << "Error: Could not initialize mouse string 2." << endl;
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Shutdown function we will now release the mouse TextClass objects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ApplicationClass::Shutdown()
+{</FONT><font face=arial color=#aaaaff size=2>
+    // Release the text objects for the mouse strings.
+    if(m_MouseStrings)
+    {
+        m_MouseStrings[0].Shutdown();
+        m_MouseStrings[1].Shutdown();
+        m_MouseStrings[2].Shutdown();
+
+        delete [] m_MouseStrings;
+        m_MouseStrings = 0;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Release the font object.
+    if(m_Font)
+    {
+        m_Font->Shutdown();
+        delete m_Font;
+        m_Font = 0;
+    }
+
+    // Release the font shader object.
+    if(m_FontShader)
+    {
+        m_FontShader->Shutdown();
+        delete m_FontShader;
+        m_FontShader = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame(InputClass* Input)
+{</FONT><font face=arial color=#aaaaff size=2>
+    int mouseX, mouseY;
+    bool result, mouseDown;</FONT><font face=arial color=#aaffaa size=2>
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Each frame we will now get the mouse location and button status from the Input object and then update the mouse strings.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Get the location of the mouse from the input object.
+    Input->GetMouseLocation(mouseX, mouseY);
+
+    // Check if the mouse has been pressed.
+    mouseDown = Input->IsMousePressed();
+
+    // Update the mouse strings each frame.
+    result = UpdateMouseStrings(mouseX, mouseY, mouseDown);
+    if(!result)
+    {
+        cout << "Error: Could not UpdateMouseStrings." << endl;
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Render the graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::Render()
+{
+    float worldMatrix[16], viewMatrix[16], orthoMatrix[16];
+    float pixelColor[4];
+    bool result;
+
+
+     // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and ortho matrices from the opengl and camera objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetOrthoMatrix(orthoMatrix);
+
+    // Disable the Z buffer and enable alpha blending for 2D rendering.
+    m_OpenGL->TurnZBufferOff();
+    m_OpenGL->EnableAlphaBlending();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Use the pixel color from the first mouse string.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Get the color to render the mouse text as.
+    m_MouseStrings[0].GetPixelColor(pixelColor);</FONT><font face=arial color=#aaffaa size=2>
+
+    // Set the font shader as active and set its parameters.
+    result = m_FontShader->SetShaderParameters(worldMatrix, viewMatrix, orthoMatrix, pixelColor);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Set the font texture as the active texture.
+    m_Font->SetTexture(0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render the three mouse strings.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Render the mouse text strings using the font shader.
+    m_MouseStrings[0].Render();
+    m_MouseStrings[1].Render();
+    m_MouseStrings[2].Render();</FONT><font face=arial color=#aaffaa size=2>
+
+    // Enable the Z buffer and disable alpha blending now that 2D rendering is complete.
+    m_OpenGL->TurnZBufferOn();
+    m_OpenGL->DisableAlphaBlending();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The new UpdateMouseStrings function will update the three mouse strings each frame.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool ApplicationClass::UpdateMouseStrings(int mouseX, int mouseY, bool mouseDown)
+{
+    char tempString[16], finalString[32];
+    bool result;
+
+
+    // Convert the mouse X integer to string format.
+    sprintf(tempString, "%d", mouseX);
+
+    // Setup the mouse X string.
+    strcpy(finalString, "Mouse X: ");
+    strcat(finalString, tempString);
+
+    // Update the sentence vertex buffer with the new string information.
+    result = m_MouseStrings[0].UpdateText(m_Font, finalString, 10, 10, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Convert the mouse Y integer to string format.
+    sprintf(tempString, "%d", mouseY);
+
+    // Setup the mouse Y string.
+    strcpy(finalString, "Mouse Y: ");
+    strcat(finalString, tempString);
+
+    // Update the sentence vertex buffer with the new string information.
+    result = m_MouseStrings[1].UpdateText(m_Font, finalString, 10, 35, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Setup the mouse button string.
+    if(mouseDown)
+    {
+        strcpy(finalString, "Mouse Button: Yes");
+    }
+    else
+    {
+        strcpy(finalString, "Mouse Button: No");
+    }
+
+    // Update the sentence vertex buffer with the new string information.
+    result = m_MouseStrings[2].UpdateText(m_Font, finalString, 10, 60, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now have access to the location of the mouse and the status of the button press.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5036.gif" width="200" height="200"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Recompile and run the program and make sure your mouse location and button presses are updating real-time.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Set FULL_SCREEN to true and run the program again.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Research faster input methods on Linux such as XInput2 and SDL.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut16_src.tar.gz">gl4linuxtut16_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

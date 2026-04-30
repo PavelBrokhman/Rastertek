@@ -1,0 +1,3493 @@
+<html><head><title>Tutorial 51: Screen Space Ambient Occlusion</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 51: Screen Space Ambient Occlusion
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this tutorial we will cover one of the basic implementations of screen space ambient occlusion using DirectX 11, C++, and HLSL.
+The code in this tutorial will be built on the code from the previous deferred shading tutorial.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Screen space ambient occlusion (SSAO) is an ambient lighting technique that fits under the broad category of global illumination.
+The majority of global illumination techniques try to simulate real world lighting by casting rays into a 3D scene mimicking how real light particles actually illuminate areas.
+Almost all global illumination techniques are too computationally expensive to perform in real time, and so there has been a large amount of research into approximation techniques so that we can have real time global illumination.
+One such approximation technique is screen space ambient occlusion.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Screen space ambient occlusion starts like most global illumination techniques by casting random rays into a 3D scene and accumulating the results.
+However, instead of determining how much light each point in the scene receives, we instead determine how much light each point does not receive due to occlusion caused by objects blocking the rays.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now there are many ways to implement SSAO in DirectX 11.
+The most popular of which is to use just a depth buffer and normal buffer, and then calculate a small number of random ray casts for a radius of pixels around each pixel in the depth buffer.
+If the ray casts do intersect a surface before reaching the depth of the current pixel we have an occlusion.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+However, since we just finished a deferred rendering tutorial, I would like to instead use one of the ssao techniques that does takes advantage of deferred rendering.
+With deferred rendering our scene is already rendered out to a G buffer, so we already have all the information we need (positions and normals) to perform ssao without the need of a depth buffer and projection calculations.
+The only change from the previous tutorial is that we need to make sure our vertex shader is rendering out our position and normals in view space.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Once we have a G buffer with position and normal in view space we can do the same type of pixel sampling in a radius around our current pixel, and then sum up the occlusions that occur.
+We do this for each pixel and then render it out to its own texture called the ambient occlusion map.
+In this tutorial we will use a sphere model on a flat plane model, and the resulting ambient occlusion map will look like the following:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6069.gif" width="500" height="280"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Once we have our ambient occlusion map, we can just pass it into any of our deferred light shaders and we can use that as the ambient value.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+And so, our previous light shaders used a set ambient lighting value which produced a sharp lighting look:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6067.gif" width="802" height="452"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+But once we start using ssao for the ambient lighting we get a softer and more realistic ambient light appearance:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6068.gif" width="802" height="452"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now since we are doing this in real time, we can only use a limited number of samples per pixel.
+This causes the resulting ambient occlusion map to look rough and spotty:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6070.gif" width="600" height="400"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+To correct this side effect, we will be doing an edge aware horizontal and vertical blur on the ambient occlusion map to create a smoother AO map:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6071.gif" width="500" height="282"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+And now when we use the blurred ambient occlusion map as our ambient value, we can get a more realistic looking scene:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6072.gif" width="500" height="282"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The framework for this tutorial is similar to the deferred shading tutorial framework.
+However, a number of the classes have been modified to support ambient occlusion.
+We also have added three new shaders named GBufferShaderClass, SsaoShaderClass, and SsaoBlurShaderClass.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6073.gif" width="1387" height="206"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredbuffersclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The DeferredBuffersClass has been updated since the last tutorial.
+We now use three different buffers to create our G buffer for deferred shading.
+It now supports position, normal, and color.
+We have also added functions to clearly indicate which buffer you are calling when you do a GetShaderResource function call.
+Also, the initialization has been mostly moved into a BuildRenderTexture function which encapsulates the building of the different buffer types.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferredbuffersclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _DEFERREDBUFFERSCLASS_H_
+#define _DEFERREDBUFFERSCLASS_H_
+
+
+/////////////
+// DEFINES //
+/////////////
+const int BUFFER_COUNT = 3;
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;d3d11.h&gt;
+#include &lt;directxmath.h&gt;
+using namespace DirectX;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: DeferredBuffersClass
+////////////////////////////////////////////////////////////////////////////////
+class DeferredBuffersClass
+{
+public:
+    DeferredBuffersClass();
+    DeferredBuffersClass(const DeferredBuffersClass&);
+    ~DeferredBuffersClass();
+
+    bool Initialize(ID3D11Device*, int, int, float, float);
+    void Shutdown();
+
+    void SetRenderTargets(ID3D11DeviceContext*);
+    void ClearRenderTargets(ID3D11DeviceContext*, float, float, float, float);
+
+    ID3D11ShaderResourceView* GetShaderResourcePositions();
+    ID3D11ShaderResourceView* GetShaderResourceNormals();
+    ID3D11ShaderResourceView* GetShaderResourceColors();
+
+    void GetProjectionMatrix(XMMATRIX&);
+    void GetOrthoMatrix(XMMATRIX&);
+
+    int GetTextureWidth();
+    int GetTextureHeight();
+
+private:
+    bool BuildRenderTexture(DXGI_FORMAT, int, ID3D11Device*);
+
+private:
+    int m_textureWidth, m_textureHeight;
+    ID3D11Texture2D* m_renderTargetTextureArray[BUFFER_COUNT];
+    ID3D11RenderTargetView* m_renderTargetViewArray[BUFFER_COUNT];
+    ID3D11ShaderResourceView* m_shaderResourceViewArray[BUFFER_COUNT];
+    ID3D11Texture2D* m_depthStencilBuffer;
+    ID3D11DepthStencilView* m_depthStencilView;
+    D3D11_VIEWPORT m_viewport;
+    XMMATRIX m_projectionMatrix;
+    XMMATRIX m_orthoMatrix;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredbuffersclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferredbuffersclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "deferredbuffersclass.h"
+
+
+DeferredBuffersClass::DeferredBuffersClass()
+{
+    int i;
+
+    for(i=0; i&lt;BUFFER_COUNT; i++)
+    {
+        m_renderTargetTextureArray[i] = 0;
+        m_renderTargetViewArray[i] = 0;
+        m_shaderResourceViewArray[i] = 0;
+    }
+
+    m_depthStencilBuffer = 0;
+    m_depthStencilView = 0;
+}
+
+
+DeferredBuffersClass::DeferredBuffersClass(const DeferredBuffersClass& other)
+{
+}
+
+
+DeferredBuffersClass::~DeferredBuffersClass()
+{
+}
+
+
+bool DeferredBuffersClass::Initialize(ID3D11Device* device, int textureWidth, int textureHeight, float screenDepth, float screenNear)
+{
+    HRESULT result;
+    D3D11_TEXTURE2D_DESC depthBufferDesc;
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+    bool result2;
+
+
+    // Store the width and height of the render texture.
+    m_textureWidth = textureWidth;
+    m_textureHeight = textureHeight;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now call the BuildRenderTexture functions to build our different render texture buffers since they will use different formats for each.
+It also cleans up a lot of the initialization code.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the positions render texture.
+    result2 = BuildRenderTexture(DXGI_FORMAT_R32G32B32A32_FLOAT, 0, device);
+    if(!result2)
+    {
+        return false;
+    }
+
+    // Create the normals render texture.
+    result2 = BuildRenderTexture(DXGI_FORMAT_R32G32B32A32_FLOAT, 1, device);
+    if(!result2)
+    {
+        return false;
+    }
+	
+    // Create the colors render texture.
+    result2 = BuildRenderTexture(DXGI_FORMAT_R8G8B8A8_UNORM, 2, device);
+    if(!result2)
+    {
+        return false;
+    }
+
+    // Initialize the description of the depth buffer.
+    ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
+
+    // Set up the description of the depth buffer.
+    depthBufferDesc.Width = textureWidth;
+    depthBufferDesc.Height = textureHeight;
+    depthBufferDesc.MipLevels = 1;
+    depthBufferDesc.ArraySize = 1;
+    depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthBufferDesc.SampleDesc.Count = 1;
+    depthBufferDesc.SampleDesc.Quality = 0;
+    depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthBufferDesc.CPUAccessFlags = 0;
+    depthBufferDesc.MiscFlags = 0;
+
+    // Create the texture for the depth buffer using the filled out description.
+    result = device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Initailze the depth stencil view description.
+    ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
+
+    // Set up the depth stencil view description.
+    depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+    // Create the depth stencil view.
+    result = device->CreateDepthStencilView(m_depthStencilBuffer, &depthStencilViewDesc, &m_depthStencilView);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the viewport for rendering.
+    m_viewport.Width = (float)textureWidth;
+    m_viewport.Height = (float)textureHeight;
+    m_viewport.MinDepth = 0.0f;
+    m_viewport.MaxDepth = 1.0f;
+    m_viewport.TopLeftX = 0.0f;
+    m_viewport.TopLeftY = 0.0f;
+
+    // Setup the projection matrix.
+    m_projectionMatrix = XMMatrixPerspectiveFovLH((3.141592654f / 4.0f), ((float)textureWidth / (float)textureHeight), screenNear, screenDepth);
+
+    // Create an orthographic projection matrix for 2D rendering.
+    m_orthoMatrix = XMMatrixOrthographicLH((float)textureWidth, (float)textureHeight, screenNear, screenDepth);
+
+    return true;
+}
+
+
+void DeferredBuffersClass::Shutdown()
+{
+    int i;
+
+
+    if(m_depthStencilView)
+    {
+        m_depthStencilView->Release();
+        m_depthStencilView = 0;
+    }
+
+    if(m_depthStencilBuffer)
+    {
+        m_depthStencilBuffer->Release();
+        m_depthStencilBuffer = 0;
+    }
+
+    for(i=0; i&lt;BUFFER_COUNT; i++)
+    {
+        if(m_shaderResourceViewArray[i])
+        {
+            m_shaderResourceViewArray[i]->Release();
+            m_shaderResourceViewArray[i] = 0;
+        }
+
+        if(m_renderTargetViewArray[i])
+        {
+            m_renderTargetViewArray[i]->Release();
+            m_renderTargetViewArray[i] = 0;
+        }
+
+        if(m_renderTargetTextureArray[i])
+        {
+            m_renderTargetTextureArray[i]->Release();
+            m_renderTargetTextureArray[i] = 0;
+        }
+    }
+
+    return;
+}
+
+
+void DeferredBuffersClass::SetRenderTargets(ID3D11DeviceContext* deviceContext)
+{
+    // Bind the render target view array and depth stencil buffer to the output render pipeline.
+    deviceContext->OMSetRenderTargets(BUFFER_COUNT, m_renderTargetViewArray, m_depthStencilView);
+	
+    // Set the viewport.
+    deviceContext->RSSetViewports(1, &m_viewport);
+	
+    return;
+}
+
+
+void DeferredBuffersClass::ClearRenderTargets(ID3D11DeviceContext* deviceContext, float red, float green, float blue, float alpha)
+{
+    float color[4];
+    int i;
+
+
+    // Setup the color to clear the buffer to.
+    color[0] = red;
+    color[1] = green;
+    color[2] = blue;
+    color[3] = alpha;
+
+    // Clear the render target buffers.
+    for(i=0; i&lt;BUFFER_COUNT; i++)
+    {
+        deviceContext->ClearRenderTargetView(m_renderTargetViewArray[i], color);
+    }
+
+    // Clear the depth buffer.
+    deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the new BuildRenderTexture function that we moved the initialization code into.
+We have made it more generic for building any type of buffer format.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool DeferredBuffersClass::BuildRenderTexture(DXGI_FORMAT rtFormat, int arraySlot, ID3D11Device* device)
+{
+    HRESULT result;
+    D3D11_TEXTURE2D_DESC textureDesc;
+    D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+
+
+    // Initialize the render target texture description.
+    ZeroMemory(&textureDesc, sizeof(textureDesc));
+
+    // Setup the render target texture description.
+    textureDesc.Width = m_textureWidth;
+    textureDesc.Height = m_textureHeight;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = rtFormat;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
+
+    // Create the render target texture.
+    result = device->CreateTexture2D(&textureDesc, NULL, &m_renderTargetTextureArray[arraySlot]);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the render target view.
+    renderTargetViewDesc.Format = textureDesc.Format;
+    renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    renderTargetViewDesc.Texture2D.MipSlice = 0;
+
+    // Create the render target views.
+    result = device->CreateRenderTargetView(m_renderTargetTextureArray[arraySlot], &renderTargetViewDesc, &m_renderTargetViewArray[arraySlot]);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the shader resource view.
+    shaderResourceViewDesc.Format = textureDesc.Format;
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+    // Create the shader resource views.
+    result = device->CreateShaderResourceView(m_renderTargetTextureArray[arraySlot], &shaderResourceViewDesc, &m_shaderResourceViewArray[arraySlot]);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void DeferredBuffersClass::GetProjectionMatrix(XMMATRIX& projectionMatrix)
+{
+    projectionMatrix = m_projectionMatrix;
+    return;
+}
+
+
+void DeferredBuffersClass::GetOrthoMatrix(XMMATRIX& orthoMatrix)
+{
+    orthoMatrix = m_orthoMatrix;
+    return;
+}
+
+
+int DeferredBuffersClass::GetTextureWidth()
+{
+    return m_textureWidth;
+}
+
+
+int DeferredBuffersClass::GetTextureHeight()
+{
+    return m_textureHeight;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These are the new GetShaderResource functions for returning the position, normal, or color buffers for rendering with.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>ID3D11ShaderResourceView* DeferredBuffersClass::GetShaderResourcePositions()
+{
+    return m_shaderResourceViewArray[0];
+}
+
+
+ID3D11ShaderResourceView* DeferredBuffersClass::GetShaderResourceNormals()
+{
+    return m_shaderResourceViewArray[1];
+}
+
+
+ID3D11ShaderResourceView* DeferredBuffersClass::GetShaderResourceColors()
+{
+    return m_shaderResourceViewArray[2];
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffer.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Gbuffer shader is not actually a new shader.
+We have taken the deferred.vs and deferred.ps shaders from the previous tutorial and renamed them gbuffer.
+They will also work differently as we need the position and normals outputted in view space to perform ssao calculations easily.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffer.vs
+////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer MatrixBuffer
+{
+    matrix worldMatrix;
+    matrix viewMatrix;
+    matrix projectionMatrix;
+};
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct VertexInputType
+{
+    float4 position : POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float4 viewPosition : POSITION;
+    float3 normal : NORMAL;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+PixelInputType GBufferVertexShader(VertexInputType input)
+{
+    PixelInputType output;
+
+
+    // Change the position vector to be 4 units for proper matrix calculations.
+    input.position.w = 1.0f;
+
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    output.position = mul(input.position, worldMatrix);
+    output.position = mul(output.position, viewMatrix);
+    output.position = mul(output.position, projectionMatrix);
+
+    // Store the texture coordinates for the pixel shader.
+    output.tex = input.tex;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we now transform the position and normal into view space before sending them to the pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>    // Transform the position into view space.
+    output.viewPosition = mul(input.position, worldMatrix);
+    output.viewPosition = mul(output.viewPosition, viewMatrix);
+    
+    // Transform the normals into view space.
+    output.normal = mul(input.normal, (float3x3)worldMatrix);
+    output.normal = mul(output.normal, (float3x3)viewMatrix);
+
+    return output;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffer.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffer.ps
+////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////
+// SAMPLE STATES //
+///////////////////
+SamplerState SampleTypeClamp : register(s0);
+
+
+//////////////
+// TEXTURES //
+//////////////
+Texture2D shaderTexture : register(t0);
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float4 viewPosition : POSITION;
+    float3 normal : NORMAL;
+};
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The output will now be three render targets instead of just two since we are also outputting the position.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>struct PixelOutputType
+{
+    float4 position : SV_Target0;
+    float4 normal : SV_Target1;
+    float4 color : SV_Target2;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+PixelOutputType GBufferPixelShader(PixelInputType input) : SV_TARGET
+{
+    PixelOutputType output;
+
+
+    // Store the view space position into the RGB of the render to texture.
+    output.position = float4(input.viewPosition.x, input.viewPosition.y, input.viewPosition.z, 1.0f);
+
+    // Normalize the interpolated input normals.
+    input.normal = normalize(input.normal);
+	
+    // Set the ouput data to be the normals into the RGB of the render to texture.
+    output.normal = float4(input.normal.x, input.normal.y, input.normal.z, 1.0f);
+
+    // Sample the color from the texture and store it for output to the render target.
+    output.color = shaderTexture.Sample(SampleTypeClamp, input.tex);
+
+    return output;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffershaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The GBufferShaderClass is exactly like the DeferredShaderClass except for the changing of the names of the HLSL shaders.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffershaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _GBUFFERSHADERCLASS_H_
+#define _GBUFFERSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;d3d11.h&gt;
+#include &lt;d3dcompiler.h&gt;
+#include &lt;directxmath.h&gt;
+#include &lt;fstream&gt;
+using namespace DirectX;
+using namespace std;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: GBufferShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class GBufferShaderClass
+{
+private:
+    struct MatrixBufferType
+    {
+        XMMATRIX world;
+        XMMATRIX view;
+        XMMATRIX projection;
+    };
+
+public:
+    GBufferShaderClass();
+    GBufferShaderClass(const GBufferShaderClass&);
+    ~GBufferShaderClass();
+
+    bool Initialize(ID3D11Device*, HWND);
+    void Shutdown();
+    bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*);
+
+private:
+    bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
+    void ShutdownShader();
+    void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
+
+    bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*);
+    void RenderShader(ID3D11DeviceContext*, int);
+
+private:
+    ID3D11VertexShader* m_vertexShader;
+    ID3D11PixelShader* m_pixelShader;
+    ID3D11InputLayout* m_layout;
+    ID3D11SamplerState* m_sampleState;
+    ID3D11Buffer* m_matrixBuffer;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffershaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffershaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "gbuffershaderclass.h"
+
+
+GBufferShaderClass::GBufferShaderClass()
+{
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    m_layout = 0;
+    m_sampleState = 0;
+    m_matrixBuffer = 0;
+}
+
+
+GBufferShaderClass::GBufferShaderClass(const GBufferShaderClass& other)
+{
+}
+
+
+GBufferShaderClass::~GBufferShaderClass()
+{
+}
+
+
+bool GBufferShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
+{
+    wchar_t vsFilename[128], psFilename[128];
+    int error;
+    bool result;
+
+
+    // Set the filename of the vertex shader.
+    error = wcscpy_s(vsFilename, 128, L"../Engine/gbuffer.vs");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Set the filename of the pixel shader.
+    error = wcscpy_s(psFilename, 128, L"../Engine/gbuffer.ps");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(device, hwnd, vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void GBufferShaderClass::Shutdown()
+{
+    // Shutdown the vertex and pixel shaders as well as the related objects.
+    ShutdownShader();
+
+    return;
+}
+
+
+bool GBufferShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* texture)
+{
+    bool result;
+
+
+    // Set the shader parameters that it will use for rendering.
+    result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Now render the prepared buffers with the shader.
+    RenderShader(deviceContext, indexCount);
+
+    return true;
+}
+
+
+bool GBufferShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+{
+    HRESULT result;
+    ID3D10Blob* errorMessage;
+    ID3D10Blob* vertexShaderBuffer;
+    ID3D10Blob* pixelShaderBuffer;
+    D3D11_INPUT_ELEMENT_DESC polygonLayout[3];
+    unsigned int numElements;
+    D3D11_SAMPLER_DESC samplerDesc;
+    D3D11_BUFFER_DESC matrixBufferDesc;
+
+
+    // Initialize the pointers this function will use to null.
+    errorMessage = 0;
+    vertexShaderBuffer = 0;
+    pixelShaderBuffer = 0;
+
+    // Compile the vertex shader code.
+    result = D3DCompileFromFile(vsFilename, NULL, NULL, "GBufferVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the shader file itself.
+        else
+        {
+            MessageBox(hwnd, vsFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Compile the pixel shader code.
+    result = D3DCompileFromFile(psFilename, NULL, NULL, "GBufferPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the file itself.
+        else
+        {
+            MessageBox(hwnd, psFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Create the vertex shader from the buffer.
+    result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the pixel shader from the buffer.
+    result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the vertex input layout description.
+    polygonLayout[0].SemanticName = "POSITION";
+    polygonLayout[0].SemanticIndex = 0;
+    polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+    polygonLayout[0].InputSlot = 0;
+    polygonLayout[0].AlignedByteOffset = 0;
+    polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[0].InstanceDataStepRate = 0;
+
+    polygonLayout[1].SemanticName = "TEXCOORD";
+    polygonLayout[1].SemanticIndex = 0;
+    polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+    polygonLayout[1].InputSlot = 0;
+    polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+    polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[1].InstanceDataStepRate = 0;
+
+    polygonLayout[2].SemanticName = "NORMAL";
+    polygonLayout[2].SemanticIndex = 0;
+    polygonLayout[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+    polygonLayout[2].InputSlot = 0;
+    polygonLayout[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+    polygonLayout[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[2].InstanceDataStepRate = 0;
+
+    // Get a count of the elements in the layout.
+    numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+    // Create the vertex input layout.
+    result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), 
+                                       &m_layout);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+    vertexShaderBuffer->Release();
+    vertexShaderBuffer = 0;
+
+    pixelShaderBuffer->Release();
+    pixelShaderBuffer = 0;
+
+    // Create a texture sampler state description.
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    samplerDesc.BorderColor[0] = 0;
+    samplerDesc.BorderColor[1] = 0;
+    samplerDesc.BorderColor[2] = 0;
+    samplerDesc.BorderColor[3] = 0;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    // Create the texture sampler state.
+    result = device->CreateSamplerState(&samplerDesc, &m_sampleState);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+    matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+    matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    matrixBufferDesc.MiscFlags = 0;
+    matrixBufferDesc.StructureByteStride = 0;
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void GBufferShaderClass::ShutdownShader()
+{
+    // Release the matrix constant buffer.
+    if(m_matrixBuffer)
+    {
+        m_matrixBuffer->Release();
+        m_matrixBuffer = 0;
+    }
+
+    // Release the sampler state.
+    if(m_sampleState)
+    {
+        m_sampleState->Release();
+        m_sampleState = 0;
+    }
+
+    // Release the layout.
+    if(m_layout)
+    {
+        m_layout->Release();
+        m_layout = 0;
+    }
+
+    // Release the pixel shader.
+    if(m_pixelShader)
+    {
+        m_pixelShader->Release();
+        m_pixelShader = 0;
+    }
+
+    // Release the vertex shader.
+    if(m_vertexShader)
+    {
+        m_vertexShader->Release();
+        m_vertexShader = 0;
+    }
+
+    return;
+}
+
+
+void GBufferShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+{
+    char* compileErrors;
+    unsigned __int64 bufferSize, i;
+    ofstream fout;
+
+
+    // Get a pointer to the error message text buffer.
+    compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+    // Get the length of the message.
+    bufferSize = errorMessage->GetBufferSize();
+
+    // Open a file to write the error message to.
+    fout.open("shader-error.txt");
+
+    // Write out the error message.
+    for(i=0; i&lt;bufferSize; i++)
+    {
+        fout << compileErrors[i];
+    }
+
+    // Close the file.
+    fout.close();
+
+    // Release the error message.
+    errorMessage->Release();
+    errorMessage = 0;
+
+    // Pop a message up on the screen to notify the user to check the text file for compile errors.
+    MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
+
+    return;
+}
+
+
+bool GBufferShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, 
+                                             ID3D11ShaderResourceView* texture)
+{
+    HRESULT result;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    unsigned int bufferNumber;
+    MatrixBufferType* dataPtr;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    worldMatrix = XMMatrixTranspose(worldMatrix);
+    viewMatrix = XMMatrixTranspose(viewMatrix);
+    projectionMatrix = XMMatrixTranspose(projectionMatrix);
+
+    // Lock the constant buffer so it can be written to.
+    result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the constant buffer.
+    dataPtr = (MatrixBufferType*)mappedResource.pData;
+
+    // Copy the matrices into the constant buffer.
+    dataPtr->world = worldMatrix;
+    dataPtr->view = viewMatrix;
+    dataPtr->projection = projectionMatrix;
+
+    // Unlock the constant buffer.
+    deviceContext->Unmap(m_matrixBuffer, 0);
+
+    // Set the position of the constant buffer in the vertex shader.
+    bufferNumber = 0;
+
+    // Now set the constant buffer in the vertex shader with the updated values.
+    deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+
+    // Set shader texture resource in the pixel shader.
+    deviceContext->PSSetShaderResources(0, 1, &texture);
+
+    return true;
+}
+
+
+void GBufferShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+{
+    // Set the vertex input layout.
+    deviceContext->IASetInputLayout(m_layout);
+
+    // Set the vertex and pixel shaders that will be used to render.
+    deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+    deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+
+    // Set the sampler state in the pixel shader.
+    deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+    // Render the geometry.
+    deviceContext->DrawIndexed(indexCount, 0, 0);
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Rendertextureclass.cpp</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The RenderTextureClass::Initialize function has had one change in this tutorial.
+We have added a second texture format called DXGI_FORMAT_R32_FLOAT.
+Most of the Ssao textures will just be rendering out in gray scale so we won't need 4 channels of color.
+Also, it will be a floating-point value instead of an unsigned integer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool RenderTextureClass::Initialize(ID3D11Device* device, int textureWidth, int textureHeight, float screenDepth, float screenNear, int format)
+{
+    D3D11_TEXTURE2D_DESC textureDesc;
+    HRESULT result;
+    D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+    D3D11_TEXTURE2D_DESC depthBufferDesc;
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+    DXGI_FORMAT textureFormat;
+
+
+    // Set the texture format.
+    switch(format)
+    {
+        case 1:
+        {
+            textureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+            break;
+        }
+        case 2:
+        {
+            textureFormat = DXGI_FORMAT_R32_FLOAT;
+            break;
+        }
+        default:
+        {
+            textureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+            break;
+        }
+    }
+
+    // Store the width and height of the render texture.
+    m_textureWidth = textureWidth;
+    m_textureHeight = textureHeight;
+
+    // Initialize the render target texture description.
+    ZeroMemory(&textureDesc, sizeof(textureDesc));
+
+    // Setup the render target texture description.
+    textureDesc.Width = textureWidth;
+    textureDesc.Height = textureHeight;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = textureFormat;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
+
+    // Create the render target texture.
+    result = device->CreateTexture2D(&textureDesc, NULL, &m_renderTargetTexture);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the render target view.
+    renderTargetViewDesc.Format = textureDesc.Format;
+    renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    renderTargetViewDesc.Texture2D.MipSlice = 0;
+
+    // Create the render target view.
+    result = device->CreateRenderTargetView(m_renderTargetTexture, &renderTargetViewDesc, &m_renderTargetView);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the shader resource view.
+    shaderResourceViewDesc.Format = textureDesc.Format;
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
+    shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+    // Create the shader resource view.
+    result = device->CreateShaderResourceView(m_renderTargetTexture, &shaderResourceViewDesc, &m_shaderResourceView);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Initialize the description of the depth buffer.
+    ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
+
+    // Set up the description of the depth buffer.
+    depthBufferDesc.Width = textureWidth;
+    depthBufferDesc.Height = textureHeight;
+    depthBufferDesc.MipLevels = 1;
+    depthBufferDesc.ArraySize = 1;
+    depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthBufferDesc.SampleDesc.Count = 1;
+    depthBufferDesc.SampleDesc.Quality = 0;
+    depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthBufferDesc.CPUAccessFlags = 0;
+    depthBufferDesc.MiscFlags = 0;
+
+    // Create the texture for the depth buffer using the filled out description.
+    result = device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Initailze the depth stencil view description.
+    ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
+
+    // Set up the depth stencil view description.
+    depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+    // Create the depth stencil view.
+    result = device->CreateDepthStencilView(m_depthStencilBuffer, &depthStencilViewDesc, &m_depthStencilView);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the viewport for rendering.
+    m_viewport.Width = (float)textureWidth;
+    m_viewport.Height = (float)textureHeight;
+    m_viewport.MinDepth = 0.0f;
+    m_viewport.MaxDepth = 1.0f;
+    m_viewport.TopLeftX = 0;
+    m_viewport.TopLeftY = 0;
+
+    // Setup the projection matrix.
+    m_projectionMatrix = XMMatrixPerspectiveFovLH((3.141592654f / 4.0f), ((float)textureWidth / (float)textureHeight), screenNear, screenDepth);
+
+    // Create an orthographic projection matrix for 2D rendering.
+    m_orthoMatrix = XMMatrixOrthographicLH((float)textureWidth, (float)textureHeight, screenNear, screenDepth);
+
+    return true;
+}
+</FONT></PRE>
+
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssao.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Ssao vertex shader will just be our standard vertex shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssao.vs
+////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer MatrixBuffer
+{
+    matrix worldMatrix;
+    matrix viewMatrix;
+    matrix projectionMatrix;
+};
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct VertexInputType
+{
+    float4 position : POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+PixelInputType SsaoVertexShader(VertexInputType input)
+{
+    PixelInputType output;
+    
+
+    // Change the position vector to be 4 units for proper matrix calculations.
+    input.position.w = 1.0f;
+
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    output.position = mul(input.position, worldMatrix);
+    output.position = mul(output.position, viewMatrix);
+    output.position = mul(output.position, projectionMatrix);
+    
+    // Store the texture coordinates for the pixel shader.
+    output.tex = input.tex;
+    
+    return output;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssao.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssao.ps
+////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////
+// CONSTANT BUFFERS //
+//////////////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will have a number of input parameters to control the look of the ssao map.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>cbuffer SsaoBuffer
+{
+    float screenWidth;
+    float screenHeight;
+    float randomTextureSize;
+    float sampleRadius;
+    float ssaoScale;
+    float ssaoBias;
+    float ssaoIntensity;
+    float padding;
+};
+
+
+//////////////
+// TEXTURES //
+//////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The positionTexture and normalTexture are the position and normals from the G buffer.
+The randomTexture is a 64x64 texture full of random vectors to make the sampling random as possible.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>Texture2D positionTexture : register(t0);
+Texture2D normalTexture : register(t1);
+Texture2D randomTexture : register(t2);
+
+
+//////////////
+// SAMPLERS //
+//////////////
+SamplerState SampleTypeWrap : register(s0);
+SamplerState SampleTypeClamp : register(s1);
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have created a function for performing the ambient occlusion calculation.
+The reason the equation sits in its own function is because we will need to call this function multiple times in the pixel shader with different texture coordinates to perform multiple ray casts.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Functions
+////////////////////////////////////////////////////////////////////////////////
+float AmbientOcclusionFunction(float2 texCoords, float2 uv, float3 position, float3 normal)
+{
+    float3 posVector;
+    float3 vec;
+    float distance;
+    float occlusion;
+
+
+    // Get the position vector from the position portion of the G buffer.
+    posVector = positionTexture.Sample(SampleTypeClamp, (texCoords + uv));
+
+    // Subtract the input position.
+    posVector = posVector - position;
+
+    // Normalize the result to get the vector between the occluder and the pixel being occluded.
+    vec = normalize(posVector);
+	
+    // Calculate distance of occluder.
+    distance = length(posVector) * ssaoScale;
+
+    // Calculate the ambient occlusion.
+    occlusion = max(0.0, dot(normal, vec) - ssaoBias) * (1.0f / (1.0f + distance)) * ssaoIntensity;
+
+    return occlusion;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SsaoPixelShader works by setting up all the ray casts as texture coordinates.
+It then loops through all the ray casts and calls the AmbientOcclusionFunction function for each of them.
+Once they are all done it sums up the results and then takes an average.
+We also invert the output as we usually work with the inverted data result in the shaders that will use the resulting ambient occlusion map as an input.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+float SsaoPixelShader(PixelInputType input) : SV_TARGET
+{
+    float3 position;
+    float3 normal;
+    float2 texCoords;
+    float2 randomVector;
+    float2 vectorArray[4];
+    float ambientOcclusion;
+    float radius;
+    int count;
+    int i;
+    float2 texCoord1;
+    float2 texCoord2;
+
+
+    // Get the position from the G buffer.
+    position = positionTexture.Sample(SampleTypeClamp, input.tex);
+
+    // Get the normal from the G buffer.
+    normal = normalTexture.Sample(SampleTypeClamp, input.tex);
+
+    // Expand the range of the normal value from (0, +1) to (-1, +1) and normalize it.
+    normal = (normal * 2.0f) - 1.0f;
+    normal = normalize(normal);
+
+    // Setup the random texture sampling coordinates for the random vector
+    texCoords.x = screenWidth / randomTextureSize;
+    texCoords.y = screenHeight / randomTextureSize;
+    texCoords = texCoords * input.tex;
+
+    // Sample a random vector from the random vector texture.
+    randomVector = randomTexture.Sample(SampleTypeWrap, texCoords).xy;
+
+    // Move the random vector into the -1.0 to +1.0 range and normalize it.
+    randomVector = (randomVector * 2.0f) - 1.0f;
+    randomVector = normalize(randomVector);
+
+    // Setup four vectors for sampling with.
+    vectorArray[0] = float2( 1.0f,  0.0f);
+    vectorArray[1] = float2(-1.0f,  0.0f);
+    vectorArray[2] = float2( 0.0f,  1.0f);
+    vectorArray[3] = float2( 0.0f, -1.0f);
+
+    // Set the sample radius to take into account the depth of the pixel.
+    radius = sampleRadius / position.z;
+
+    // Set the number of loops to calculate the ssao effect with.
+    count = 4;
+
+    // Initialize the ambient occlusion to zero.
+    ambientOcclusion = 0.0f;
+
+    // Loop and calculate the ambient occlusion sum using random vector sampling.
+    for(i=0; i&lt;count; i++)
+    {
+        // Set the coordinates of our random sample.
+        texCoord1 = reflect(vectorArray[i], randomVector) * radius;
+        texCoord2 = float2(((texCoord1.x * 0.7f) - (texCoord1.y * 0.7f)), ((texCoord1.x * 0.7f) + (texCoord1.y * 0.7f)));
+
+        // Perform the ao sampling from the four coordinate locations.
+        ambientOcclusion += AmbientOcclusionFunction(input.tex, (texCoord1 * 0.25f), position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(input.tex, (texCoord2 * 0.5f),  position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(input.tex, (texCoord1 * 0.75f), position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(input.tex, (texCoord2 * 1.0f),  position, normal);
+    }
+
+    // Take an average of the sum based on how many loops we ran.
+    ambientOcclusion = ambientOcclusion / ((float)count * 4.0f);
+
+    // Invert the ambient occlusion output.
+    ambientOcclusion = 1.0f - ambientOcclusion;
+
+    return ambientOcclusion;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoshaderclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SSAOSHADERCLASS_H_
+#define _SSAOSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;d3d11.h&gt;
+#include &lt;d3dcompiler.h&gt;
+#include &lt;directxmath.h&gt;
+#include &lt;fstream&gt;
+using namespace DirectX;
+using namespace std;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SsaoShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class SsaoShaderClass
+{
+private:
+    struct MatrixBufferType
+    {
+        XMMATRIX world;
+        XMMATRIX view;
+        XMMATRIX projection;
+    };
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SsaoBufferType allows use to control the look of the ssao effect.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    struct SsaoBufferType
+    {
+        float screenWidth;
+        float screenHeight;
+        float randomTextureSize;
+        float sampleRadius;
+        float ssaoScale;
+        float ssaoBias;
+        float ssaoIntensity;
+        float padding;
+    };
+
+public:
+    SsaoShaderClass();
+    SsaoShaderClass(const SsaoShaderClass&);
+    ~SsaoShaderClass();
+
+    bool Initialize(ID3D11Device*, HWND);
+    void Shutdown();
+    bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*,
+                float, float, float, float, float, float, float);
+
+private:
+    bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
+    void ShutdownShader();
+    void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
+
+    bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*,
+                             float, float, float, float, float, float, float);
+    void RenderShader(ID3D11DeviceContext*, int);
+
+private:
+    ID3D11VertexShader* m_vertexShader;
+    ID3D11PixelShader* m_pixelShader;
+    ID3D11InputLayout* m_layout;
+    ID3D11Buffer* m_matrixBuffer;
+    ID3D11SamplerState* m_sampleStateWrap;
+    ID3D11SamplerState* m_sampleStateClamp;
+    ID3D11Buffer* m_ssaoBuffer;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "ssaoshaderclass.h"
+
+
+SsaoShaderClass::SsaoShaderClass()
+{
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    m_layout = 0;
+    m_matrixBuffer = 0;
+    m_sampleStateWrap = 0;
+    m_sampleStateClamp = 0;
+    m_ssaoBuffer = 0;
+}
+
+
+SsaoShaderClass::SsaoShaderClass(const SsaoShaderClass& other)
+{
+}
+
+
+SsaoShaderClass::~SsaoShaderClass()
+{
+}
+
+
+bool SsaoShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
+{
+    wchar_t vsFilename[128], psFilename[128];
+    int error;
+    bool result;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Load the ssao HLSL shaders.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the filename of the vertex shader.
+    error = wcscpy_s(vsFilename, 128, L"../Engine/ssao.vs");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Set the filename of the pixel shader.
+    error = wcscpy_s(psFilename, 128, L"../Engine/ssao.ps");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(device, hwnd, vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoShaderClass::Shutdown()
+{
+    // Shutdown the vertex and pixel shaders as well as the related objects.
+    ShutdownShader();
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Render function will take as input the position and normals from the G buffer.
+It also takes in our randomized vector texture that is used to randomize the sampling.
+It also takes in all the individual parameters for controlling the look of the ssao effect.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool SsaoShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* positionTexture,
+                             ID3D11ShaderResourceView* normalTexture, ID3D11ShaderResourceView* randomTexture, float screenWidth, float screenHeight, float randomTextureSize, float sampleRadius,
+                             float ssaoScale, float ssaoBias, float ssaoIntensity)
+{
+    bool result;
+
+
+    // Set the shader parameters that it will use for rendering.
+    result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, positionTexture, normalTexture, randomTexture, screenWidth, screenHeight, randomTextureSize, sampleRadius,
+                                 ssaoScale, ssaoBias, ssaoIntensity);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Now render the prepared buffers with the shader.
+    RenderShader(deviceContext, indexCount);
+
+    return true;
+}
+
+
+bool SsaoShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+{
+    HRESULT result;
+    ID3D10Blob* errorMessage;
+    ID3D10Blob* vertexShaderBuffer;
+    ID3D10Blob* pixelShaderBuffer;
+    D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+    unsigned int numElements;
+    D3D11_BUFFER_DESC matrixBufferDesc;
+    D3D11_SAMPLER_DESC samplerDesc;
+    D3D11_BUFFER_DESC ssaoBufferDesc;
+
+
+    // Initialize the pointers this function will use to null.
+    errorMessage = 0;
+    vertexShaderBuffer = 0;
+    pixelShaderBuffer = 0;
+
+    // Compile the vertex shader code.
+    result = D3DCompileFromFile(vsFilename, NULL, NULL, "SsaoVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the shader file itself.
+        else
+        {
+            MessageBox(hwnd, vsFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Compile the pixel shader code.
+    result = D3DCompileFromFile(psFilename, NULL, NULL, "SsaoPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the file itself.
+        else
+        {
+            MessageBox(hwnd, psFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Create the vertex shader from the buffer.
+    result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the pixel shader from the buffer.
+    result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the vertex input layout description.
+    polygonLayout[0].SemanticName = "POSITION";
+    polygonLayout[0].SemanticIndex = 0;
+    polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+    polygonLayout[0].InputSlot = 0;
+    polygonLayout[0].AlignedByteOffset = 0;
+    polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[0].InstanceDataStepRate = 0;
+
+    polygonLayout[1].SemanticName = "TEXCOORD";
+    polygonLayout[1].SemanticIndex = 0;
+    polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+    polygonLayout[1].InputSlot = 0;
+    polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+    polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[1].InstanceDataStepRate = 0;
+
+    // Get a count of the elements in the layout.
+    numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+    // Create the vertex input layout.
+    result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &m_layout);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+    vertexShaderBuffer->Release();
+    vertexShaderBuffer = 0;
+
+    pixelShaderBuffer->Release();
+    pixelShaderBuffer = 0;
+
+    // Setup the description of the dynamic constant buffer that is in the vertex shader.
+    matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+    matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    matrixBufferDesc.MiscFlags = 0;
+    matrixBufferDesc.StructureByteStride = 0;
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create a texture sampler state description.
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    samplerDesc.BorderColor[0] = 0;
+    samplerDesc.BorderColor[1] = 0;
+    samplerDesc.BorderColor[2] = 0;
+    samplerDesc.BorderColor[3] = 0;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    // Create the texture sampler state.
+    result = device->CreateSamplerState(&samplerDesc, &m_sampleStateWrap);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create a texture sampler state description.
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+
+    // Create the texture sampler state.
+    result = device->CreateSamplerState(&samplerDesc, &m_sampleStateClamp);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the dynamic constant buffer that is in the pixel shader.
+    ssaoBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    ssaoBufferDesc.ByteWidth = sizeof(SsaoBufferType);
+    ssaoBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    ssaoBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    ssaoBufferDesc.MiscFlags = 0;
+    ssaoBufferDesc.StructureByteStride = 0;
+
+    // Create the constant buffer pointer so we can access the pixel shader constant buffer from within this class.
+    result = device->CreateBuffer(&ssaoBufferDesc, NULL, &m_ssaoBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoShaderClass::ShutdownShader()
+{
+    // Release the ssao constant buffer.
+    if(m_ssaoBuffer)
+    {
+        m_ssaoBuffer->Release();
+        m_ssaoBuffer = 0;
+    }
+
+    // Release the sampler states.
+    if(m_sampleStateWrap)
+    {
+        m_sampleStateWrap->Release();
+        m_sampleStateWrap = 0;
+    }
+
+    if(m_sampleStateClamp)
+    {
+        m_sampleStateClamp->Release();
+        m_sampleStateClamp = 0;
+    }
+
+    // Release the matrix constant buffer.
+    if(m_matrixBuffer)
+    {
+        m_matrixBuffer->Release();
+        m_matrixBuffer = 0;
+    }
+
+    // Release the layout.
+    if(m_layout)
+    {
+        m_layout->Release();
+        m_layout = 0;
+    }
+
+    // Release the pixel shader.
+    if(m_pixelShader)
+    {
+        m_pixelShader->Release();
+        m_pixelShader = 0;
+    }
+
+    // Release the vertex shader.
+    if(m_vertexShader)
+    {
+        m_vertexShader->Release();
+        m_vertexShader = 0;
+    }
+
+    return;
+}
+
+
+void SsaoShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+{
+    char* compileErrors;
+    unsigned __int64 bufferSize, i;
+    ofstream fout;
+
+
+    // Get a pointer to the error message text buffer.
+    compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+    // Get the length of the message.
+    bufferSize = errorMessage->GetBufferSize();
+
+    // Open a file to write the error message to.
+    fout.open("shader-error.txt");
+
+    // Write out the error message.
+    for(i=0; i&lt;bufferSize; i++)
+    {
+        fout << compileErrors[i];
+    }
+
+    // Close the file.
+    fout.close();
+
+    // Release the error message.
+    errorMessage->Release();
+    errorMessage = 0;
+
+    // Pop a message up on the screen to notify the user to check the text file for compile errors.
+    MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
+
+    return;
+}
+
+
+bool SsaoShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* positionTexture,
+                                          ID3D11ShaderResourceView* normalTexture, ID3D11ShaderResourceView* randomTexture, float screenWidth, float screenHeight, float randomTextureSize, 
+                                          float sampleRadius, float ssaoScale, float ssaoBias, float ssaoIntensity)
+{
+    HRESULT result;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    MatrixBufferType* dataPtr;
+    unsigned int bufferNumber;
+    SsaoBufferType* dataPtr2;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    worldMatrix = XMMatrixTranspose(worldMatrix);
+    viewMatrix = XMMatrixTranspose(viewMatrix);
+    projectionMatrix = XMMatrixTranspose(projectionMatrix);
+
+    // Lock the martix constant buffer so it can be written to.
+    result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the matrix constant buffer.
+    dataPtr = (MatrixBufferType*)mappedResource.pData;
+
+    // Copy the matrices into the matrix constant buffer.
+    dataPtr->world = worldMatrix;
+    dataPtr->view = viewMatrix;
+    dataPtr->projection = projectionMatrix;
+
+    // Unlock the matrix constant buffer.
+    deviceContext->Unmap(m_matrixBuffer, 0);
+
+    // Set the position of the constant buffer in the vertex shader.
+    bufferNumber = 0;
+
+    // Now set the matrix constant buffer in the vertex shader with the updated values.
+    deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set the G buffer textures and the random vector texture in the pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set shader texture resources in the pixel shader.
+    deviceContext->PSSetShaderResources(0, 1, &positionTexture);
+    deviceContext->PSSetShaderResources(1, 1, &normalTexture);
+    deviceContext->PSSetShaderResources(2, 1, &randomTexture);
+	
+    // Lock the ssao constant buffer so it can be written to.
+    result = deviceContext->Map(m_ssaoBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the ssao constant buffer.
+    dataPtr2 = (SsaoBufferType*)mappedResource.pData;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set all of the ssao effect modification parameters here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Copy the data into the ssao constant buffer.
+    dataPtr2->screenWidth = screenWidth;
+    dataPtr2->screenHeight = screenHeight;
+    dataPtr2->randomTextureSize = randomTextureSize;
+    dataPtr2->sampleRadius = sampleRadius;
+    dataPtr2->ssaoScale = ssaoScale;
+    dataPtr2->ssaoBias = ssaoBias;
+    dataPtr2->ssaoIntensity = ssaoIntensity;
+    dataPtr2->padding = 0.0f;
+
+    // Unlock the ssao constant buffer.
+    deviceContext->Unmap(m_ssaoBuffer, 0);
+
+    // Set the position of the constant buffer in the pixel shader.
+    bufferNumber = 0;
+
+    // Now set the ssao constant buffer in the pixel shader with the updated values.
+    deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_ssaoBuffer);
+
+    return true;
+}
+
+
+void SsaoShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+{
+    // Set the vertex input layout.
+    deviceContext->IASetInputLayout(m_layout);
+
+    // Set the vertex and pixel shaders that will be used to render the triangles.
+    deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+    deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+
+    // Set the sampler states in the pixel shader.
+    deviceContext->PSSetSamplers(0, 1, &m_sampleStateWrap);
+    deviceContext->PSSetSamplers(1, 1, &m_sampleStateClamp);
+
+    // Render the geometry.
+    deviceContext->DrawIndexed(indexCount, 0, 0);
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblur.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SSAO blur vertex shader will be the standard vertex shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblur.vs
+////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer MatrixBuffer
+{
+    matrix worldMatrix;
+    matrix viewMatrix;
+    matrix projectionMatrix;
+};
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct VertexInputType
+{
+    float4 position : POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+PixelInputType SsaoBlurVertexShader(VertexInputType input)
+{
+    PixelInputType output;
+    
+
+    // Change the position vector to be 4 units for proper matrix calculations.
+    input.position.w = 1.0f;
+
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    output.position = mul(input.position, worldMatrix);
+    output.position = mul(output.position, viewMatrix);
+    output.position = mul(output.position, projectionMatrix);
+    
+    // Store the texture coordinates for the pixel shader.
+    output.tex = input.tex;
+    
+    return output;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblur.ps</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+To remove the roughness on the ambient occlusion map we need to perform a horizontal and vertical blur similar to tutorial 36.
+However, a regular blur would also blur over all the edges which would ruin the ssao effect.
+So, we need to incorporate a check to see if it is trying to blur over an edge, and if so, then not blur that portion of the map.
+Otherwise, it works the same as our traditional blur shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblur.ps
+////////////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////
+// CONSTANT BUFFERS //
+//////////////////////
+cbuffer ScreenBuffer
+{
+    float screenWidth;
+    float screenHeight;
+    float blurType;
+    float padding;
+};
+
+
+//////////////
+// SAMPLERS //
+//////////////
+SamplerState SampleTypePoint : register(s0);
+
+
+//////////////
+// TEXTURES //
+//////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SSAO blur will require the ambient occlusion map as well as the normals from the G buffer.
+It will be using the normals to determine where edges are located.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>Texture2D ssaoTexture : register(t0);
+Texture2D normalDepthTexture : register(t1);
+
+
+//////////////
+// TYPEDEFS //
+//////////////
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+float SsaoBlurPixelShader(PixelInputType input) : SV_TARGET
+{
+    float texelSize;
+    float2 texOffset;
+    int radius;
+    float colorSum;
+    float weightSum;
+    float4 centerDepth;
+    int i;
+    float2 tex;
+    float4 neighborDepth;
+    float ssaoValue;
+    float weight;
+
+
+    // Setup a horizontal blur if the blurType is 0.0f, otherwise setup a vertical blur.
+    if(blurType < 0.1f)
+    {
+        // Determine the floating point size of a texel for a screen with this specific width.
+        texelSize = 1.0f / screenWidth;
+        texOffset = float2(texelSize, 0.0f);
+    }
+    else
+    {
+        // Determine the floating point size of a texel for a screen with this specific height.
+        texelSize = 1.0f / screenHeight;
+        texOffset = float2(0.0f, texelSize);
+    }
+
+    // Set the blur radius.
+    radius = 5;
+
+    // Set an array of weights for how much a pixel contributes to the blur.
+    float weightArray[11] = { 0.05f, 0.05f, 0.1f, 0.1f, 0.1f, 0.2f, 0.1f, 0.1f, 0.1f, 0.05f, 0.05f};
+	
+    // Start the blurring sum with the center pixel first (array goes -radius to +radius).  SampleLevel will be used instead of Sample to make sure we are not sampling a mipmap.
+    colorSum = weightArray[radius] * ssaoTexture.SampleLevel(SampleTypePoint, input.tex, 0).r;
+    weightSum = weightArray[radius];
+
+    // Store the center pixel depth to help determine if we are encountering an edge or not.
+    centerDepth = normalDepthTexture.SampleLevel(SampleTypePoint, input.tex, 0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have changed the blur to use a for loop instead of manually defining all the sampling points.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>    // Loop through all the neighbor pixels.
+    for(i=-radius; i<=radius; i++)
+    {
+        // Skip the center as we started with it and it is in the sum already.
+        if(i==0)
+        {
+            continue;
+        }
+
+        // Offset the texture sampling coordinates by the position in the radius.
+        tex = input.tex + (i * texOffset);
+
+        // Point sample the neighbor pixel depth from the G buffer normals that are in view space.
+        neighborDepth = normalDepthTexture.SampleLevel(SampleTypePoint, tex, 0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here is the main difference from our regular blur shader.
+For this ssao blur we use the normals from our G buffer to determine if there is a large variation between the pixels.
+If there is a large variation then we are sampling across an edge, and we don't want to blur that pixel.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>        // We make the blur edge aware by only sampling values that do not differ too much.  If the normal or depth value varies wildly then we are sampling across a discontinuity, and that cannot be included in the blur averaging.
+        if(dot(neighborDepth.xyz, centerDepth.xyz) >= 0.8f)
+        {
+            // Sample the neighbor value from the ambient occlusion map.
+            ssaoValue = ssaoTexture.SampleLevel(SampleTypePoint, tex, 0).r;
+
+            // Get the weight that this pixel contributes to the blur from the weight array.
+            weight = weightArray[i + radius];
+
+            // Add neighbor ssao pixel to blur using the weight array to determine its contribution to the sum.
+            colorSum += (ssaoValue * weight);
+
+            // Increment the weight sum to perform an average later.
+            weightSum += weight;
+        }
+    }
+
+    // Get the blur average value based on the two sums.
+    colorSum = colorSum / weightSum;
+
+    return colorSum;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblurshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SsaoBlurShaderClass is similar to the original BlurShaderClass.
+However, it will take in the normals from the G buffer since the shader requires those for edge detection.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblurshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SSAOBLURSHADERCLASS_H_
+#define _SSAOBLURSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;d3d11.h&gt;
+#include &lt;d3dcompiler.h&gt;
+#include &lt;directxmath.h&gt;
+#include &lt;fstream&gt;
+using namespace DirectX;
+using namespace std;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SsaoBlurShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class SsaoBlurShaderClass
+{
+private:
+    struct MatrixBufferType
+    {
+        XMMATRIX world;
+        XMMATRIX view;
+        XMMATRIX projection;
+    };
+
+    struct ScreenBufferType
+    {
+        float screenWidth;
+        float screenHeight;
+        float blurType;
+        float padding;
+    };
+
+public:
+    SsaoBlurShaderClass();
+    SsaoBlurShaderClass(const SsaoBlurShaderClass&);
+    ~SsaoBlurShaderClass();
+
+    bool Initialize(ID3D11Device*, HWND);
+    void Shutdown();
+    bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, int, int, int);
+
+private:
+    bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
+    void ShutdownShader();
+    void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
+
+    bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, int, int, int);
+    void RenderShader(ID3D11DeviceContext*, int);
+
+private:
+    ID3D11VertexShader* m_vertexShader;
+    ID3D11PixelShader* m_pixelShader;
+    ID3D11InputLayout* m_layout;
+    ID3D11Buffer* m_matrixBuffer;
+    ID3D11SamplerState* m_sampleState;
+    ID3D11Buffer* m_screenBuffer;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblurshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblurshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "ssaoblurshaderclass.h"
+
+
+SsaoBlurShaderClass::SsaoBlurShaderClass()
+{
+    m_vertexShader = 0;
+    m_pixelShader = 0;
+    m_layout = 0;
+    m_matrixBuffer = 0;
+    m_sampleState = 0;
+    m_screenBuffer = 0;
+}
+
+
+SsaoBlurShaderClass::SsaoBlurShaderClass(const SsaoBlurShaderClass& other)
+{
+}
+
+
+SsaoBlurShaderClass::~SsaoBlurShaderClass()
+{
+}
+
+
+bool SsaoBlurShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
+{
+    wchar_t vsFilename[128], psFilename[128];
+    int error;
+    bool result;
+
+
+    // Set the filename of the vertex shader.
+    error = wcscpy_s(vsFilename, 128, L"../Engine/ssaoblur.vs");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Set the filename of the pixel shader.
+    error = wcscpy_s(psFilename, 128, L"../Engine/ssaoblur.ps");
+    if(error != 0)
+    {
+        return false;
+    }
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(device, hwnd, vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoBlurShaderClass::Shutdown()
+{
+    // Shutdown the vertex and pixel shaders as well as the related objects.
+    ShutdownShader();
+
+    return;
+}
+
+
+bool SsaoBlurShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* ssaoTexture, 
+                                 ID3D11ShaderResourceView* normalDepthTexture, int screenWidth, int screenHeight, int blurType)
+{
+    bool result;
+
+
+    // Set the shader parameters that it will use for rendering.
+    result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ssaoTexture, normalDepthTexture, screenWidth, screenHeight, blurType);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Now render the prepared buffers with the shader.
+    RenderShader(deviceContext, indexCount);
+
+    return true;
+}
+
+
+bool SsaoBlurShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR* vsFilename, WCHAR* psFilename)
+{
+    HRESULT result;
+    ID3D10Blob* errorMessage;
+    ID3D10Blob* vertexShaderBuffer;
+    ID3D10Blob* pixelShaderBuffer;
+    D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
+    unsigned int numElements;
+    D3D11_BUFFER_DESC matrixBufferDesc;
+    D3D11_SAMPLER_DESC samplerDesc;
+    D3D11_BUFFER_DESC screenBufferDesc;
+
+
+    // Initialize the pointers this function will use to null.
+    errorMessage = 0;
+    vertexShaderBuffer = 0;
+    pixelShaderBuffer = 0;
+
+    // Compile the vertex shader code.
+    result = D3DCompileFromFile(vsFilename, NULL, NULL, "SsaoBlurVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, vsFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the shader file itself.
+        else
+        {
+            MessageBox(hwnd, vsFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Compile the pixel shader code.
+    result = D3DCompileFromFile(psFilename, NULL, NULL, "SsaoBlurPixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage);
+    if(FAILED(result))
+    {
+        // If the shader failed to compile it should have writen something to the error message.
+        if(errorMessage)
+        {
+            OutputShaderErrorMessage(errorMessage, hwnd, psFilename);
+        }
+        // If there was nothing in the error message then it simply could not find the file itself.
+        else
+        {
+            MessageBox(hwnd, psFilename, L"Missing Shader File", MB_OK);
+        }
+
+        return false;
+    }
+
+    // Create the vertex shader from the buffer.
+    result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the pixel shader from the buffer.
+    result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create the vertex input layout description.
+    polygonLayout[0].SemanticName = "POSITION";
+    polygonLayout[0].SemanticIndex = 0;
+    polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+    polygonLayout[0].InputSlot = 0;
+    polygonLayout[0].AlignedByteOffset = 0;
+    polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[0].InstanceDataStepRate = 0;
+
+    polygonLayout[1].SemanticName = "TEXCOORD";
+    polygonLayout[1].SemanticIndex = 0;
+    polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
+    polygonLayout[1].InputSlot = 0;
+    polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+    polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+    polygonLayout[1].InstanceDataStepRate = 0;
+
+    // Get a count of the elements in the layout.
+    numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
+
+    // Create the vertex input layout.
+    result = device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), &m_layout);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
+    vertexShaderBuffer->Release();
+    vertexShaderBuffer = 0;
+
+    pixelShaderBuffer->Release();
+    pixelShaderBuffer = 0;
+
+    // Setup the description of the dynamic constant buffer that is in the vertex shader.
+    matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
+    matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    matrixBufferDesc.MiscFlags = 0;
+    matrixBufferDesc.StructureByteStride = 0;
+
+    // Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+    result = device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Create a texture sampler state description.
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    samplerDesc.BorderColor[0] = 0;
+    samplerDesc.BorderColor[1] = 0;
+    samplerDesc.BorderColor[2] = 0;
+    samplerDesc.BorderColor[3] = 0;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    // Create the texture sampler state.
+    result = device->CreateSamplerState(&samplerDesc, &m_sampleState);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Setup the description of the dynamic pixel constant buffer that is in the pixel shader.
+    screenBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    screenBufferDesc.ByteWidth = sizeof(ScreenBufferType);
+    screenBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    screenBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    screenBufferDesc.MiscFlags = 0;
+    screenBufferDesc.StructureByteStride = 0;
+
+    // Create the pixel constant buffer pointer so we can access the pixel shader constant buffer from within this class.
+    result = device->CreateBuffer(&screenBufferDesc, NULL, &m_screenBuffer);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoBlurShaderClass::ShutdownShader()
+{
+    // Release the screen constant buffer.
+    if(m_screenBuffer)
+    {
+        m_screenBuffer->Release();
+        m_screenBuffer = 0;
+    }
+
+    // Release the sampler state.
+    if(m_sampleState)
+    {
+        m_sampleState->Release();
+        m_sampleState = 0;
+    }
+
+    // Release the matrix constant buffer.
+    if(m_matrixBuffer)
+    {
+        m_matrixBuffer->Release();
+        m_matrixBuffer = 0;
+    }
+
+    // Release the layout.
+    if(m_layout)
+    {
+        m_layout->Release();
+        m_layout = 0;
+    }
+
+    // Release the pixel shader.
+    if(m_pixelShader)
+    {
+        m_pixelShader->Release();
+        m_pixelShader = 0;
+    }
+
+    // Release the vertex shader.
+    if(m_vertexShader)
+    {
+        m_vertexShader->Release();
+        m_vertexShader = 0;
+    }
+
+    return;
+}
+
+
+void SsaoBlurShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, WCHAR* shaderFilename)
+{
+    char* compileErrors;
+    unsigned __int64 bufferSize, i;
+    ofstream fout;
+
+
+    // Get a pointer to the error message text buffer.
+    compileErrors = (char*)(errorMessage->GetBufferPointer());
+
+    // Get the length of the message.
+    bufferSize = errorMessage->GetBufferSize();
+
+    // Open a file to write the error message to.
+    fout.open("shader-error.txt");
+
+    // Write out the error message.
+    for(i=0; i&lt;bufferSize; i++)
+    {
+        fout << compileErrors[i];
+    }
+
+    // Close the file.
+    fout.close();
+
+    // Release the error message.
+    errorMessage->Release();
+    errorMessage = 0;
+
+    // Pop a message up on the screen to notify the user to check the text file for compile errors.
+    MessageBox(hwnd, L"Error compiling shader.  Check shader-error.txt for message.", shaderFilename, MB_OK);
+
+    return;
+}
+
+
+bool SsaoBlurShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView* ssaoTexture, 
+                                              ID3D11ShaderResourceView* normalDepthTexture, int screenWidth, int screenHeight, int blurType)
+{
+    HRESULT result;
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    MatrixBufferType* dataPtr;
+    unsigned int bufferNumber;
+    ScreenBufferType* dataPtr2;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    worldMatrix = XMMatrixTranspose(worldMatrix);
+    viewMatrix = XMMatrixTranspose(viewMatrix);
+    projectionMatrix = XMMatrixTranspose(projectionMatrix);
+
+    // Lock the martix constant buffer so it can be written to.
+    result = deviceContext->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the matrix constant buffer.
+    dataPtr = (MatrixBufferType*)mappedResource.pData;
+
+    // Copy the matrices into the matrix constant buffer.
+    dataPtr->world = worldMatrix;
+    dataPtr->view = viewMatrix;
+    dataPtr->projection = projectionMatrix;
+
+    // Unlock the matrix constant buffer.
+    deviceContext->Unmap(m_matrixBuffer, 0);
+
+    // Set the position of the constant buffer in the vertex shader.
+    bufferNumber = 0;
+
+    // Now set the matrix constant buffer in the vertex shader with the updated values.
+    deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
+
+    // Set shader texture resource in the pixel shader.
+    deviceContext->PSSetShaderResources(0, 1, &ssaoTexture);
+    deviceContext->PSSetShaderResources(1, 1, &normalDepthTexture);
+
+    // Lock the pixel constant buffer so it can be written to.
+    result = deviceContext->Map(m_screenBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Get a pointer to the data in the pixel constant buffer.
+    dataPtr2 = (ScreenBufferType*)mappedResource.pData;
+
+    // Copy the pixel color into the pixel constant buffer.
+    dataPtr2->screenWidth = (float)screenWidth;
+    dataPtr2->screenHeight = (float)screenHeight;
+
+    if(blurType == 0)
+    {
+        dataPtr2->blurType = 0.0f;
+    }
+    else
+    {
+        dataPtr2->blurType = 1.0f;
+    }
+
+    dataPtr2->padding = 0.0f;
+
+    // Unlock the pixel constant buffer.
+    deviceContext->Unmap(m_screenBuffer, 0);
+
+    // Set the position of the pixel constant buffer in the pixel shader.
+    bufferNumber = 0;
+
+    // Now set the pixel constant buffer in the pixel shader with the updated value.
+    deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_screenBuffer);
+
+    return true;
+}
+
+
+void SsaoBlurShaderClass::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+{
+    // Set the vertex input layout.
+    deviceContext->IASetInputLayout(m_layout);
+
+    // Set the vertex and pixel shaders that will be used to render the triangles.
+    deviceContext->VSSetShader(m_vertexShader, NULL, 0);
+    deviceContext->PSSetShader(m_pixelShader, NULL, 0);
+
+    // Set the sampler state in the pixel shader.
+    deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+    // Render the triangles.
+    deviceContext->DrawIndexed(indexCount, 0, 0);
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = true;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "d3dclass.h"
+#include "inputclass.h"
+#include "cameraclass.h"
+#include "lightclass.h"
+#include "modelclass.h"
+#include "deferredbuffersclass.h"
+#include "gbuffershaderclass.h"
+#include "rendertextureclass.h"
+#include "orthowindowclass.h"
+#include "ssaoshaderclass.h"
+#include "ssaoblurshaderclass.h"
+#include "lightshaderclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(int, int, HWND);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool RenderGBuffer();
+    bool RenderSsao();
+    bool BlurSsaoTexture();
+    bool Render();
+
+private:
+    D3DClass* m_Direct3D;
+    CameraClass* m_Camera;
+    LightClass* m_Light;
+    ModelClass *m_SphereModel, *m_GroundModel;
+    DeferredBuffersClass* m_DeferredBuffers;
+    GBufferShaderClass* m_GBufferShader;
+    RenderTextureClass* m_SsaoRenderTexture;
+    OrthoWindowClass* m_FullScreenWindow;
+    SsaoShaderClass* m_SsaoShader;
+    TextureClass* m_RandomTexture;
+    RenderTextureClass* m_BlurSsaoRenderTexture;
+    SsaoBlurShaderClass* m_SsaoBlurShader;
+    LightShaderClass* m_LightShader;
+    int m_screenWidth, m_screenHeight;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_Direct3D = 0;
+    m_Camera = 0;
+    m_Light = 0;
+    m_SphereModel = 0;
+    m_GroundModel = 0;
+    m_DeferredBuffers = 0;
+    m_GBufferShader = 0;
+    m_SsaoRenderTexture = 0;
+    m_FullScreenWindow = 0;
+    m_SsaoShader = 0;
+    m_RandomTexture = 0;
+    m_BlurSsaoRenderTexture = 0;
+    m_SsaoBlurShader = 0;
+    m_LightShader = 0;
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
+{
+    char modelFilename[128], textureFilename[128];
+    bool result;
+
+
+    // Store the screen width and height.
+    m_screenWidth = screenWidth;
+    m_screenHeight = screenHeight;
+
+    // Create and initialize the Direct3D object.
+    m_Direct3D = new D3DClass;
+
+    result = m_Direct3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize Direct3D.", L"Error", MB_OK);
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->RenderBaseViewMatrix();
+
+    m_Camera->SetPosition(0.0f, 7.0f, -10.0f);
+    m_Camera->SetRotation(35.0f, 0.0f, 0.0f);
+    m_Camera->Render();
+
+    // Create and initialize the light object.
+    m_Light = new LightClass;
+
+    m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_Light->SetDirection(1.0f, -0.5f, 0.0f);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Load in the sphere and the ground model.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the sphere model object.
+    m_SphereModel = new ModelClass;
+
+    strcpy_s(modelFilename, "../Engine/data/sphere.txt");
+    strcpy_s(textureFilename, "../Engine/data/ice.tga");
+
+    result = m_SphereModel->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the sphere model object.", L"Error", MB_OK);
+        return false;
+    }
+
+    // Create and initialize the ground model object.
+    m_GroundModel = new ModelClass;
+
+    strcpy_s(modelFilename, "../Engine/data/plane01.txt");
+    strcpy_s(textureFilename, "../Engine/data/metal001.tga");
+
+    result = m_GroundModel->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), modelFilename, textureFilename);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the ground model object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the G buffer object here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the deferred buffers object.
+    m_DeferredBuffers = new DeferredBuffersClass;
+
+    result = m_DeferredBuffers->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the deferred buffers object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the G buffer shader which will do the job of rendering the 3D scene into our G buffer in view space.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the gbuffer shader object.
+    m_GBufferShader = new GBufferShaderClass;
+
+    result = m_GBufferShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the gbuffer shader object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create a render texture to hold the ambient occlusion map.
+Note we use 2 as its type so we are creating a single channel 32bit float render texture.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the ssao render to texture object.
+    m_SsaoRenderTexture = new RenderTextureClass;
+
+    result = m_SsaoRenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR, 2);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the ssao render texture object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create a render texture for blurring the ambient occlusion map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the blur ssao render to texture object.
+    m_BlurSsaoRenderTexture = new RenderTextureClass;
+
+    result = m_BlurSsaoRenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR, 2);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the blur ssao render texture object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will need a 2D ortho window since all the rendering will be done in 2D as post processing effects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the full screen ortho window object.
+    m_FullScreenWindow = new OrthoWindowClass;
+
+    result = m_FullScreenWindow->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the full screen ortho window object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we setup the Ssao shader that will be used for creating the ambient occlusion map from the scene data in the G buffer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the ssao shader object.
+    m_SsaoShader = new SsaoShaderClass;
+
+    result = m_SsaoShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the ssao shader object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here is where we load our texture that is full of random vectors.
+This texture is used for randomizing sampling in our ssao shader.
+The texture was created by just blurring a small random normal map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the random texture object.
+    m_RandomTexture = new TextureClass;
+
+    strcpy_s(textureFilename, "../Engine/data/random_vec.tga");
+
+    result = m_RandomTexture->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), textureFilename);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the random texture object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the ssao blur shader here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the ssao blur shader object.
+    m_SsaoBlurShader = new SsaoBlurShaderClass;
+
+    result = m_SsaoBlurShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the ssao blur shader object.", L"Error", MB_OK);
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the deferred light shader that will now use the blurred ambient occlusion map as input for its ambient lighting term.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the deferred ssao light shader object.
+    m_LightShader = new LightShaderClass;
+
+    result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+        return false;
+    }
+
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{
+    // Release the deferred ssao light shader object.
+    if(m_LightShader)
+    {
+        m_LightShader->Shutdown();
+        delete m_LightShader;
+        m_LightShader = 0;
+    }
+
+    // Release the ssao blur shader object.
+    if(m_SsaoBlurShader)
+    {
+        m_SsaoBlurShader->Shutdown();
+        delete m_SsaoBlurShader;
+        m_SsaoBlurShader = 0;
+    }
+
+    // Release the random texture object.
+    if(m_RandomTexture)
+    {
+        m_RandomTexture->Shutdown();
+        delete m_RandomTexture;
+        m_RandomTexture = 0;
+    }
+
+    // Release the ssao shader object.
+    if(m_SsaoShader)
+    {
+        m_SsaoShader->Shutdown();
+        delete m_SsaoShader;
+        m_SsaoShader = 0;
+    }
+
+    // Release the full screen ortho window object.
+    if(m_FullScreenWindow)
+    {
+        m_FullScreenWindow->Shutdown();
+        delete m_FullScreenWindow;
+        m_FullScreenWindow = 0;
+    }
+
+    // Release the blur ssao render to texture object.
+    if(m_BlurSsaoRenderTexture)
+    {
+        m_BlurSsaoRenderTexture->Shutdown();
+        delete m_BlurSsaoRenderTexture;
+        m_BlurSsaoRenderTexture = 0;
+    }
+
+    // Release the ssao render to texture object.
+    if(m_SsaoRenderTexture)
+    {
+        m_SsaoRenderTexture->Shutdown();
+        delete m_SsaoRenderTexture;
+        m_SsaoRenderTexture = 0;
+    }
+
+    // Release the gbuffer shader object.
+    if(m_GBufferShader)
+    {
+        m_GBufferShader->Shutdown();
+        delete m_GBufferShader;
+        m_GBufferShader = 0;
+    }
+
+    // Release the deferred buffers object.
+    if(m_DeferredBuffers)
+    {
+        m_DeferredBuffers->Shutdown();
+        delete m_DeferredBuffers;
+        m_DeferredBuffers = 0;
+    }
+
+    // Release the ground model object.
+    if(m_GroundModel)
+    {
+        m_GroundModel->Shutdown();
+        delete m_GroundModel;
+        m_GroundModel = 0;
+    }
+
+    // Release the sphere model object.
+    if(m_SphereModel)
+    {
+        m_SphereModel->Shutdown();
+        delete m_SphereModel;
+        m_SphereModel = 0;
+    }
+
+    // Release the light object.
+    if(m_Light)
+    {
+        delete m_Light;
+        m_Light = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the Direct3D object.
+    if(m_Direct3D)
+    {
+        m_Direct3D->Shutdown();
+        delete m_Direct3D;
+        m_Direct3D = 0;
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Frame function will implement the algorithm described at the top of this tutorial.
+It will first render the scene to our G buffer in view space.
+After that it will perform the SSAO calculations and render out the data to an ambient occlusion map render texture.
+We then blur that AO map using the SSAO edge aware blur shader.
+And then finally we render the resulting scene using our deferred light shader and blurred AO map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Frame(InputClass* Input)
+{
+    bool result;
+	
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+
+    // Render the scene data to the G buffer to setup deferred rendering.
+    result = RenderGBuffer();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Render the screen space ambient occlusion of the scene to a render texture.
+    result = RenderSsao();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Blur the ssao render texture.
+    result = BlurSsaoTexture();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Render the final graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The RenderGBuffer function will render the 3D scene of the sphere and the ground model into the G buffer and store the data in view space so it is ready for SSAO and deferred light shader calculations.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::RenderGBuffer()
+{
+    XMMATRIX translateMatrix, viewMatrix, projectionMatrix;
+    bool result;
+
+
+    // Get the matrices from the camera and d3d objects.
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_Direct3D->GetProjectionMatrix(projectionMatrix);
+
+    // Set the render buffers to be the render target.
+    m_DeferredBuffers->SetRenderTargets(m_Direct3D->GetDeviceContext());
+    m_DeferredBuffers->ClearRenderTargets(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 0.0f);
+	
+    // Setup the translation matrix for the sphere model.
+    translateMatrix = XMMatrixTranslation(2.0f, 2.0f, 0.0f);
+
+    // Render the sphere model using the gbuffer shader.
+    m_SphereModel->Render(m_Direct3D->GetDeviceContext());
+
+    result = m_GBufferShader->Render(m_Direct3D->GetDeviceContext(), m_SphereModel->GetIndexCount(), translateMatrix, viewMatrix, projectionMatrix, m_SphereModel->GetTexture());
+    if(!result)
+    {
+        return false;
+    }
+
+    // Setup the translation matrix for the ground model.
+    translateMatrix = XMMatrixTranslation(0.0f, 1.0f, 0.0f);
+
+    // Render the ground model using the gbuffer shader.
+    m_GroundModel->Render(m_Direct3D->GetDeviceContext());
+
+    result = m_GBufferShader->Render(m_Direct3D->GetDeviceContext(), m_GroundModel->GetIndexCount(), translateMatrix, viewMatrix, projectionMatrix, m_GroundModel->GetTexture());
+    if(!result)
+    {
+        return false;
+    }
+
+    // Reset the render target back to the original back buffer and not the render to texture anymore.  Also reset the viewport back to the original.
+    m_Direct3D->SetBackBufferRenderTarget();
+    m_Direct3D->ResetViewport();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this RenderSsao function we use the scene data located in the G buffer to create an ambient occlusion map using the m_SsaoShader.
+We store the result in the m_SsaoRenderTexture.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::RenderSsao()
+{
+    XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+    float sampleRadius, ssaoScale, ssaoBias, ssaoIntensity, randomTextureSize, screenWidth, screenHeight;
+    bool result;
+
+
+    // Set the sample radius for the ssao shader.
+    sampleRadius = 1.0f;
+    ssaoScale = 1.0f;
+    ssaoBias = 0.1f;
+    ssaoIntensity = 2.0f;
+
+    // Set the random texture width in float for the ssao shader.
+    randomTextureSize = 64.0f;
+
+    // Convert the screen size to float for the shader.
+    screenWidth = (float)m_screenWidth;
+    screenHeight = (float)m_screenHeight;
+
+    // Get the matrices from the camera and d3d objects.
+    m_Direct3D->GetWorldMatrix(worldMatrix);
+    m_Camera->GetBaseViewMatrix(baseViewMatrix);
+    m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+    // Set the render target to be the ssao texture.
+    m_SsaoRenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+    m_SsaoRenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Begin 2D rendering.
+    m_Direct3D->TurnZBufferOff();
+
+    // Render the ssao effect to a 2D full screen window.
+    m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
+
+    result = m_SsaoShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, m_DeferredBuffers->GetShaderResourcePositions(),
+                                  m_DeferredBuffers->GetShaderResourceNormals(), m_RandomTexture->GetTexture(), screenWidth, screenHeight, randomTextureSize, sampleRadius, ssaoScale, ssaoBias, ssaoIntensity);
+    if(!result)
+    {
+        return false;
+    }
+
+    // End 2D rendering.
+    m_Direct3D->TurnZBufferOn();
+
+    // Reset the render target back to the original back buffer and not the render to texture anymore.  Also reset the viewport back to the original.
+    m_Direct3D->SetBackBufferRenderTarget();
+    m_Direct3D->ResetViewport();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The BlurSsaoTexture function performs the horizontal and vertical edge aware blur of the ambient occlusion map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::BlurSsaoTexture()
+{
+    XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+    bool result;
+
+
+    // Get the matrices from the camera and d3d objects.
+    m_Direct3D->GetWorldMatrix(worldMatrix);
+    m_Camera->GetBaseViewMatrix(baseViewMatrix);
+    m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+    // Begin 2D rendering.
+    m_Direct3D->TurnZBufferOff();
+
+    // Set the blur render texture as the render target, and clear it.
+    m_BlurSsaoRenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+    m_BlurSsaoRenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Perform a horizontal blur of the ssao texture.
+    m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
+
+    result = m_SsaoBlurShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, m_SsaoRenderTexture->GetShaderResourceView(),
+                                      m_DeferredBuffers->GetShaderResourceNormals(), m_screenWidth, m_screenHeight, 0);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Set the original ssao render texture as the render target, and clear it.
+    m_SsaoRenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+    m_SsaoRenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Now perform a vertical blur of the ssao texture that was already horizontally blurred.
+    m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
+
+    result = m_SsaoBlurShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, m_BlurSsaoRenderTexture->GetShaderResourceView(), 
+                                      m_DeferredBuffers->GetShaderResourceNormals(), m_screenWidth, m_screenHeight, 1);
+    if(!result)
+    {
+        return false;
+    }
+
+    // End 2D rendering.
+    m_Direct3D->TurnZBufferOn();
+
+    // Reset the render target back to the original back buffer and not the render to texture anymore.  Also reset the viewport back to the original.
+    m_Direct3D->SetBackBufferRenderTarget();
+    m_Direct3D->ResetViewport();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Render function we render the final scene using the deferred light shader and the blurred ambient occlusion map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Render()
+{
+    XMMATRIX worldMatrix, viewMatrix, baseViewMatrix, orthoMatrix;
+    bool result;
+
+
+    // Get the matrices from the camera and d3d objects.
+    m_Direct3D->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_Camera->GetBaseViewMatrix(baseViewMatrix);
+    m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+    // Clear the scene.
+    m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Begin 2D rendering.
+    m_Direct3D->TurnZBufferOff();
+
+    // Render the scene using the deferred light shader and the blurred ssao texture.
+    m_FullScreenWindow->Render(m_Direct3D->GetDeviceContext());
+
+    result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, m_Light->GetDirection(), m_Light->GetAmbientColor(),
+                                   m_Camera->GetPosition(), m_DeferredBuffers->GetShaderResourceNormals(), m_SsaoRenderTexture->GetShaderResourceView(), viewMatrix, m_DeferredBuffers->GetShaderResourceColors());
+    if(!result)
+    {
+        return false;
+    }
+
+    // End 2D rendering.
+    m_Direct3D->TurnZBufferOn();
+
+    // Present the rendered scene to the screen.
+    m_Direct3D->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+With the use of SSAO we can now create more realistic ambient lighting in our 3D scenes.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6072.gif" width="500" height="282"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Compile and run the program to see the 3D scene rendered using ssao.  Press escape to quit.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Return just the ambient term in the deferred lighting shader to see what the AO map looks like.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Modify the ssao parameters in the RenderSsao function to see the effect it has on the AO map.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/dx11win10tut51_src.zip">dx11win10tut51_src.zip</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutdx11win10.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

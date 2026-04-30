@@ -1,0 +1,1673 @@
+<html><head><title>Tutorial 3: Initializing OpenGL 4.0</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 3: Initializing OpenGL 4.0
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will be the first real introduction to working with OpenGL 4.0.
+We will address three main things which are initializing OpenGL 4.0, shutting it down, and basic rendering with it.
+This tutorial uses the same classes as the previous tutorial except that we will be adding more code to each to facilitate rendering with OpenGL 4.0.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will start the tutorial by looking at the filled out OpenGLClass:
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Openglclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: openglclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _OPENGLCLASS_H_
+#define _OPENGLCLASS_H_
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+OpenGL 4.0 requires that you link in the opengl32.lib library.
+You can do this in the IDE or directly in the code.
+I have put the linking in the code as this is my preference.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>/////////////
+// LINKING //
+/////////////
+#pragma comment(lib, "opengl32.lib")
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+OpenGL 4.0 also requires the windows.h and gl.h header files.
+I have also included math.h since we will need to write some math functions to assist in rendering with OpenGL.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>//////////////
+// INCLUDES //
+//////////////
+#include &lt;windows.h&gt;
+#include &lt;gl\gl.h&gt;
+#include &lt;math.h&gt;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In Windows the gl.h header only contains the defines, functions, and function pointers for OpenGL 1.0 and OpenGL 1.1.
+All newer OpenGL functionality is actually implemented in the display driver for your video card in the form of extensions.
+You can find the names of all the extensions in the OpenGL 4.0 spec that the Khronos Group maintains on their website in the OpenGL 4.0 documentation.
+You can also download files such as wglext.h and glext.h which contain a large number of them as well.
+For these tutorials we only need a subset of all the functions so I have included the defines, typedefs, and function pointers that we will use in this header file.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following are the defines that we will be using:
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>/////////////
+// DEFINES //
+/////////////
+#define WGL_DRAW_TO_WINDOW_ARB         0x2001
+#define WGL_ACCELERATION_ARB           0x2003
+#define WGL_SWAP_METHOD_ARB            0x2007
+#define WGL_SUPPORT_OPENGL_ARB         0x2010
+#define WGL_DOUBLE_BUFFER_ARB          0x2011
+#define WGL_PIXEL_TYPE_ARB             0x2013
+#define WGL_COLOR_BITS_ARB             0x2014
+#define WGL_DEPTH_BITS_ARB             0x2022
+#define WGL_STENCIL_BITS_ARB           0x2023
+#define WGL_FULL_ACCELERATION_ARB      0x2027
+#define WGL_SWAP_EXCHANGE_ARB          0x2028
+#define WGL_TYPE_RGBA_ARB              0x202B
+#define WGL_CONTEXT_MAJOR_VERSION_ARB  0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB  0x2092
+#define GL_ARRAY_BUFFER                   0x8892
+#define GL_STATIC_DRAW                    0x88E4
+#define GL_FRAGMENT_SHADER                0x8B30
+#define GL_VERTEX_SHADER                  0x8B31
+#define GL_COMPILE_STATUS                 0x8B81
+#define GL_LINK_STATUS                    0x8B82
+#define GL_INFO_LOG_LENGTH                0x8B84
+#define GL_TEXTURE0                       0x84C0
+#define GL_BGRA                           0x80E1
+#define GL_ELEMENT_ARRAY_BUFFER           0x8893
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following are the typedefs that we need to access the OpenGL 4.0 functionality:
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>//////////////
+// TYPEDEFS //
+//////////////
+typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, 
+                                                        int *piFormats, UINT *nNumFormats);
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
+typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
+typedef void (APIENTRY * PFNGLATTACHSHADERPROC) (GLuint program, GLuint shader);
+typedef void (APIENTRY * PFNGLBINDBUFFERPROC) (GLenum target, GLuint buffer);
+typedef void (APIENTRY * PFNGLBINDVERTEXARRAYPROC) (GLuint array);
+typedef void (APIENTRY * PFNGLBUFFERDATAPROC) (GLenum target, ptrdiff_t size, const GLvoid *data, GLenum usage);
+typedef void (APIENTRY * PFNGLCOMPILESHADERPROC) (GLuint shader);
+typedef GLuint (APIENTRY * PFNGLCREATEPROGRAMPROC) (void);
+typedef GLuint (APIENTRY * PFNGLCREATESHADERPROC) (GLenum type);
+typedef void (APIENTRY * PFNGLDELETEBUFFERSPROC) (GLsizei n, const GLuint *buffers);
+typedef void (APIENTRY * PFNGLDELETEPROGRAMPROC) (GLuint program);
+typedef void (APIENTRY * PFNGLDELETESHADERPROC) (GLuint shader);
+typedef void (APIENTRY * PFNGLDELETEVERTEXARRAYSPROC) (GLsizei n, const GLuint *arrays);
+typedef void (APIENTRY * PFNGLDETACHSHADERPROC) (GLuint program, GLuint shader);
+typedef void (APIENTRY * PFNGLENABLEVERTEXATTRIBARRAYPROC) (GLuint index);
+typedef void (APIENTRY * PFNGLGENBUFFERSPROC) (GLsizei n, GLuint *buffers);
+typedef void (APIENTRY * PFNGLGENVERTEXARRAYSPROC) (GLsizei n, GLuint *arrays);
+typedef GLint (APIENTRY * PFNGLGETATTRIBLOCATIONPROC) (GLuint program, const char *name);
+typedef void (APIENTRY * PFNGLGETPROGRAMINFOLOGPROC) (GLuint program, GLsizei bufSize, GLsizei *length, char *infoLog);
+typedef void (APIENTRY * PFNGLGETPROGRAMIVPROC) (GLuint program, GLenum pname, GLint *params);
+typedef void (APIENTRY * PFNGLGETSHADERINFOLOGPROC) (GLuint shader, GLsizei bufSize, GLsizei *length, char *infoLog);
+typedef void (APIENTRY * PFNGLGETSHADERIVPROC) (GLuint shader, GLenum pname, GLint *params);
+typedef void (APIENTRY * PFNGLLINKPROGRAMPROC) (GLuint program);
+typedef void (APIENTRY * PFNGLSHADERSOURCEPROC) (GLuint shader, GLsizei count, const char* *string, const GLint *length);
+typedef void (APIENTRY * PFNGLUSEPROGRAMPROC) (GLuint program);
+typedef void (APIENTRY * PFNGLVERTEXATTRIBPOINTERPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, 
+                                                        const GLvoid *pointer);
+typedef void (APIENTRY * PFNGLBINDATTRIBLOCATIONPROC) (GLuint program, GLuint index, const char *name);
+typedef GLint (APIENTRY * PFNGLGETUNIFORMLOCATIONPROC) (GLuint program, const char *name);
+typedef void (APIENTRY * PFNGLUNIFORMMATRIX4FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+typedef void (APIENTRY * PFNGLACTIVETEXTUREPROC) (GLenum texture);
+typedef void (APIENTRY * PFNGLUNIFORM1IPROC) (GLint location, GLint v0);
+typedef void (APIENTRY * PFNGLGENERATEMIPMAPPROC) (GLenum target);
+typedef void (APIENTRY * PFNGLDISABLEVERTEXATTRIBARRAYPROC) (GLuint index);
+typedef void (APIENTRY * PFNGLUNIFORM3FVPROC) (GLint location, GLsizei count, const GLfloat *value);
+typedef void (APIENTRY * PFNGLUNIFORM4FVPROC) (GLint location, GLsizei count, const GLfloat *value);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The class definition for the OpenGLClass is kept as simple as possible here.
+It has the regular constructor, copy constructor, and destructor.
+Then more importantly it has the InitializeExtensions, InitializeOpenGL, and Shutdown function.
+This will be what we are mainly focused on in this tutorial. 
+Other than that I have a number of helper functions which aren't important to this tutorial and a number of private member variables that will be looked at when we examine the openglclass.cpp file.
+For now just realize the initialization and shutdown functions are what concern us.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Class name: OpenGLClass
+////////////////////////////////////////////////////////////////////////////////
+class OpenGLClass
+{
+public:
+	OpenGLClass();
+	OpenGLClass(const OpenGLClass&);
+	~OpenGLClass();
+
+	bool InitializeExtensions(HWND);
+	bool InitializeOpenGL(HWND, int, int, float, float, bool);
+	void Shutdown(HWND);
+
+	void BeginScene(float, float, float, float);
+	void EndScene();
+
+	void GetWorldMatrix(float*);
+	void GetProjectionMatrix(float*);
+	void GetVideoCardInfo(char*);
+
+	void BuildIdentityMatrix(float*);
+	void BuildPerspectiveFovLHMatrix(float*, float, float, float, float);
+	void MatrixRotationY(float*, float);
+	void MatrixTranslation(float*, float, float, float);
+	void MatrixMultiply(float*, float*, float*);
+
+private:
+	bool LoadExtensionList();
+
+private:
+	HDC m_deviceContext;
+	HGLRC m_renderingContext;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following three OpenGL function pointers are used for interfacing with windows:
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+	PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+
+	float m_worldMatrix[16];
+	float m_projectionMatrix[16];
+	char m_videoCardDescription[128];
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These are the remainder of the function pointers that will be used for interfacing with OpenGL.  I have made them public so we can call them easily using just a pointer to this class:
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>public:
+	PFNGLATTACHSHADERPROC glAttachShader;
+	PFNGLBINDBUFFERPROC glBindBuffer;
+	PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+	PFNGLBUFFERDATAPROC glBufferData;
+	PFNGLCOMPILESHADERPROC glCompileShader;
+	PFNGLCREATEPROGRAMPROC glCreateProgram;
+	PFNGLCREATESHADERPROC glCreateShader;
+	PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+	PFNGLDELETEPROGRAMPROC glDeleteProgram;
+	PFNGLDELETESHADERPROC glDeleteShader;
+	PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+	PFNGLDETACHSHADERPROC glDetachShader;
+	PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+	PFNGLGENBUFFERSPROC glGenBuffers;
+	PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+	PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+	PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+	PFNGLGETPROGRAMIVPROC glGetProgramiv;
+	PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+	PFNGLGETSHADERIVPROC glGetShaderiv;
+	PFNGLLINKPROGRAMPROC glLinkProgram;
+	PFNGLSHADERSOURCEPROC glShaderSource;
+	PFNGLUSEPROGRAMPROC glUseProgram;
+	PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+	PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
+	PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+	PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
+	PFNGLACTIVETEXTUREPROC glActiveTexture;
+	PFNGLUNIFORM1IPROC glUniform1i;
+	PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+	PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+	PFNGLUNIFORM3FVPROC glUniform3fv;
+	PFNGLUNIFORM4FVPROC glUniform4fv;
+};
+
+#endif
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For those familiar with OpenGL already you may notice I don't have a view matrix variable in this class.
+The reason being is that I will be putting it in a camera class that we will be looking at in future tutorials.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Openglclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: openglclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "openglclass.h"
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We begin by initializing the two member handles to null.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>OpenGLClass::OpenGLClass()
+{
+	m_deviceContext = 0;
+	m_renderingContext = 0;
+}
+
+
+OpenGLClass::OpenGLClass(const OpenGLClass& other)
+{
+}
+
+
+OpenGLClass::~OpenGLClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The InitializeExtensions function is what allows us to get pointers to all the OpenGL functions that are available from the video card driver.
+Note that this function cannot be called unless there is a window already created, hence the reason in the SystemClass::InitializeWindows function for creating a temporary window,
+calling this function to get the extensions, and then destroying that temporary window and creating a new one.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this function we will setup a temporary device context, pixel format, and rendering context so that we can call the LoadExtensionList function which then gets us all the function pointers we need.
+Once that is complete we release the temporary contexts.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool OpenGLClass::InitializeExtensions(HWND hwnd)
+{
+	HDC deviceContext;
+	PIXELFORMATDESCRIPTOR pixelFormat;
+	int error;
+	HGLRC renderContext;
+	bool result;
+
+
+	// Get the device context for this window.
+	deviceContext = GetDC(hwnd);
+	if(!deviceContext)
+	{
+		return false;
+	}
+
+	// Set a temporary default pixel format.
+	error = SetPixelFormat(deviceContext, 1, &pixelFormat);
+	if(error != 1)
+	{
+		return false;
+	}
+
+	// Create a temporary rendering context.
+	renderContext = wglCreateContext(deviceContext);
+	if(!renderContext)
+	{
+		return false;
+	}
+
+	// Set the temporary rendering context as the current rendering context for this window.
+	error = wglMakeCurrent(deviceContext, renderContext);
+	if(error != 1)
+	{
+		return false;
+	}
+
+	// Initialize the OpenGL extensions needed for this application.  Note that a temporary rendering context was needed to do so.
+	result = LoadExtensionList();
+	if(!result)
+	{
+		return false;
+	}
+
+	// Release the temporary rendering context now that the extensions have been loaded.
+	wglMakeCurrent(NULL, NULL);
+	wglDeleteContext(renderContext);
+	renderContext = NULL;
+
+	// Release the device context for this window.
+	ReleaseDC(hwnd, deviceContext);
+	deviceContext = 0;
+
+	return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+InitializeOpenGL sets up OpenGL 4.0.
+Before this function is called the extensions must be loaded from the InitializeExtensions function.
+Also and the correct window needs to be created which is done in the SystemClass::InitializeWindows.
+Once those two things are in place this function can then be called.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This function then creates an OpenGL 4.0 rendering context and appropriate pixel format.
+Once that is in place this function then sets up some extra things such as back face culling, vertical sync, depth buffer, and some matrices that we will need for rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool OpenGLClass::InitializeOpenGL(HWND hwnd, int screenWidth, int screenHeight, float screenDepth, float screenNear, bool vsync)
+{
+	int attributeListInt[19];
+	int pixelFormat[1];
+	unsigned int formatCount;
+	int result;
+	PIXELFORMATDESCRIPTOR pixelFormatDescriptor;
+	int attributeList[5];
+	float fieldOfView, screenAspect;
+	char *vendorString, *rendererString;
+
+
+	// Get the device context for this window.
+	m_deviceContext = GetDC(hwnd);
+	if(!m_deviceContext)
+	{
+		return false;
+	}
+	
+	// Support for OpenGL rendering.
+	attributeListInt[0] = WGL_SUPPORT_OPENGL_ARB;
+	attributeListInt[1] = TRUE;
+
+	// Support for rendering to a window.
+	attributeListInt[2] = WGL_DRAW_TO_WINDOW_ARB;
+	attributeListInt[3] = TRUE;
+
+	// Support for hardware acceleration.
+	attributeListInt[4] = WGL_ACCELERATION_ARB;
+	attributeListInt[5] = WGL_FULL_ACCELERATION_ARB;
+
+	// Support for 24bit color.
+	attributeListInt[6] = WGL_COLOR_BITS_ARB;
+	attributeListInt[7] = 24;
+
+	// Support for 24 bit depth buffer.
+	attributeListInt[8] = WGL_DEPTH_BITS_ARB;
+	attributeListInt[9] = 24;
+
+	// Support for double buffer.
+	attributeListInt[10] = WGL_DOUBLE_BUFFER_ARB;
+	attributeListInt[11] = TRUE;
+
+	// Support for swapping front and back buffer.
+	attributeListInt[12] = WGL_SWAP_METHOD_ARB;
+	attributeListInt[13] = WGL_SWAP_EXCHANGE_ARB;
+
+	// Support for the RGBA pixel type.
+	attributeListInt[14] = WGL_PIXEL_TYPE_ARB;
+	attributeListInt[15] = WGL_TYPE_RGBA_ARB;
+
+	// Support for a 8 bit stencil buffer.
+	attributeListInt[16] = WGL_STENCIL_BITS_ARB;
+	attributeListInt[17] = 8;
+
+	// Null terminate the attribute list.
+	attributeListInt[18] = 0;
+
+	// Query for a pixel format that fits the attributes we want.
+	result = wglChoosePixelFormatARB(m_deviceContext, attributeListInt, NULL, 1, pixelFormat, &formatCount);
+	if(result != 1)
+	{
+		return false;
+	}
+
+	// If the video card/display can handle our desired pixel format then we set it as the current one.
+	result = SetPixelFormat(m_deviceContext, pixelFormat[0], &pixelFormatDescriptor);
+	if(result != 1)
+	{
+		return false;
+	}
+
+	// Set the 4.0 version of OpenGL in the attribute list.
+	attributeList[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+	attributeList[1] = 4;
+	attributeList[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+	attributeList[3] = 0;
+
+	// Null terminate the attribute list.
+	attributeList[4] = 0;
+
+	// Create a OpenGL 4.0 rendering context.
+	m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
+	if(m_renderingContext == NULL)
+	{
+		return false;
+	}
+
+	// Set the rendering context to active.
+	result = wglMakeCurrent(m_deviceContext, m_renderingContext);
+	if(result != 1)
+	{
+		return false;
+	}
+	
+	// Set the depth buffer to be entirely cleared to 1.0 values.
+	glClearDepth(1.0f);
+
+	// Enable depth testing.
+	glEnable(GL_DEPTH_TEST);
+	
+	// Set the polygon winding to front facing for the left handed system.
+	glFrontFace(GL_CW);
+
+	// Enable back face culling.
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	// Initialize the world/model matrix to the identity matrix.
+	BuildIdentityMatrix(m_worldMatrix);
+
+	// Set the field of view and screen aspect ratio.
+	fieldOfView = 3.14159265358979323846f / 4.0f;
+	screenAspect = (float)screenWidth / (float)screenHeight;
+
+	// Build the perspective projection matrix.
+	BuildPerspectiveFovLHMatrix(m_projectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
+
+	// Get the name of the video card.
+	vendorString = (char*)glGetString(GL_VENDOR);
+	rendererString = (char*)glGetString(GL_RENDERER);
+
+	// Store the video card name in a class member variable so it can be retrieved later.
+	strcpy_s(m_videoCardDescription, vendorString);
+	strcat_s(m_videoCardDescription, " - ");
+	strcat_s(m_videoCardDescription, rendererString);
+
+	// Turn on or off the vertical sync depending on the input bool value.
+	if(vsync)
+	{
+		result = wglSwapIntervalEXT(1);
+	}
+	else
+	{
+		result = wglSwapIntervalEXT(0);
+	}
+
+	// Check if vsync was set correctly.
+	if(result != 1)
+	{
+		return false;
+	}
+
+	return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Shutdown function will release the two context handles that were used for rendering with OpenGL 4.0.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::Shutdown(HWND hwnd)
+{
+	// Release the rendering context.
+	if(m_renderingContext)
+	{
+		wglMakeCurrent(NULL, NULL);
+		wglDeleteContext(m_renderingContext);
+		m_renderingContext = 0;
+	}
+
+	// Release the device context.
+	if(m_deviceContext)
+	{
+		ReleaseDC(hwnd, m_deviceContext);
+		m_deviceContext = 0;
+	}
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The next two helper functions are named BeginScene and EndScene.
+BeginScene will be called whenever we are going to draw a new 3D scene at the beginning of each frame.
+All it does is initializes the buffers so they are blank and ready to be drawn to.
+The other function is Endscene, it swaps the back buffer to the front buffer which displays our 3D scene once all the drawing has completed at the end of each frame.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::BeginScene(float red, float green, float blue, float alpha)
+{
+	// Set the color to clear the screen to.
+	glClearColor(red, green, blue, alpha); 
+
+	// Clear the screen and depth buffer.
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	return;
+}
+
+
+void OpenGLClass::EndScene()
+{
+	// Present the back buffer to the screen since rendering is complete.
+	SwapBuffers(m_deviceContext);
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LoadExtensionList function loads all the extensions we will be using for interfacing with OpenGL 4.0.
+Each function pointer gets the address to the function by calling the wglGetProcAddress function.
+If you wish to add even more OpenGL 4.0 support you can add your extra function pointer loading to this function.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool OpenGLClass::LoadExtensionList()
+{
+	// Load the OpenGL extensions that this application will be using.
+	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+	if(!wglChoosePixelFormatARB)
+	{
+		return false;
+	}
+
+	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+	if(!wglCreateContextAttribsARB)
+	{
+		return false;
+	}
+
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	if(!wglSwapIntervalEXT)
+	{
+		return false;
+	}
+
+	glAttachShader = (PFNGLATTACHSHADERPROC)wglGetProcAddress("glAttachShader");
+	if(!glAttachShader)
+	{
+		return false;
+	}
+
+	glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBuffer");
+	if(!glBindBuffer)
+	{
+		return false;
+	}
+
+	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress("glBindVertexArray");
+	if(!glBindVertexArray)
+	{
+		return false;
+	}
+
+	glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferData");
+	if(!glBufferData)
+	{
+		return false;
+	}
+
+	glCompileShader = (PFNGLCOMPILESHADERPROC)wglGetProcAddress("glCompileShader");
+	if(!glCompileShader)
+	{
+		return false;
+	}
+
+	glCreateProgram = (PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram");
+	if(!glCreateProgram)
+	{
+		return false;
+	}
+
+	glCreateShader = (PFNGLCREATESHADERPROC)wglGetProcAddress("glCreateShader");
+	if(!glCreateShader)
+	{
+		return false;
+	}
+
+	glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)wglGetProcAddress("glDeleteBuffers");
+	if(!glDeleteBuffers)
+	{
+		return false;
+	}
+
+	glDeleteProgram = (PFNGLDELETEPROGRAMPROC)wglGetProcAddress("glDeleteProgram");
+	if(!glDeleteProgram)
+	{
+		return false;
+	}
+
+	glDeleteShader = (PFNGLDELETESHADERPROC)wglGetProcAddress("glDeleteShader");
+	if(!glDeleteShader)
+	{
+		return false;
+	}
+
+	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress("glDeleteVertexArrays");
+	if(!glDeleteVertexArrays)
+	{
+		return false;
+	}
+
+	glDetachShader = (PFNGLDETACHSHADERPROC)wglGetProcAddress("glDetachShader");
+	if(!glDetachShader)
+	{
+		return false;
+	}
+
+	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glEnableVertexAttribArray");
+	if(!glEnableVertexAttribArray)
+	{
+		return false;
+	}
+
+	glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffers");
+	if(!glGenBuffers)
+	{
+		return false;
+	}
+
+	glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress("glGenVertexArrays");
+	if(!glGenVertexArrays)
+	{
+		return false;
+	}
+
+	glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)wglGetProcAddress("glGetAttribLocation");
+	if(!glGetAttribLocation)
+	{
+		return false;
+	}
+
+	glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)wglGetProcAddress("glGetProgramInfoLog");
+	if(!glGetProgramInfoLog)
+	{
+		return false;
+	}
+
+	glGetProgramiv = (PFNGLGETPROGRAMIVPROC)wglGetProcAddress("glGetProgramiv");
+	if(!glGetProgramiv)
+	{
+		return false;
+	}
+
+	glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)wglGetProcAddress("glGetShaderInfoLog");
+	if(!glGetShaderInfoLog)
+	{
+		return false;
+	}
+
+	glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
+	if(!glGetShaderiv)
+	{
+		return false;
+	}
+
+	glLinkProgram = (PFNGLLINKPROGRAMPROC)wglGetProcAddress("glLinkProgram");
+	if(!glLinkProgram)
+	{
+		return false;
+	}
+
+	glShaderSource = (PFNGLSHADERSOURCEPROC)wglGetProcAddress("glShaderSource");
+	if(!glShaderSource)
+	{
+		return false;
+	}
+
+	glUseProgram = (PFNGLUSEPROGRAMPROC)wglGetProcAddress("glUseProgram");
+	if(!glUseProgram)
+	{
+		return false;
+	}
+
+	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress("glVertexAttribPointer");
+	if(!glVertexAttribPointer)
+	{
+		return false;
+	}
+
+	glBindAttribLocation = (PFNGLBINDATTRIBLOCATIONPROC)wglGetProcAddress("glBindAttribLocation");
+	if(!glBindAttribLocation)
+	{
+		return false;
+	}
+
+	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress("glGetUniformLocation");
+	if(!glGetUniformLocation)
+	{
+		return false;
+	}
+
+	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv");
+	if(!glUniformMatrix4fv)
+	{
+		return false;
+	}
+
+	glActiveTexture = (PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture");
+	if(!glActiveTexture)
+	{
+		return false;
+	}
+
+	glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i");
+	if(!glUniform1i)
+	{
+		return false;
+	}
+
+	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)wglGetProcAddress("glGenerateMipmap");
+	if(!glGenerateMipmap)
+	{
+		return false;
+	}
+
+	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
+	if(!glDisableVertexAttribArray)
+	{
+		return false;
+	}
+
+	glUniform3fv = (PFNGLUNIFORM3FVPROC)wglGetProcAddress("glUniform3fv");
+	if(!glUniform3fv)
+	{
+		return false;
+	}
+
+	glUniform4fv = (PFNGLUNIFORM4FVPROC)wglGetProcAddress("glUniform4fv");
+	if(!glUniform4fv)
+	{
+		return false;
+	}
+
+
+	return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following functions just return the matrices that this class has built to calling functions.
+These matrices are important to rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::GetWorldMatrix(float* matrix)
+{
+	matrix[0]  = m_worldMatrix[0];
+	matrix[1]  = m_worldMatrix[1];
+	matrix[2]  = m_worldMatrix[2];
+	matrix[3]  = m_worldMatrix[3];
+
+	matrix[4]  = m_worldMatrix[4];
+	matrix[5]  = m_worldMatrix[5];
+	matrix[6]  = m_worldMatrix[6];
+	matrix[7]  = m_worldMatrix[7];
+
+	matrix[8]  = m_worldMatrix[8];
+	matrix[9]  = m_worldMatrix[9];
+	matrix[10] = m_worldMatrix[10];
+	matrix[11] = m_worldMatrix[11];
+
+	matrix[12] = m_worldMatrix[12];
+	matrix[13] = m_worldMatrix[13];
+	matrix[14] = m_worldMatrix[14];
+	matrix[15] = m_worldMatrix[15];
+
+	return;
+}
+
+
+void OpenGLClass::GetProjectionMatrix(float* matrix)
+{
+	matrix[0]  = m_projectionMatrix[0];
+	matrix[1]  = m_projectionMatrix[1];
+	matrix[2]  = m_projectionMatrix[2];
+	matrix[3]  = m_projectionMatrix[3];
+
+	matrix[4]  = m_projectionMatrix[4];
+	matrix[5]  = m_projectionMatrix[5];
+	matrix[6]  = m_projectionMatrix[6];
+	matrix[7]  = m_projectionMatrix[7];
+
+	matrix[8]  = m_projectionMatrix[8];
+	matrix[9]  = m_projectionMatrix[9];
+	matrix[10] = m_projectionMatrix[10];
+	matrix[11] = m_projectionMatrix[11];
+
+	matrix[12] = m_projectionMatrix[12];
+	matrix[13] = m_projectionMatrix[13];
+	matrix[14] = m_projectionMatrix[14];
+	matrix[15] = m_projectionMatrix[15];
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The GetVideoCardInfo function returns the name and manufacturer of the video card in a string to the caller of this function.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::GetVideoCardInfo(char* cardName)
+{
+	strcpy_s(cardName, 128, m_videoCardDescription);
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This function builds a basic identity matrix.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::BuildIdentityMatrix(float* matrix)
+{
+	matrix[0]  = 1.0f;
+	matrix[1]  = 0.0f;
+	matrix[2]  = 0.0f;
+	matrix[3]  = 0.0f;
+
+	matrix[4]  = 0.0f;
+	matrix[5]  = 1.0f;
+	matrix[6]  = 0.0f;
+	matrix[7]  = 0.0f;
+
+	matrix[8]  = 0.0f;
+	matrix[9]  = 0.0f;
+	matrix[10] = 1.0f;
+	matrix[11] = 0.0f;
+
+	matrix[12] = 0.0f;
+	matrix[13] = 0.0f;
+	matrix[14] = 0.0f;
+	matrix[15] = 1.0f;
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This function builds a left handed projection matrix.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::BuildPerspectiveFovLHMatrix(float* matrix, float fieldOfView, float screenAspect, float screenNear, float screenDepth)
+{
+	matrix[0]  = 1.0f / (screenAspect * tan(fieldOfView * 0.5f));
+	matrix[1]  = 0.0f;
+	matrix[2]  = 0.0f;
+	matrix[3]  = 0.0f;
+
+	matrix[4]  = 0.0f;
+	matrix[5]  = 1.0f / tan(fieldOfView * 0.5f);
+	matrix[6]  = 0.0f;
+	matrix[7]  = 0.0f;
+
+	matrix[8]  = 0.0f;
+	matrix[9]  = 0.0f;
+	matrix[10] = screenDepth / (screenDepth - screenNear);
+	matrix[11] = 1.0f;
+
+	matrix[12] = 0.0f;
+	matrix[13] = 0.0f;
+	matrix[14] = (-screenNear * screenDepth) / (screenDepth - screenNear);
+	matrix[15] = 0.0f;
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This function builds a rotation matrix based around the Y axis.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::MatrixRotationY(float* matrix, float angle)
+{
+	matrix[0]  = cosf(angle);
+	matrix[1]  = 0.0f;
+	matrix[2]  = -sinf(angle);
+	matrix[3]  = 0.0f;
+
+	matrix[4]  = 0.0f;
+	matrix[5]  = 1.0f;
+	matrix[6]  = 0.0f;
+	matrix[7]  = 0.0f;
+
+	matrix[8]  = sinf(angle);
+	matrix[9]  = 0.0f;
+	matrix[10] = cosf(angle);
+	matrix[11] = 0.0f;
+
+	matrix[12] = 0.0f;
+	matrix[13] = 0.0f;
+	matrix[14] = 0.0f;
+	matrix[15] = 1.0f;
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This function builds a basic translation matrix.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::MatrixTranslation(float* matrix, float x, float y, float z)
+{
+	matrix[0]  = 1.0f;
+	matrix[1]  = 0.0f;
+	matrix[2]  = 0.0f;
+	matrix[3]  = 0.0f;
+
+	matrix[4]  = 0.0f;
+	matrix[5]  = 1.0f;
+	matrix[6]  = 0.0f;
+	matrix[7]  = 0.0f;
+
+	matrix[8]  = 0.0f;
+	matrix[9]  = 0.0f;
+	matrix[10] = 1.0f;
+	matrix[11] = 0.0f;
+
+	matrix[12] = x;
+	matrix[13] = y;
+	matrix[14] = z;
+	matrix[15] = 1.0f;
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This function multiplies two 4x4 matrices and returns the result.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void OpenGLClass::MatrixMultiply(float* result, float* matrix1, float* matrix2)
+{
+	result[0]  = (matrix1[0] * matrix2[0]) + (matrix1[1] * matrix2[4]) + (matrix1[2] * matrix2[8]) + (matrix1[3] * matrix2[12]);
+	result[1]  = (matrix1[0] * matrix2[1]) + (matrix1[1] * matrix2[5]) + (matrix1[2] * matrix2[9]) + (matrix1[3] * matrix2[13]);
+	result[2]  = (matrix1[0] * matrix2[2]) + (matrix1[1] * matrix2[6]) + (matrix1[2] * matrix2[10]) + (matrix1[3] * matrix2[14]);
+	result[3]  = (matrix1[0] * matrix2[3]) + (matrix1[1] * matrix2[7]) + (matrix1[2] * matrix2[11]) + (matrix1[3] * matrix2[15]);
+
+	result[4]  = (matrix1[4] * matrix2[0]) + (matrix1[5] * matrix2[4]) + (matrix1[6] * matrix2[8]) + (matrix1[7] * matrix2[12]);
+	result[5]  = (matrix1[4] * matrix2[1]) + (matrix1[5] * matrix2[5]) + (matrix1[6] * matrix2[9]) + (matrix1[7] * matrix2[13]);
+	result[6]  = (matrix1[4] * matrix2[2]) + (matrix1[5] * matrix2[6]) + (matrix1[6] * matrix2[10]) + (matrix1[7] * matrix2[14]);
+	result[7]  = (matrix1[4] * matrix2[3]) + (matrix1[5] * matrix2[7]) + (matrix1[6] * matrix2[11]) + (matrix1[7] * matrix2[15]);
+
+	result[8]  = (matrix1[8] * matrix2[0]) + (matrix1[9] * matrix2[4]) + (matrix1[10] * matrix2[8]) + (matrix1[11] * matrix2[12]);
+	result[9]  = (matrix1[8] * matrix2[1]) + (matrix1[9] * matrix2[5]) + (matrix1[10] * matrix2[9]) + (matrix1[11] * matrix2[13]);
+	result[10] = (matrix1[8] * matrix2[2]) + (matrix1[9] * matrix2[6]) + (matrix1[10] * matrix2[10]) + (matrix1[11] * matrix2[14]);
+	result[11] = (matrix1[8] * matrix2[3]) + (matrix1[9] * matrix2[7]) + (matrix1[10] * matrix2[11]) + (matrix1[11] * matrix2[15]);
+
+	result[12] = (matrix1[12] * matrix2[0]) + (matrix1[13] * matrix2[4]) + (matrix1[14] * matrix2[8]) + (matrix1[15] * matrix2[12]);
+	result[13] = (matrix1[12] * matrix2[1]) + (matrix1[13] * matrix2[5]) + (matrix1[14] * matrix2[9]) + (matrix1[15] * matrix2[13]);
+	result[14] = (matrix1[12] * matrix2[2]) + (matrix1[13] * matrix2[6]) + (matrix1[14] * matrix2[10]) + (matrix1[15] * matrix2[14]);
+	result[15] = (matrix1[12] * matrix2[3]) + (matrix1[13] * matrix2[7]) + (matrix1[14] * matrix2[11]) + (matrix1[15] * matrix2[15]);
+
+	return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Systemclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SystemClass has been modified since the last tutorial to now include the OpenGL 4.0 initialization and shutdown.
+The header has not been modified but the source file has been.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SYSTEMCLASS_H_
+#define _SYSTEMCLASS_H_
+
+
+///////////////////////////////
+// PRE-PROCESSING DIRECTIVES //
+///////////////////////////////
+#define WIN32_LEAN_AND_MEAN
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;windows.h&gt;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+#include "inputclass.h"
+#include "graphicsclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SystemClass
+////////////////////////////////////////////////////////////////////////////////
+class SystemClass
+{
+public:
+	SystemClass();
+	SystemClass(const SystemClass&);
+	~SystemClass();
+
+	bool Initialize();
+	void Shutdown();
+	void Run();
+
+	LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
+
+private:
+	bool Frame();
+	bool InitializeWindows(OpenGLClass*, int&, int&);
+	void ShutdownWindows();
+
+private:
+	LPCWSTR m_applicationName;
+	HINSTANCE m_hinstance;
+	HWND m_hwnd;
+
+	OpenGLClass* m_OpenGL;
+	InputClass* m_Input;
+	GraphicsClass* m_Graphics;
+};
+
+
+/////////////////////////
+// FUNCTION PROTOTYPES //
+/////////////////////////
+static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+
+/////////////
+// GLOBALS //
+/////////////
+static SystemClass* ApplicationHandle = 0;
+
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Systemclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "systemclass.h"
+
+
+SystemClass::SystemClass()
+{
+	m_OpenGL = 0;
+	m_Input = 0;
+	m_Graphics = 0;
+}
+
+
+SystemClass::SystemClass(const SystemClass& other)
+{
+}
+
+
+SystemClass::~SystemClass()
+{
+}
+
+
+bool SystemClass::Initialize()
+{
+	int screenWidth, screenHeight;
+	bool result;
+
+
+	// Initialize the width and height of the screen to zero.
+	screenWidth = 0;
+	screenHeight = 0;
+
+	// Create the OpenGL object.
+	m_OpenGL = new OpenGLClass;
+	if(!m_OpenGL)
+	{
+		return false;
+	}
+
+	// Create the window the application will be using and also initialize OpenGL.
+	result = InitializeWindows(m_OpenGL, screenWidth, screenHeight);
+	if(!result)
+	{
+		MessageBox(m_hwnd, L"Could not initialize the window.", L"Error", MB_OK);
+		return false;
+	}
+	
+	// Create the input object.  This object will be used to handle reading the input from the user.
+	m_Input = new InputClass;
+	if(!m_Input)
+	{
+		return false;
+	}
+
+	// Initialize the input object.
+	m_Input->Initialize();
+
+	// Create the graphics object.  This object will handle rendering all the graphics for this application.
+	m_Graphics = new GraphicsClass;
+	if(!m_Graphics)
+	{
+		return false;
+	}
+
+	// Initialize the graphics object.
+	result = m_Graphics->Initialize(m_OpenGL, m_hwnd);
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+void SystemClass::Shutdown()
+{
+	// Release the graphics object.
+	if(m_Graphics)
+	{
+		m_Graphics->Shutdown();
+		delete m_Graphics;
+		m_Graphics = 0;
+	}
+
+	// Release the input object.
+	if(m_Input)
+	{
+		delete m_Input;
+		m_Input = 0;
+	}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now call the shutdown function for the OpenGL object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>	// Release the OpenGL object.
+	if(m_OpenGL)
+	{</FONT><font face=arial color=#aaaaff size=2>
+		m_OpenGL->Shutdown(m_hwnd);</FONT><font face=arial color=#aaffaa size=2>
+		delete m_OpenGL;
+		m_OpenGL = 0;
+	}
+
+	// Shutdown the window.
+	ShutdownWindows();
+	
+	return;
+}
+
+
+void SystemClass::Run()
+{
+	MSG msg;
+	bool done, result;
+
+
+	// Initialize the message structure.
+	ZeroMemory(&msg, sizeof(MSG));
+	
+	// Loop until there is a quit message from the window or the user.
+	done = false;
+	while(!done)
+	{
+		// Handle the windows messages.
+		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		// If windows signals to end the application then exit out.
+		if(msg.message == WM_QUIT)
+		{
+			done = true;
+		}
+		else
+		{
+			// Otherwise do the frame processing.
+			result = Frame();
+			if(!result)
+			{
+				done = true;
+			}
+		}
+
+	}
+
+	return;
+}
+
+
+bool SystemClass::Frame()
+{
+	bool result;
+
+
+	// Check if the user pressed escape and wants to exit the application.
+	if(m_Input->IsKeyDown(VK_ESCAPE))
+	{
+		return false;
+	}
+
+	// Do the frame processing for the graphics object.
+	result = m_Graphics->Frame();
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
+{
+	switch(umsg)
+	{
+		// Check if a key has been pressed on the keyboard.
+		case WM_KEYDOWN:
+		{
+			// If a key is pressed send it to the input object so it can record that state.
+			m_Input->KeyDown((unsigned int)wparam);
+			return 0;
+		}
+
+		// Check if a key has been released on the keyboard.
+		case WM_KEYUP:
+		{
+			// If a key is released then send it to the input object so it can unset the state for that key.
+			m_Input->KeyUp((unsigned int)wparam);
+			return 0;
+		}
+
+		// Any other messages send to the default message handler as our application won't make use of them.
+		default:
+		{
+			return DefWindowProc(hwnd, umsg, wparam, lparam);
+		}
+	}
+}
+
+
+bool SystemClass::InitializeWindows(OpenGLClass* OpenGL, int& screenWidth, int& screenHeight)
+{
+	WNDCLASSEX wc;
+	DEVMODE dmScreenSettings;
+	int posX, posY;
+	bool result;
+
+
+	// Get an external pointer to this object.	
+	ApplicationHandle = this;
+
+	// Get the instance of this application.
+	m_hinstance = GetModuleHandle(NULL);
+
+	// Give the application a name.
+	m_applicationName = L"Engine";
+
+	// Setup the windows class with default settings.
+	wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+	wc.lpfnWndProc   = WndProc;
+	wc.cbClsExtra    = 0;
+	wc.cbWndExtra    = 0;
+	wc.hInstance     = m_hinstance;
+	wc.hIcon         = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hIconSm       = wc.hIcon;
+	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wc.lpszMenuName  = NULL;
+	wc.lpszClassName = m_applicationName;
+	wc.cbSize        = sizeof(WNDCLASSEX);
+	
+	// Register the window class.
+	RegisterClassEx(&wc);
+
+	// Create a temporary window for the OpenGL extension setup.
+	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName, WS_POPUP,
+				0, 0, 640, 480, NULL, NULL, m_hinstance, NULL);
+	if(m_hwnd == NULL)
+	{
+		return false;
+	}
+
+	// Don't show the window.
+	ShowWindow(m_hwnd, SW_HIDE);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now load the extensions using the OpenGL object.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	// Initialize a temporary OpenGL window and load the OpenGL extensions.
+	result = OpenGL->InitializeExtensions(m_hwnd);
+	if(!result)
+	{
+		MessageBox(m_hwnd, L"Could not initialize the OpenGL extensions.", L"Error", MB_OK);
+		return false;
+	}</FONT><font face=arial color=#aaffaa size=2>
+
+	// Release the temporary window now that the extensions have been initialized.
+	DestroyWindow(m_hwnd);
+	m_hwnd = NULL;
+
+	// Determine the resolution of the clients desktop screen.
+	screenWidth  = GetSystemMetrics(SM_CXSCREEN);
+	screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	// Setup the screen settings depending on whether it is running in full screen or in windowed mode.
+	if(FULL_SCREEN)
+	{
+		// If full screen set the screen to maximum size of the users desktop and 32bit.
+		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize       = sizeof(dmScreenSettings);
+		dmScreenSettings.dmPelsWidth  = (unsigned long)screenWidth;
+		dmScreenSettings.dmPelsHeight = (unsigned long)screenHeight;
+		dmScreenSettings.dmBitsPerPel = 32;			
+		dmScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		// Change the display settings to full screen.
+		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+
+		// Set the position of the window to the top left corner.
+		posX = posY = 0;
+	}
+	else
+	{
+		// If windowed then set it to 800x600 resolution.
+		screenWidth  = 800;
+		screenHeight = 600;
+
+		// Place the window in the middle of the screen.
+		posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth)  / 2;
+		posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+	}
+
+	// Create the window with the screen settings and get the handle to it.
+	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName, WS_POPUP,
+				posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, NULL);
+	if(m_hwnd == NULL)
+	{
+		return false;
+	}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+With the extensions in place we can now properly initialize an OpenGL 4.0 rendering context.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	// Initialize OpenGL now that the window has been created.
+	result = m_OpenGL->InitializeOpenGL(m_hwnd, screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR, VSYNC_ENABLED);
+	if(!result)
+	{
+		MessageBox(m_hwnd, L"Could not initialize OpenGL, check if video card supports OpenGL 4.0.", L"Error", MB_OK);
+		return false;
+	}</FONT><font face=arial color=#aaffaa size=2>
+
+	// Bring the window up on the screen and set it as main focus.
+	ShowWindow(m_hwnd, SW_SHOW);
+	SetForegroundWindow(m_hwnd);
+	SetFocus(m_hwnd);
+
+	// Hide the mouse cursor.
+	ShowCursor(false);
+
+	return true;
+}
+
+
+void SystemClass::ShutdownWindows()
+{
+	// Show the mouse cursor.
+	ShowCursor(true);
+
+	// Fix the display settings if leaving full screen mode.
+	if(FULL_SCREEN)
+	{
+		ChangeDisplaySettings(NULL, 0);
+	}
+
+	// Remove the window.
+	DestroyWindow(m_hwnd);
+	m_hwnd = NULL;
+
+	// Remove the application instance.
+	UnregisterClass(m_applicationName, m_hinstance);
+	m_hinstance = NULL;
+
+	// Release the pointer to this class.
+	ApplicationHandle = NULL;
+
+	return;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
+{
+	switch(umessage)
+	{
+		// Check if the window is being closed.
+		case WM_CLOSE:
+		{
+			PostQuitMessage(0);		
+			return 0;
+		}
+
+		// All other messages pass to the message handler in the system class.
+		default:
+		{
+			return ApplicationHandle->MessageHandler(hwnd, umessage, wparam, lparam);
+		}
+	}
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Graphicsclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial we have now also filled out the GraphicsClass so that it can perform some basic OpenGL rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: graphicsclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _GRAPHICSCLASS_H_
+#define _GRAPHICSCLASS_H_
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_NEAR = 0.1f;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: GraphicsClass
+////////////////////////////////////////////////////////////////////////////////
+class GraphicsClass
+{
+public:
+	GraphicsClass();
+	GraphicsClass(const GraphicsClass&);
+	~GraphicsClass();
+
+	bool Initialize(OpenGLClass*, HWND);
+	void Shutdown();
+	bool Frame();
+
+private:
+	bool Render();
+
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now have an OpenGL class object.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	OpenGLClass* m_OpenGL;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Graphicsclass.cpp</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+From the previous tutorial this class was entirely empty with no code in it at all.
+Now that we have a OpenGLClass member we will start to fill out some code inside the GraphicsClass to initialize and shutdown the OpenGLClass object.
+We will also add calls to BeginScene and EndScene in the Render function so that we are now drawing to the window using OpenGL. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: graphicsclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "graphicsclass.h"
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+So the very first change is in the class constructor.
+Here we initialize the OpenGLClass object pointer to null for safety reasons as we do with all class pointers.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>GraphicsClass::GraphicsClass()
+{</FONT><font face=arial color=#aaaaff size=2>
+	m_OpenGL = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+GraphicsClass::GraphicsClass(const GraphicsClass& other)
+{
+}
+
+
+GraphicsClass::~GraphicsClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The second change is in the Initialize function inside the GraphicsClass
+Here we send in a pointer to the OpenGLClass object so that the GraphicsClass can make OpenGL system calls just using a single pointer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool GraphicsClass::Initialize(OpenGLClass* OpenGL, HWND hwnd)
+{</FONT><font face=arial color=#aaaaff size=2>
+	// Store a pointer to the OpenGL class object.
+	m_OpenGL = OpenGL;</FONT><font face=arial color=#aaffaa size=2>
+
+	return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The next change is in the Shutdown function in the GraphicsClass.
+Here we release the pointer to the OpenGLClass object during shut down.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void GraphicsClass::Shutdown()
+{</FONT><font face=arial color=#aaaaff size=2>
+	// Release the pointer to the OpenGL class object.
+	m_OpenGL = 0;</FONT><font face=arial color=#aaffaa size=2>
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Frame function has been updated so that it now calls the Render function each frame.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool GraphicsClass::Frame()
+{</FONT><font face=arial color=#aaaaff size=2>
+	bool result;
+
+
+	// Render the graphics scene.
+	result = Render();
+	if(!result)
+	{
+		return false;
+	}</FONT><font face=arial color=#aaffaa size=2>
+
+	return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The final change to this class is in the Render function.
+We call the OpenGL object to clear the screen to a grey color.
+After that we call EndScene so that the grey color is presented to the window. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool GraphicsClass::Render()
+{</FONT><font face=arial color=#aaaaff size=2>
+	// Clear the buffers to begin the scene.
+	m_OpenGL->BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
+
+
+	// Present the rendered scene to the screen.
+	m_OpenGL->EndScene();</FONT><font face=arial color=#aaffaa size=2>
+
+	return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now we are finally able to initialize and shut down OpenGL 4.0.
+Compiling and running the code will produce the same window as the last tutorial but OpenGL is initialized now and clear the window to grey for us.
+Compiling and running the code will also show if your video card driver can properly get all the OpenGL 4.0 extensions that we will be using.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Re-compile the code and run the program to ensure OpenGL works. Press the escape key to quit after the window displays.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Change the global in graphicsclass.h to full screen and re-compile/run.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Change the clear color in GraphicsClass::Render to yellow.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+4. Write the video card name out to a text file.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl40src03.zip">gl40src03.zip</a></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Executable: <a HREF="gl40exe03.zip">gl40exe03.zip</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl40.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

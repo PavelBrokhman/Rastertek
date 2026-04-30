@@ -1,0 +1,1877 @@
+<html><head><title>Tutorial 50: Deferred Shading</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 50: Deferred Shading
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this tutorial we will cover the basics in implementing deferred shading using OpenGL 4.0, C++, and GLSL. The code in this tutorial will build on the code from the previous tutorials. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Deferred shading is the process of splitting up traditional rendering into a two-stage system that is designed to improve efficiency in shaders that require complex lighting.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the first stage we render as usual by using a vertex and pixel shader.
+However, the purpose of the pixel shader is entirely different.
+We no longer use the pixel shader to do lighting calculations and then output a color to the back buffer.
+We instead output information about that pixel (such as normals, texture color, and so forth) to a render to texture buffer.
+So now our pixel shader output from the first stage has become a 2D texture full of scene information that can be used as a texture input to the second stage. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the second stage we re-write all our traditional 3D shaders to now do 2D post processing using the render to texture outputs from the first stage.
+And because we are doing 2D post processing we have just a set number of pixels to run our lighting equations on instead of a massive scene full of thousands of complex 3D objects.
+Therefore, it no longer matters if we have thousands of lights in our scene or how many polygons are in each object.
+We only perform lighting equations on the very final 2D output pixels. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+So deferred shading eliminates all sorts of calculations that would be required in the vertex and pixel shader for every single model in the scene.
+And all those complex calculations create output data that is usually discarded anyhow due to culling.
+So, all those inefficiencies are now eliminated and our shading equations are now a fixed amount of processing regardless of scene size, number of lights, and so forth.
+This really opens the door so we can do more complex lighting as well as simplify and combine our shaders that already required 2D post processing. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+To proceed we need to first write a deferred shader for the first stage, and then re-write our traditional shaders to take the first stage textures as input and perform 2D post processing.
+For simplicity in this tutorial, we will re-write the original directional light shader and show how to connect it to the deferred shader. 
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The framework for this tutorial will be similar to the first lighting tutorial.
+The two new classes we will add are the DeferredBuffersClass and the DeferredShaderClass.
+We will also need to add the OrthoWindowClass since deferred shading requires 2D post processing as part of its rendering process. 
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6115.gif" width="929" height="211"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will start the code section by looking at the new DeferredBuffersClass.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredbuffersclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The DeferredBufferClass is just the render to texture class re-written to handle an array of render to textures instead of just a single one.
+The outputs of the deferred shader will be writing to the texture buffers (render targets) of this class. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////                                                                                                                                                              
+// Filename: deferredbuffersclass.h                                                                                                                                                                                                           
+////////////////////////////////////////////////////////////////////////////////                                                                                                                                                              
+#ifndef _DEFERREDBUFFERSCLASS_H_
+#define _DEFERREDBUFFERSCLASS_H_
+
+
+///////////////////////                                                                                                                                                                                                                       
+// MY CLASS INCLUDES //                                                                                                                                                                                                                       
+///////////////////////                                                                                                                                                                                                                       
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////                                                                                                                                                              
+// Class name: DeferredBuffersClass                                                                                                                                                                                                           
+////////////////////////////////////////////////////////////////////////////////                                                                                                                                                              
+class DeferredBuffersClass
+{
+public:
+    DeferredBuffersClass();
+    DeferredBuffersClass(const DeferredBuffersClass&);
+    ~DeferredBuffersClass();
+
+    bool Initialize(OpenGLClass*, int, int, float, float);
+    void Shutdown(OpenGLClass*);
+
+    void SetRenderTarget(OpenGLClass*);
+    void ClearRenderTargets(float, float, float, float);
+    void SetTexture(OpenGLClass*, unsigned int, int);
+
+private:
+    int m_textureWidth, m_textureHeight;
+    unsigned int m_frameBufferId, m_depthBufferId;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The render targets texture IDs are now in an array instead of single values.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    unsigned int m_textureIDArray[2];
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredbuffersclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferredbuffersclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "deferredbuffersclass.h"
+
+
+DeferredBuffersClass::DeferredBuffersClass()
+{
+}
+
+
+DeferredBuffersClass::DeferredBuffersClass(const DeferredBuffersClass& other)
+{
+}
+
+
+DeferredBuffersClass::~DeferredBuffersClass()
+{
+}
+
+
+bool DeferredBuffersClass::Initialize(OpenGLClass* OpenGL, int textureWidth, int textureHeight, float screenNear, float screenDepth)
+{
+    unsigned int drawBuffersArray[2];
+
+
+    // Store the width and height of the render texture.
+    m_textureWidth = textureWidth;
+    m_textureHeight = textureHeight;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+There are no code changes to creating the frame buffer, but it will now have a depth buffer and two render texture buffers attached to it.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Generate an ID for the frame buffer and bind the frame buffer.
+    OpenGL->glGenFramebuffers(1, &m_frameBufferId);
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferId);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The depth buffer is created as normal and attached to the frame buffer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the depth buffer and attach it to the frame buffer using GL_DEPTH_ATTACHMENT.
+    OpenGL->glGenRenderbuffers(1, &m_depthBufferId);
+    OpenGL->glBindRenderbuffer(GL_RENDERBUFFER, m_depthBufferId);
+    OpenGL->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_textureWidth, m_textureHeight);
+    OpenGL->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBufferId);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first texture is created here and then attached to the frame buffer using GL_COLOR_ATTACHMENT0.
+This texture will be used for rendering the color to.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the color texture and attach it to the frame buffer using GL_COLOR_ATTACHMENT0.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + 0);
+    glGenTextures(1, &m_textureIDArray[0]);
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_textureWidth, m_textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);  // Color - GL_RGBA
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    OpenGL->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureIDArray[0], 0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The second texture is created here and then attached to the frame buffer using GL_COLOR_ATTACHMENT1.
+This texture will be used for rendering the normal values for each pixel.
+Note we need to use a larger 32-bit float per channel to represent normal values accurately, otherwise we truncate the range too drastically.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the normal texture and attach it to the frame buffer using GL_COLOR_ATTACHMENT1.  Normals will require GL_RGBA32F format for third internalformat input.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + 0);
+    glGenTextures(1, &m_textureIDArray[1]);
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, m_textureWidth, m_textureHeight, 0, GL_RGBA, GL_FLOAT, NULL);  // Normals - GL_RGBA32F
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    OpenGL->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_textureIDArray[1], 0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now we define the pixel shader output here.
+Previously we would just output a RGBA color value.
+Now we output a vec4 color value and a vec4 normal value.
+One efficiency in deferred rendering comes from being able to render to multiple targets in the same pass.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Now set the format for the pixel shader output when rendering with this frame buffer.
+    drawBuffersArray[0] = GL_COLOR_ATTACHMENT0;
+    drawBuffersArray[1] = GL_COLOR_ATTACHMENT1;
+    OpenGL->glDrawBuffers(2, drawBuffersArray);
+
+    // Now that we are done setting up the render texture frame buffer, we can switch back to the regular back buffer that is used for rendering.
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    return true;
+}
+
+
+void DeferredBuffersClass::Shutdown(OpenGLClass* OpenGL)
+{
+    // Release the depth buffer.
+    OpenGL->glDeleteRenderbuffers(1, &m_depthBufferId);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now release two textures (color and normal).
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Release the textures.
+    glDeleteTextures(1, &m_textureIDArray[0]);
+    glDeleteTextures(1, &m_textureIDArray[1]);
+
+    // Release the frame buffer.
+    OpenGL->glDeleteFramebuffers(1, &m_frameBufferId);
+
+    return;
+}
+
+
+void DeferredBuffersClass::SetRenderTarget(OpenGLClass* OpenGL)
+{
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+There are no changes to SetRenderTarget code, but when we bind the frame buffer it will now bind the depth buffer, the color texture, and the normal texture.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the frame buffer (and its attached textures and depth buffer) as the render target.
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferId);
+
+    // Set the viewport to be the correct dimensions for the texture dimensions used.
+    glViewport(0, 0, m_textureWidth, m_textureHeight);
+
+    return;
+}
+
+
+void DeferredBuffersClass::ClearRenderTargets(float red, float green, float blue, float alpha)
+{
+    // Clear the back buffer.
+    glClearColor(red, green, blue, alpha);
+
+    // Clear the depth buffer.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SetTexture function now allows us to set which of the individual textures we want that are encapsulated in the DefferedBuffersClass.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void DeferredBuffersClass::SetTexture(OpenGLClass* OpenGL, unsigned int textureUnit, int view)
+{
+    // Set the texture unit we are working with.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + textureUnit);
+
+    // Bind the texture as a 2D texture.
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[view]);
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferred.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These are our deferred GLSL shaders.
+We use these to render the scene data into render to texture buffers.
+For the deferred vertex shader, it still does the exact same thing as in previous tutorials.
+All the changes are actually in the pixel shader. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferred.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+in vec3 inputNormal;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec2 texCoord;
+out vec3 normal;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the texture coordinates for the pixel shader.
+    texCoord = inputTexCoord;
+
+    // Calculate the normal vector against the world matrix only.
+    normal = inputNormal * mat3(worldMatrix);
+
+    // Normalize the normal vector.
+    normal = normalize(normal);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferred.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferred.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 normal;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have a new output format for the pixel shader output.
+This will output color data to the first render texture target, and normals to the second render texture target. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+out vec4 outputNormal;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The pixel shader now uses a different output type that we defined above instead of just outputting a single color value.
+It will now write to the two render targets.
+We send the color texture pixel to the first render target, and we send the normals to the second render target.
+The two textures that are output from this shader will then be used as the input data for all of our new re-written shaders. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Sample the color from the texture and store it for output to the deferred render target.
+    outputColor = texture(shaderTexture, texCoord);
+
+    // Store the normal for output to the deferred render target.
+    outputNormal = vec4(normal, 1.0f);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the class that encapsulates the functionality of the deferred shader.
+It doesn't vary much from the regular shaders.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferredshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _DEFERREDSHADERCLASS_H_
+#define _DEFERREDSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: DeferredShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class DeferredShaderClass
+{
+public:
+    DeferredShaderClass();
+    DeferredShaderClass(const DeferredShaderClass&);
+    ~DeferredShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+
+    bool SetShaderParameters(float*, float*, float*);
+
+private:
+    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferredshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "deferredshaderclass.h"
+
+
+DeferredShaderClass::DeferredShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+DeferredShaderClass::DeferredShaderClass(const DeferredShaderClass& other)
+{
+}
+
+
+DeferredShaderClass::~DeferredShaderClass()
+{
+}
+
+
+bool DeferredShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Load the deferred vertex and pixel GLSL shader files.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/deferred.vs");
+    strcpy(psFilename, "../Engine/deferred.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void DeferredShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+
+
+bool DeferredShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 2, "inputNormal");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+
+
+void DeferredShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+
+
+char* DeferredShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+
+
+void DeferredShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+
+
+void DeferredShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+
+
+bool DeferredShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix)
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix not set." << endl;
+    }
+    m_OpenGLPtr ->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+
+    // Set the texture in the pixel shader to use the data from the first texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "shaderTexture");
+    if(location == -1)
+    {
+        cout << "Shader texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 0);
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the directional light shader that has been re-written to handle deferred rendering.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In deferred shaders, we don't require normals as input vectors since the normal data is in the render texture and we are only doing 2D post processing here. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec2 texCoord;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The vertex shader will just forward the position and texture coordinates of the 2D image that we are processing.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the texture coordinates for the pixel shader.
+    texCoord = inputTexCoord;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+As inputs the deferred light shader takes the two render textures that contain the color information and the normals from the deferred shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D colorTexture;
+uniform sampler2D normalTexture;
+uniform vec3 lightDirection;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 colors;
+    vec4 normals;
+    vec3 lightDir;
+    float lightIntensity;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the light pixel shader, we start by retrieving the color data and normals for this pixel using the point sampler.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    colors = texture(colorTexture, texCoord);
+
+    // Sample the normals from the normal render texture using the point sampler at this texture coordinate location.
+    normals = texture(normalTexture, texCoord);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We can then perform our directional lighting equation using this sampled information.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>    // Invert the light direction for calculations.
+    lightDir = -lightDirection;
+
+    // Calculate the amount of light on this pixel.
+    lightIntensity = clamp(dot(normals.xyz, lightDir), 0.0f, 1.0f);
+
+    // Determine the final amount of diffuse color based on the color of the pixel combined with the light intensity.
+    outputColor = clamp(colors * lightIntensity, 0.0f, 1.0f);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LightShaderClass has been re-written to handle deferred shading.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _LIGHTSHADERCLASS_H_
+#define _LIGHTSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: LightShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class LightShaderClass
+{
+public:
+    LightShaderClass();
+    LightShaderClass(const LightShaderClass&);
+    ~LightShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+
+    bool SetShaderParameters(float*, float*, float*, float*);
+
+private:
+    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "lightshaderclass.h"
+
+
+LightShaderClass::LightShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+LightShaderClass::LightShaderClass(const LightShaderClass& other)
+{
+}
+
+
+LightShaderClass::~LightShaderClass()
+{
+}
+
+
+bool LightShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+
+    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/light.vs");
+    strcpy(psFilename, "../Engine/light.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void LightShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+
+
+bool LightShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The polygon layout now only requires position and texture coordinates since we are doing 2D post processing.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+
+
+void LightShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+
+
+char* LightShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+
+
+void LightShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+
+
+void LightShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+
+
+bool LightShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float* lightDirection)
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix not set." << endl;
+    }
+    m_OpenGLPtr ->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Most importantly the shader now takes in two render to textures that contain the color and normal data.
+The two deferred textures are set in the shader here. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the color texture in the pixel shader to use the data from the first texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "colorTexture");
+    if(location == -1)
+    {
+        cout << "Color texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 0);
+
+    // Set the normal texture in the pixel shader to use the data from the second texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "normalTexture");
+    if(location == -1)
+    {
+        cout << "Normal texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 1);
+
+    // Set the light direction in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "lightDirection");
+    if(location == -1)
+    {
+        cout << "Light direction not set." << endl;
+    }
+    m_OpenGLPtr->glUniform3fv(location, 1, lightDirection);
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+#include "inputclass.h"
+#include "cameraclass.h"
+#include "lightclass.h"
+#include "modelclass.h"
+#include "orthowindowclass.h"
+#include "deferredbuffersclass.h"
+#include "deferredshaderclass.h"
+#include "lightshaderclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool RenderSceneToTexture(float);
+    bool Render();
+
+private:
+    OpenGLClass* m_OpenGL;
+    CameraClass* m_Camera;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have a regular directional light object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    LightClass* m_Light;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have the cube model that we will be rendering. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    ModelClass* m_Model;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the 2D window that will be used to do the post processing on with the new deferred light shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    OrthoWindowClass* m_FullScreenWindow;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the deferred buffers object that will contain the two render to textures containing the deferred rendering information for the colors and the normals.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    DeferredBuffersClass* m_DeferredBuffers;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+And we have our deferred shader and the re-written directional light shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    DeferredShaderClass* m_DeferredShader;
+    LightShaderClass* m_LightShader;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;
+    m_Camera = 0;
+    m_Light = 0;
+    m_Model = 0;
+    m_FullScreenWindow = 0;
+    m_DeferredBuffers = 0;
+    m_DeferredShader = 0;
+    m_LightShader = 0;
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    char modelFilename[128], diffuseFilename[128];
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->Render();
+    m_Camera->RenderBaseViewMatrix();
+
+    // Create and initialize the light object.
+    m_Light = new LightClass;
+
+    m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+
+    // Create and initialize the cube model object.
+    m_Model = new ModelClass;
+
+    strcpy(modelFilename, "../Engine/data/cube.txt");
+    strcpy(diffuseFilename, "../Engine/data/stone01.tga");
+
+    result = m_Model->Initialize(m_OpenGL, modelFilename, diffuseFilename, true, NULL, false, NULL, false);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the model object." << endl;
+        return false;
+    }
+
+    // Create and initialize the full screen ortho window object.
+    m_FullScreenWindow = new OrthoWindowClass;
+
+    result = m_FullScreenWindow->Initialize(m_OpenGL, screenWidth, screenHeight);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the full screen window object." << endl;
+        return false;
+    }
+
+    // Create and initialize the deferred buffers object.
+    m_DeferredBuffers = new DeferredBuffersClass;
+
+    result = m_DeferredBuffers->Initialize(m_OpenGL, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the deferred buffers object." << endl;
+        return false;
+    }
+
+    // Create the and initialize deferred shader object.
+    m_DeferredShader = new DeferredShaderClass;
+
+    result = m_DeferredShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the deferred shader object." << endl;
+        return false;
+    }
+
+    // Create and initialize the deferred light shader object.
+    m_LightShader = new LightShaderClass;
+
+    result = m_LightShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the light shader object." << endl;
+        return false;
+    }
+
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{
+    // Release the deferred light shader object.
+    if(m_LightShader)
+    {
+        m_LightShader->Shutdown();
+        delete m_LightShader;
+        m_LightShader = 0;
+    }
+
+    // Release the deferred shader object.
+    if(m_DeferredShader)
+    {
+        m_DeferredShader->Shutdown();
+        delete m_DeferredShader;
+        m_DeferredShader = 0;
+    }
+
+    // Release the deferred buffers object.
+    if(m_DeferredBuffers)
+    {
+        m_DeferredBuffers->Shutdown(m_OpenGL);
+        delete m_DeferredBuffers;
+        m_DeferredBuffers = 0;
+    }
+
+    // Release the full screen ortho window object.
+    if(m_FullScreenWindow)
+    {
+        m_FullScreenWindow->Shutdown();
+        delete m_FullScreenWindow;
+        m_FullScreenWindow = 0;
+    }
+
+    // Release the model object.
+    if(m_Model)
+    {
+        m_Model->Shutdown();
+        delete m_Model;
+        m_Model = 0;
+    }
+
+    // Release the light object.
+    if(m_Light)
+    {
+        delete m_Light;
+        m_Light = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame(InputClass* Input)
+{
+    static float rotation = 360.0f;
+    bool result;
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+
+    // Update the rotation variable each frame.
+    rotation -= 0.0174532925f * 0.5f;
+    if(rotation <= 0.0f)
+    {
+        rotation += 360.0f;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+First thing we need to do is render the scene using the deferred shader.
+This is done here in the RenderSceneToTexture function.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Render the scene to the deferred buffers.
+    result = RenderSceneToTexture(rotation);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Render the final graphics scene using deferred shading.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::RenderSceneToTexture(float rotation)
+{
+    float worldMatrix[16], viewMatrix[16], projectionMatrix[16];
+    bool result;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set the deferred render to texture buffers as the render target and then clear them before rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the render target to be the deferred buffers.  Also clear the buffers.
+    m_DeferredBuffers->SetRenderTarget(m_OpenGL);
+    m_DeferredBuffers->ClearRenderTargets(0.0f, 0.0f, 0.0f, 1.0f);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render the scene of the spinning cube using the deferred shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Get the world, view, and projection matrices from the camera and OpenGL objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetProjectionMatrix(projectionMatrix);
+
+    // Rotate the world matrix by the rotation value so that the model will spin.
+    m_OpenGL->MatrixRotationY(worldMatrix, rotation);
+
+    // Render the cube model using the deferred shader.
+    result = m_DeferredShader->SetShaderParameters(worldMatrix, viewMatrix, projectionMatrix);
+    if(!result)
+    {
+        return false;
+    }
+    m_Model->SetTexture1(0);
+    m_Model->Render();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set the render target back to the back buffer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Reset the render target back to the original back buffer and not the deferred buffers anymore.  Also reset the viewport back to the original.
+    m_OpenGL->SetBackBufferRenderTarget();
+    m_OpenGL->ResetViewport();
+
+    return true;
+}
+
+
+bool ApplicationClass::Render()
+{
+    float worldMatrix[16], baseViewMatrix[16], orthoMatrix[16];
+    float lightDirection[3];
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Setup the scene for 2D rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Get the world, view, and ortho matrices from the camera and OpenGL objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetBaseViewMatrix(baseViewMatrix);
+    m_OpenGL->GetOrthoMatrix(orthoMatrix);
+
+    // Get the light properties.
+    m_Light->GetDirection(lightDirection);
+
+    // Begin 2D rendering and turn off the Z buffer.
+    m_OpenGL->TurnZBufferOff();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Since the scene was rendered earlier with the deferred shader, we can use the render to texture buffers to render the directional light.
+We use the re-written light shader as a 2D post processing operation. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the parameters for the deferred light shader.
+    result = m_LightShader->SetShaderParameters(worldMatrix, baseViewMatrix, orthoMatrix, lightDirection);
+    if(!result)
+    {
+        return false;
+    }
+
+    m_DeferredBuffers->SetTexture(m_OpenGL, 0, 0);  // Set the color texture in the first pixel shader texture slot.
+    m_DeferredBuffers->SetTexture(m_OpenGL, 1, 1);  // Set the normal texture in the second pixel shader texture slot.
+
+    // Render the full screen ortho window using the deferred light shader and the deferred buffer texture resources.
+    m_FullScreenWindow->Render();
+
+    // Re-enable the Z buffer after 2D rendering complete.
+    m_OpenGL->TurnZBufferOn();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We can now render using deferred shading.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6065.gif" width="250" height="250"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Compile and run the program to see a rotating cube rendered using deferred shading. Press escape to quit.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Create a point light deferred shader.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Add hundreds of point lights to the scene.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+4. Look at compressing the data and using smaller/less render textures.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+5. Convert some of the other shaders to use deferred shading such as normal mapping and shadows.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut50_src.tar.gz">gl4linuxtut50_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

@@ -1,0 +1,872 @@
+<html><head><title>Tutorial 7: 3D Model Rendering</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 7: 3D Model Rendering
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will cover how to render 3D models in OpenGL 4.0 using GLSL.  
+The code in this tutorial is based on the code from the diffuse lighting tutorial.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have already been rendering 3D models in the previous tutorials, however they were composed of a single triangle and were fairly uninteresting.
+Now that the basics have been covered we'll move forward to render a more complex object.  In this case the object will be a cube.
+Before we get into how to render more complex models we will first talk about model formats.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+There are many tools available that allow users to create 3D models.  
+Maya and 3D Studio Max are two of the more popular 3D modeling programs.
+There are also many other tools with less features but still can do the basics for what we need.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Regardless of which tool you choose to use they will all export their models into numerous different formats.
+My suggestion is that you create your own model format and write a parser to convert their export format into your own format.
+The reason for this is that the 3D modeling package that you use may change over time and their model format will also change.  
+Also you may be using more than one 3D modeling package so you will have multiple different formats to deal with.
+So if you have your own format and convert their formats to your own then your code will never need to change.
+You will only need to change your parser program(s) for changing those formats to your own.
+As well most 3D modeling packages export a ton of junk that is only useful to that modeling program and you don't need any of it in your model format.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The most important part to making your own format is that it covers everything you need it to do and that it is simple for you to use.
+You can also consider making a couple different formats for different objects as some may have animation data, some may be static, and so forth.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The model format I'm going to present is very basic.  It will contain a line for each vertex in the model.
+Each line will match the vertex format used in the code which will be position vector (x, y, z), texture coordinates (tu, tv), and the normal vector (nx, ny, nz).
+The format will also have the vertex count at the top so you can read the first line and build the memory structures needed before reading in the data.
+The format will also require that every three lines make a triangle, and that the vertices in the model format are presented in clockwise order.
+Here is the model file for the cube we are going to render:
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Cube.txt</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>Vertex Count: 36
+
+Data:
+
+-1.0  1.0 -1.0 0.0 0.0  0.0  0.0 -1.0
+ 1.0  1.0 -1.0 1.0 0.0  0.0  0.0 -1.0
+-1.0 -1.0 -1.0 0.0 1.0  0.0  0.0 -1.0
+-1.0 -1.0 -1.0 0.0 1.0  0.0  0.0 -1.0
+ 1.0  1.0 -1.0 1.0 0.0  0.0  0.0 -1.0
+ 1.0 -1.0 -1.0 1.0 1.0  0.0  0.0 -1.0
+ 1.0  1.0 -1.0 0.0 0.0  1.0  0.0  0.0
+ 1.0  1.0  1.0 1.0 0.0  1.0  0.0  0.0
+ 1.0 -1.0 -1.0 0.0 1.0  1.0  0.0  0.0
+ 1.0 -1.0 -1.0 0.0 1.0  1.0  0.0  0.0
+ 1.0  1.0  1.0 1.0 0.0  1.0  0.0  0.0
+ 1.0 -1.0  1.0 1.0 1.0  1.0  0.0  0.0
+ 1.0  1.0  1.0 0.0 0.0  0.0  0.0  1.0
+-1.0  1.0  1.0 1.0 0.0  0.0  0.0  1.0
+ 1.0 -1.0  1.0 0.0 1.0  0.0  0.0  1.0
+ 1.0 -1.0  1.0 0.0 1.0  0.0  0.0  1.0
+-1.0  1.0  1.0 1.0 0.0  0.0  0.0  1.0
+-1.0 -1.0  1.0 1.0 1.0  0.0  0.0  1.0
+-1.0  1.0  1.0 0.0 0.0 -1.0  0.0  0.0
+-1.0  1.0 -1.0 1.0 0.0 -1.0  0.0  0.0
+-1.0 -1.0  1.0 0.0 1.0 -1.0  0.0  0.0
+-1.0 -1.0  1.0 0.0 1.0 -1.0  0.0  0.0
+-1.0  1.0 -1.0 1.0 0.0 -1.0  0.0  0.0
+-1.0 -1.0 -1.0 1.0 1.0 -1.0  0.0  0.0
+-1.0  1.0  1.0 0.0 0.0  0.0  1.0  0.0
+ 1.0  1.0  1.0 1.0 0.0  0.0  1.0  0.0
+-1.0  1.0 -1.0 0.0 1.0  0.0  1.0  0.0
+-1.0  1.0 -1.0 0.0 1.0  0.0  1.0  0.0
+ 1.0  1.0  1.0 1.0 0.0  0.0  1.0  0.0
+ 1.0  1.0 -1.0 1.0 1.0  0.0  1.0  0.0
+-1.0 -1.0 -1.0 0.0 0.0  0.0 -1.0  0.0
+ 1.0 -1.0 -1.0 1.0 0.0  0.0 -1.0  0.0
+-1.0 -1.0  1.0 0.0 1.0  0.0 -1.0  0.0
+-1.0 -1.0  1.0 0.0 1.0  0.0 -1.0  0.0
+ 1.0 -1.0 -1.0 1.0 0.0  0.0 -1.0  0.0
+ 1.0 -1.0  1.0 1.0 1.0  0.0 -1.0  0.0
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+So as you can see there are 36 lines of x, y, z, tu, tv, nx, ny, nz data.
+Every three lines composes its own triangle giving us 12 triangles that will form a cube.
+The format is very straight forward and can be read directly into our vertex buffers and rendered without any modifications.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now one thing to watch out for is that some 3D modeling programs export the data in different orders such as left hand or right hand coordinate systems.
+We have setup OpenGL 4.0 to use a left-handed coordinate system and so the model data needs to match that.
+Keep an eye out for those differences and ensure your parsing program can handle converting data into the correct format/order.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Modelclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial all we needed to do was make some minor changes to the ModelClass for it to render 3D models from our text model files.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _MODELCLASS_H_
+#define _MODELCLASS_H_
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The fstream library is now included to handle reading from the model text file.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>//////////////
+// INCLUDES //
+//////////////
+#include &lt;fstream&gt;
+using namespace std;</FONT><font face=arial color=#aaffaa size=2>
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "textureclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: ModelClass
+////////////////////////////////////////////////////////////////////////////////
+class ModelClass
+{
+private:
+	struct VertexType
+	{
+		float x, y, z;
+		float tu, tv;
+		float nx, ny, nz;
+	};
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The next change is the addition of a new structure to represent the model format. 
+It is called ModelType.
+It contains position, texture, and normal vectors the same as our file format does.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	struct ModelType
+	{
+		float x, y, z;
+		float tu, tv;
+		float nx, ny, nz;
+	};</FONT><font face=arial color=#aaffaa size=2>
+
+public:
+	ModelClass();
+	ModelClass(const ModelClass&);
+	~ModelClass();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function will now take as input the character string file name of the model to be loaded.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	bool Initialize(OpenGLClass*, char*, char*, unsigned int, bool);</FONT><font face=arial color=#aaffaa size=2>
+	void Shutdown(OpenGLClass*);
+	void Render(OpenGLClass*);
+
+private:
+	bool InitializeBuffers(OpenGLClass*);
+	void ShutdownBuffers(OpenGLClass*);
+	void RenderBuffers(OpenGLClass*);
+
+	bool LoadTexture(OpenGLClass*, char*, unsigned int, bool);
+	void ReleaseTexture();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We also have two new functions to handle loading and unloading the model data from the text file.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	bool LoadModel(char*);
+	void ReleaseModel();</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+	int m_vertexCount, m_indexCount;
+	unsigned int m_vertexArrayId, m_vertexBufferId, m_indexBufferId;
+	TextureClass* m_Texture;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The final change is a new private variable called m_model which is going to be an array of the new private structure ModelType. 
+This variable will be used to read in and hold the model data before it is placed in the vertex buffer.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	ModelType* m_model;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Modelclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "modelclass.h"
+
+
+ModelClass::ModelClass()
+{
+	m_Texture = 0;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The new model structure is set to null in the class constructor.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	m_model = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+ModelClass::ModelClass(const ModelClass& other)
+{
+}
+
+
+ModelClass::~ModelClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function now takes as input the file name of the model that should be loaded.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool ModelClass::Initialize(OpenGLClass* OpenGL, char* modelFilename, char* textureFilename, unsigned int textureUnit, bool wrap)</FONT><font face=arial color=#aaffaa size=2>
+{
+	bool result;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Initialize function we now call the new LoadModel function first. 
+It will load the model data from the file name we provide into the new m_model array.
+Once this model array is filled we can then build the vertex and index buffers from it.
+Since InitializeBuffers now depends on this model data you have to make sure to call the functions in the correct order.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	// Load in the model data.
+	result = LoadModel(modelFilename);
+	if(!result)
+	{
+		return false;
+	}</FONT><font face=arial color=#aaffaa size=2>
+
+	// Initialize the vertex and index buffers that hold the geometry for the model.
+	result = InitializeBuffers(OpenGL);
+	if(!result)
+	{
+		return false;
+	}
+
+	// Load the texture for this model.
+	result = LoadTexture(OpenGL, textureFilename, textureUnit, wrap);
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+void ModelClass::Shutdown(OpenGLClass* OpenGL)
+{
+	// Release the texture used for this model.
+	ReleaseTexture();
+
+	// Release the vertex and index buffers.
+	ShutdownBuffers(OpenGL);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Shutdown function we add a call to the ReleaseModel function to delete the m_model array data once we are done.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	// Release the model data.
+	ReleaseModel();</FONT><font face=arial color=#aaffaa size=2>
+
+	return;
+}
+
+
+void ModelClass::Render(OpenGLClass* OpenGL)
+{
+	// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	RenderBuffers(OpenGL);
+
+	return;
+}
+
+
+bool ModelClass::InitializeBuffers(OpenGLClass* OpenGL)
+{
+	VertexType* vertices;
+	unsigned int* indices;
+	int i;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Take note that we will no longer manually set the vertex and index count here.
+Once we get to the ModelClass::LoadModel function you will see that we read the vertex and index counts in at that point instead.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>	// Create the vertex array.
+	vertices = new VertexType[m_vertexCount];
+	if(!vertices)
+	{
+		return false;
+	}
+
+	// Create the index array.
+	indices = new unsigned int[m_indexCount];
+	if(!indices)
+	{
+		return false;
+	}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Loading the vertex and index arrays has changed a bit. 
+Instead of setting the values manually we loop through all the elements in the new m_model array and copy that data from there into the vertex array. 
+The index array is easy to build as each vertex we load has the same index number as the position in the array it was loaded into.
+One final thing to note is that the model format used does need the tv texture coordinate reversed for OpenGL.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>	// Load the vertex array and index array with data.
+	for(i=0; i&lt;m_vertexCount; i++)
+	{
+		vertices[i].x  = m_model[i].x;
+		vertices[i].y  = m_model[i].y;
+		vertices[i].z  = m_model[i].z;
+		vertices[i].tu = m_model[i].tu;
+		vertices[i].tv = 1.0f - m_model[i].tv;
+		vertices[i].nx = m_model[i].nx;
+		vertices[i].ny = m_model[i].ny;
+		vertices[i].nz = m_model[i].nz;
+
+		indices[i] = i;
+	}</FONT><font face=arial color=#aaffaa size=2>
+
+	// Allocate an OpenGL vertex array object.
+	OpenGL->glGenVertexArrays(1, &m_vertexArrayId);
+
+	// Bind the vertex array object to store all the buffers and vertex attributes we create here.
+	OpenGL->glBindVertexArray(m_vertexArrayId);
+
+	// Generate an ID for the vertex buffer.
+	OpenGL->glGenBuffers(1, &m_vertexBufferId);
+
+	// Bind the vertex buffer and load the vertex (position, texture, and normal) data into the vertex buffer.
+	OpenGL->glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	OpenGL->glBufferData(GL_ARRAY_BUFFER, m_vertexCount * sizeof(VertexType), vertices, GL_STATIC_DRAW);
+
+	// Enable the three vertex array attributes.
+	OpenGL->glEnableVertexAttribArray(0);  // Vertex position.
+	OpenGL->glEnableVertexAttribArray(1);  // Texture coordinates.
+	OpenGL->glEnableVertexAttribArray(2);  // Normals.
+
+	// Specify the location and format of the position portion of the vertex buffer.
+	OpenGL->glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	OpenGL->glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(VertexType), 0);
+
+	// Specify the location and format of the texture coordinate portion of the vertex buffer.
+	OpenGL->glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	OpenGL->glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(VertexType), (unsigned char*)NULL + (3 * sizeof(float)));
+
+	// Specify the location and format of the normal vector portion of the vertex buffer.
+	OpenGL->glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+	OpenGL->glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(VertexType), (unsigned char*)NULL + (5 * sizeof(float)));
+
+	// Generate an ID for the index buffer.
+	OpenGL->glGenBuffers(1, &m_indexBufferId);
+
+	// Bind the index buffer and load the index data into it.
+	OpenGL->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+	OpenGL->glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexCount* sizeof(unsigned int), indices, GL_STATIC_DRAW);
+	
+	// Now that the buffers have been loaded we can release the array data.
+	delete [] vertices;
+	vertices = 0;
+
+	delete [] indices;
+	indices = 0;
+
+	return true;
+}
+
+
+void ModelClass::ShutdownBuffers(OpenGLClass* OpenGL)
+{
+	// Disable the two vertex array attributes.
+	OpenGL->glDisableVertexAttribArray(0);
+	OpenGL->glDisableVertexAttribArray(1);
+	
+	// Release the vertex buffer.
+	OpenGL->glBindBuffer(GL_ARRAY_BUFFER, 0);
+	OpenGL->glDeleteBuffers(1, &m_vertexBufferId);
+
+	// Release the index buffer.
+	OpenGL->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	OpenGL->glDeleteBuffers(1, &m_indexBufferId);
+
+	// Release the vertex array object.
+	OpenGL->glBindVertexArray(0);
+	OpenGL->glDeleteVertexArrays(1, &m_vertexArrayId);
+
+	return;
+}
+
+
+void ModelClass::RenderBuffers(OpenGLClass* OpenGL)
+{
+	// Bind the vertex array object that stored all the information about the vertex and index buffers.
+	OpenGL->glBindVertexArray(m_vertexArrayId);
+
+	// Render the vertex buffer using the index buffer.
+	glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
+
+	return;
+}
+
+
+bool ModelClass::LoadTexture(OpenGLClass* OpenGL, char* textureFilename, unsigned int textureUnit, bool wrap)
+{
+	bool result;
+
+
+	// Create the texture object.
+	m_Texture = new TextureClass;
+	if(!m_Texture)
+	{
+		return false;
+	}
+
+	// Initialize the texture object.
+	result = m_Texture->Initialize(OpenGL, textureFilename, textureUnit, wrap);
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+void ModelClass::ReleaseTexture()
+{
+	// Release the texture object.
+	if(m_Texture)
+	{
+		m_Texture->Shutdown();
+		delete m_Texture;
+		m_Texture = 0;
+	}
+
+	return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the new LoadModel function which handles loading the model data from the text file into the m_model array variable.
+It opens the text file and reads in the vertex count first.
+After reading the vertex count it creates the ModelType array and then reads each line into the array.
+Both the vertex count and index count are now set in this function.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool ModelClass::LoadModel(char* filename)
+{
+	ifstream fin;
+	char input;
+	int i;
+
+
+	// Open the model file.
+	fin.open(filename);
+	
+	// If it could not open the file then exit.
+	if(fin.fail())
+	{
+		return false;
+	}
+
+	// Read up to the value of vertex count.
+	fin.get(input);
+	while(input != ':')
+	{
+		fin.get(input);
+	}
+
+	// Read in the vertex count.
+	fin >> m_vertexCount;
+
+	// Set the number of indices to be the same as the vertex count.
+	m_indexCount = m_vertexCount;
+
+	// Create the model using the vertex count that was read in.
+	m_model = new ModelType[m_vertexCount];
+	if(!m_model)
+	{
+		return false;
+	}
+
+	// Read up to the beginning of the data.
+	fin.get(input);
+	while(input != ':')
+	{
+		fin.get(input);
+	}
+	fin.get(input);
+	fin.get(input);
+
+	// Read in the vertex data.
+	for(i=0; i&lt;m_vertexCount; i++)
+	{
+		fin >> m_model[i].x >> m_model[i].y >> m_model[i].z;
+		fin >> m_model[i].tu >> m_model[i].tv;
+		fin >> m_model[i].nx >> m_model[i].ny >> m_model[i].nz;
+	}
+
+	// Close the model file.
+	fin.close();
+
+	return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ReleaseModel function handles deleting the model data array.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>void ModelClass::ReleaseModel()
+{
+	if(m_model)
+	{
+		delete [] m_model;
+		m_model = 0;
+	}
+
+	return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Graphicsclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The header for the GraphicsClass has not changed since the previous tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: graphicsclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _GRAPHICSCLASS_H_
+#define _GRAPHICSCLASS_H_
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+#include "cameraclass.h"
+#include "modelclass.h"
+#include "lightshaderclass.h"
+#include "lightclass.h"
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = true;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_NEAR = 0.1f;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: GraphicsClass
+////////////////////////////////////////////////////////////////////////////////
+class GraphicsClass
+{
+public:
+	GraphicsClass();
+	GraphicsClass(const GraphicsClass&);
+	~GraphicsClass();
+
+	bool Initialize(OpenGLClass*, HWND);
+	void Shutdown();
+	bool Frame();
+
+private:
+	bool Render(float);
+
+private:
+	OpenGLClass* m_OpenGL;
+	CameraClass* m_Camera;
+	ModelClass* m_Model;
+	LightShaderClass* m_LightShader;
+	LightClass* m_Light;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Graphicsclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: graphicsclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "graphicsclass.h"
+
+
+GraphicsClass::GraphicsClass()
+{
+	m_OpenGL = 0;
+	m_Camera = 0;
+	m_Model = 0;
+	m_LightShader = 0;
+	m_Light = 0;
+}
+
+
+GraphicsClass::GraphicsClass(const GraphicsClass& other)
+{
+}
+
+
+GraphicsClass::~GraphicsClass()
+{
+}
+
+
+bool GraphicsClass::Initialize(OpenGLClass* OpenGL, HWND hwnd)
+{
+	bool result;
+
+
+	// Store a pointer to the OpenGL class object.
+	m_OpenGL = OpenGL;
+
+	// Create the camera object.
+	m_Camera = new CameraClass;
+	if(!m_Camera)
+	{
+		return false;
+	}
+
+	// Set the initial position of the camera.
+	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+
+	// Create the model object.
+	m_Model = new ModelClass;
+	if(!m_Model)
+	{
+		return false;
+	}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The model initialization now takes in the filename of the model file it is loading.
+In this tutorial we will use the cube.txt file so this model loads in a 3D cube object for rendering.
+Also note that we are using a new texture called opengl.tga instead of the stone texture from the previous tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>	// Initialize the model object.</FONT><font face=arial color=#aaaaff size=2>
+	result = m_Model->Initialize(m_OpenGL,  "../Engine/data/cube.txt", "../Engine/data/opengl.tga", 0, true);</FONT><font face=arial color=#aaffaa size=2>
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+	
+	// Create the light shader object.
+	m_LightShader = new LightShaderClass;
+	if(!m_LightShader)
+	{
+		return false;
+	}
+
+	// Initialize the light shader object.
+	result = m_LightShader->Initialize(m_OpenGL, hwnd);
+	if(!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the light object.
+	m_Light = new LightClass;
+	if(!m_Light)
+	{
+		return false;
+	}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+I have changed the diffuse light color to white for this tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>	// Initialize the light object.</FONT><font face=arial color=#aaaaff size=2>
+	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);</FONT><font face=arial color=#aaffaa size=2>
+	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+
+	return true;
+}
+
+
+void GraphicsClass::Shutdown()
+{
+	// Release the light object.
+	if(m_Light)
+	{
+		delete m_Light;
+		m_Light = 0;
+	}
+
+	// Release the light shader object.
+	if(m_LightShader)
+	{
+		m_LightShader->Shutdown(m_OpenGL);
+		delete m_LightShader;
+		m_LightShader = 0;
+	}
+
+	// Release the model object.
+	if(m_Model)
+	{
+		m_Model->Shutdown(m_OpenGL);
+		delete m_Model;
+		m_Model = 0;
+	}
+
+	// Release the camera object.
+	if(m_Camera)
+	{
+		delete m_Camera;
+		m_Camera = 0;
+	}
+
+	// Release the pointer to the OpenGL class object.
+	m_OpenGL = 0;
+
+	return;
+}
+
+
+bool GraphicsClass::Frame()
+{
+	bool result;
+	static float rotation = 0.0f;
+
+
+	// Update the rotation variable each frame.
+	rotation += 0.0174532925f * 2.0f;
+	if(rotation > 360.0f)
+	{
+		rotation -= 360.0f;
+	}
+
+	// Render the graphics scene.
+	result = Render(rotation);
+	if(!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+bool GraphicsClass::Render(float rotation)
+{
+	float worldMatrix[16];
+	float viewMatrix[16];
+	float projectionMatrix[16];
+	float lightDirection[3];
+	float diffuseLightColor[4];
+
+
+	// Clear the buffers to begin the scene.
+	m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+	// Generate the view matrix based on the camera's position.
+	m_Camera->Render();
+
+	// Get the world, view, and projection matrices from the opengl and camera objects.
+	m_OpenGL->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_OpenGL->GetProjectionMatrix(projectionMatrix);
+
+	// Get the light properties.
+	m_Light->GetDirection(lightDirection);
+	m_Light->GetDiffuseColor(diffuseLightColor);
+
+	// Rotate the world matrix by the rotation value so that the triangle will spin.
+	m_OpenGL->MatrixRotationY(worldMatrix, rotation);
+
+	// Set the light shader as the current shader program and set the matrices that it will use for rendering.
+	m_LightShader->SetShader(m_OpenGL);
+	m_LightShader->SetShaderParameters(m_OpenGL, worldMatrix, viewMatrix, projectionMatrix, 0, lightDirection, diffuseLightColor);
+
+	// Render the model using the light shader.
+	m_Model->Render(m_OpenGL);
+	
+	// Present the rendered scene to the screen.
+	m_OpenGL->EndScene();
+
+	return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+With the changes to the ModelClass we can now load in 3D models and render them.
+The format used here is just for basic static objects with lighting, however it is a good start to understanding how model formats work.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic3018.gif" width="425" height="425"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Recompile the code and run the program. You should get a rotating cube with the opengl.tga texture on it. Press escape to quit once done.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Find a decent 3D modeling package (hopefully something free) and create your own simple models and export them. Start looking at the format.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Write a simple parser program that takes the model exports and converts it to the format used here. Replace cube.txt with your model and run the program.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl40src07.zip">gl40src07.zip</a></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Executable: <a HREF="gl40exe07.zip">gl40exe07.zip</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl40.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

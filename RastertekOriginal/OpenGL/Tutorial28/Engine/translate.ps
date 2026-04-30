@@ -1,0 +1,46 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: translate.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform float textureTranslation;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+    vec2 tex;
+
+
+    // Copy the texture coordinates from a read only variable into a variable we can modify.
+    tex.x = texCoord.x;
+    tex.y = texCoord.y;
+
+    // Translate the position where we sample the pixel from.
+    tex.x += textureTranslation;
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, tex);
+
+    outputColor = textureColor;
+}

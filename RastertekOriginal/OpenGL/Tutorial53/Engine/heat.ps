@@ -1,0 +1,84 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: heat.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec2 texCoords1;
+in vec2 texCoords2;
+in vec2 texCoords3;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D colorTexture;
+uniform sampler2D glowTexture;
+uniform sampler2D noiseTexture;
+uniform float emissiveMultiplier;
+uniform vec2 distortion1;
+uniform vec2 distortion2;
+uniform vec2 distortion3;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 noise1, noise2, noise3;
+    vec4 finalNoise;
+    float heatOffsetBias;
+    vec2 heatOffset;
+    vec4 glowMap;
+    vec4 textureColor;
+    vec4 color;
+
+    
+    // Sample the same noise texture using the three different texture coordinates to get three different noise scales.
+    noise1 = texture(noiseTexture, texCoords1);
+    noise2 = texture(noiseTexture, texCoords2);
+    noise3 = texture(noiseTexture, texCoords3);
+
+    // Move the noise from the (0, 1) range to the (-1, +1) range.
+    noise1 = (noise1 - 0.5f) * 2.0f;
+    noise2 = (noise2 - 0.5f) * 2.0f;
+    noise3 = (noise3 - 0.5f) * 2.0f;
+
+    // Distort the three noise x and y coordinates by the three different distortion x and y values.
+    noise1.xy = noise1.xy * distortion1.xy;
+    noise2.xy = noise2.xy * distortion2.xy;
+    noise3.xy = noise3.xy * distortion3.xy;
+
+    // Combine all three distorted noise results into a single noise result.
+    finalNoise = noise1 + noise2 + noise3;
+    
+    // Set the heat offset bias to modify the heat distortion to be less crazy.
+    heatOffsetBias = 0.001f;
+
+    // Create the heat offset texture coords for sampling to create the heat shimmer effect.
+    heatOffset.x = ((finalNoise.x * 2.0f) - 1.0f) * heatOffsetBias;
+    heatOffset.y = ((finalNoise.y * 2.0f) - 1.0f) * heatOffsetBias;
+
+    // Sample the glow texture using the heat offset for texture coords.
+    heatOffset = heatOffset + texCoord;
+    glowMap = texture(glowTexture, heatOffset);
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(colorTexture, texCoord);
+    
+    // Add the texture color to the glow color multiplied by the glow stength.
+    color = clamp(textureColor + (glowMap * emissiveMultiplier), 0.0f, 1.0f);
+    
+    outputColor = color;
+}

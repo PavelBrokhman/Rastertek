@@ -1,0 +1,43 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: colorgrade.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform sampler3D clutTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+    vec4 replacementColor;
+
+
+    // Sample the pixel color from the source render texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Index into the 3D texture using the RGB colors from the source image as indexes into the CLUT data.
+    replacementColor = texture(clutTexture, textureColor.rgb);
+
+    // Use the CLUT colors to correct the color from the source image.
+    outputColor = replacementColor;
+}

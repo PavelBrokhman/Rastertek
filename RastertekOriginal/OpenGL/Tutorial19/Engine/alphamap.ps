@@ -1,0 +1,52 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: alphamap.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture1;
+uniform sampler2D shaderTexture2;
+uniform sampler2D shaderTexture3;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 color1;
+    vec4 color2;
+    vec4 alphaValue;
+    vec4 blendColor;
+
+    
+    // Get the pixel color from the first texture.
+    color1 = texture(shaderTexture1, texCoord);
+
+    // Get the pixel color from the second texture.
+    color2 = texture(shaderTexture2, texCoord);
+
+    // Get the pixel color from the alpha texture.
+    alphaValue = texture(shaderTexture3, texCoord);
+    
+    // Combine the two textures based on the alpha value.
+    blendColor = (alphaValue * color1) + ((1.0 - alphaValue) * color2);
+
+    // Saturate the final color value.
+    outputColor = clamp(blendColor, 0.0f, 1.0f);
+}

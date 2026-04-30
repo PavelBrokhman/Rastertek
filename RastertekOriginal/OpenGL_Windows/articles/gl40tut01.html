@@ -1,0 +1,61 @@
+<html><head><title>Tutorial 1: Setting up OpenGL 4.0 with Visual Studio</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 1: Setting up OpenGL 4.0 with Visual Studio
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Before writing any graphics code we'll need to have the tools to do so.  The first of these tools is a compiler that is preferably built into a nice IDE.
+The one I use is Visual Studio 2010.  There are several others available and some are even free off the net.
+I'll leave that up to you to decide which one you prefer.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Setting Up Visual Studio 2010</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For each tutorial I provide the source code and data files which you can download and add to your projects.
+But to do so you first need to create a project.
+In Visual Studio 2010 I used the following steps:
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+First you need to create an empty Win32 project so select "File" -> "New" -> "Project".
+Then select Win32 project from the choices.  Give the project a name (I called mine Engine) and a location and then click on "Ok".
+Click "Next" and you will be given another menu.
+Under "Additional options" put a check mark in the "Empty project" box and click on "Finish" and then click "Next".
+You should now have an basic Win32 empty project setup that is ready to add new files.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Next copy the files (usually .h, .cpp, .vs, .ps, and a data folder) into the folder it created in your project directory called "Engine/Engine".
+If you named your project something else then just replace the word Engine with your project's name.
+This is also the same folder where it will create source files if you create any new files yourself by selecting "Project" from the menu and then choosing "Add New Item...".
+Once the files are copied into that location you can then add them to the project by selecting "Project" from the menu and then choosing "Add Existing Item...".
+Select the files and it will add them to the project.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+One extra thing I like to do is rename the Resource folder in the Solution Explorer and name it Shader Files.
+Then I place the .ps and .vs files in there just for organization purposes.
+Note this is not necessary as .ps and .vs will not be compiled but it makes it far easier for editing.
+You can also right click the Shader Files folder and select "Properties" which brings up the properties menu.
+And then under filter you can set it to just ps and vs and now the shader files will automatically be added to that folder instead of dragging and dropping them into it.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+With this all setup you should now be able to compile and run the opengl tutorials from this website.
+</font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl40.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

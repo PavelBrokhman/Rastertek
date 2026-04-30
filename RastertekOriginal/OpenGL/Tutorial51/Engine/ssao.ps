@@ -1,0 +1,137 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: ssao.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out float ambientOcclusion;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D positionTexture;
+uniform sampler2D normalTexture;
+uniform sampler2D randomTexture;
+uniform float screenWidth;
+uniform float screenHeight;
+uniform float randomTextureSize;
+uniform float sampleRadius;
+uniform float ssaoScale;
+uniform float ssaoBias;
+uniform float ssaoIntensity;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Functions
+////////////////////////////////////////////////////////////////////////////////
+float AmbientOcclusionFunction(vec2 texCoords, vec2 uv, vec3 position, vec3 normal)
+{
+    vec3 posVector;
+    vec3 vec;
+    float distance;
+    float occlusion;
+
+
+    // Get the position vector from the position portion of the G buffer.
+    posVector = texture(positionTexture, (texCoords + uv)).xyz;
+
+    // Subtract the input position.
+    posVector = posVector - position;
+
+    // Normalize the result to get the vector between the occluder and the pixel being occluded.
+    vec = normalize(posVector);
+
+    // Calculate distance of occluder.
+    distance = length(posVector) * ssaoScale;
+
+    // Calculate the ambient occlusion.
+    occlusion = max(0.0, dot(normal, vec) - ssaoBias) * (1.0f / (1.0f + distance)) * ssaoIntensity;
+
+    return occlusion;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec3 position;
+    vec3 normal;
+    vec2 texCoords;
+    vec2 randomVector;
+    vec2 vectorArray[4];
+    float radius;
+    int count;
+    int i;
+    vec2 texCoord1;
+    vec2 texCoord2;
+
+
+    // Get the position from the G buffer.
+    position = texture(positionTexture, texCoord).xyz;
+
+    // Get the normal from the G buffer.
+    normal = texture(normalTexture, texCoord).xyz;
+
+    // Expand the range of the normal value from (0, +1) to (-1, +1) and normalize it.
+    normal = (normal * 2.0f) - 1.0f;
+    normal = normalize(normal);
+
+    // Setup the random texture sampling coordinates for the random vector
+    texCoords.x = screenWidth / randomTextureSize;
+    texCoords.y = screenHeight / randomTextureSize;
+    texCoords = texCoords * texCoord;
+
+    // Sample a random vector from the random vector texture.
+    randomVector = texture(randomTexture, texCoords).xy;
+
+    // Move the random vector into the -1.0 to +1.0 range and normalize it.
+    randomVector = (randomVector * 2.0f) - 1.0f;
+    randomVector = normalize(randomVector);
+
+    // Setup four vectors for sampling with.
+    vectorArray[0] = vec2( 1.0f,  0.0f);
+    vectorArray[1] = vec2(-1.0f,  0.0f);
+    vectorArray[2] = vec2( 0.0f,  1.0f);
+    vectorArray[3] = vec2( 0.0f, -1.0f);
+
+    // Set the sample radius to take into account the depth of the pixel.
+    radius = sampleRadius / position.z;
+
+    // Set the number of loops to calculate the ssao effect with.
+    count = 4;
+
+    // Initialize the ambient occlusion to zero.
+    ambientOcclusion = 0.0f;
+
+    // Loop and calculate the ambient occlusion sum using random vector sampling.
+    for(i=0; i<count; i++)
+    {
+        // Set the coordinates of our random sample.
+        texCoord1 = reflect(vectorArray[i], randomVector) * radius;
+        texCoord2 = vec2(((texCoord1.x * 0.7f) - (texCoord1.y * 0.7f)), ((texCoord1.x * 0.7f) + (texCoord1.y * 0.7f)));
+
+        // Perform the ao sampling from the four coordinate locations.
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord1 * 0.25f), position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord2 * 0.5f),  position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord1 * 0.75f), position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord2 * 1.0f),  position, normal);
+    }
+
+    // Take an average of the sum based on how many loops we ran.
+    ambientOcclusion = ambientOcclusion / (count * 4.0f);
+
+    // Invert the ambient occlusion output.
+    ambientOcclusion = 1.0f - ambientOcclusion;
+}

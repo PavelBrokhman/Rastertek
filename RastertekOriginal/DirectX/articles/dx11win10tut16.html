@@ -1,0 +1,1280 @@
+<html><head><title>Tutorial 16: Direct Input</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 16: Direct Input
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will cover using Direct Input in DirectX 11.
+The code in this tutorial will be based on the previous tutorial code. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Direct Input is the high-speed method of interfacing with input devices that the DirectX API provides.
+In DirectX 11 the Direct Input portion of the API has not changed from previous versions, it is still version 8.
+However Direct Input was implemented very well in the first place (similar to direct sound) so there hasn't been any need to update it.
+Direct Input provides incredible speed over the regular windows input system.
+Any high-performance application that requires highly responsive input devices should be using Direct Input. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will focus on how to implement Direct Input for keyboard and mouse devices.
+We will also use the TextClass to display the current location of the mouse pointer and if the left mouse button is pressed.
+As the previous tutorials already had an InputClass we will just re-write it using Direct Input instead of the Windows methods that were previously used. 
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Inputclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: inputclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _INPUTCLASS_H_
+#define _INPUTCLASS_H_
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+You need to define the version of Direct Input you are using in the header or the compiler will generate annoying messages that it is defaulting to version 8.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>///////////////////////////////
+// PRE-PROCESSING DIRECTIVES //
+///////////////////////////////
+#define DIRECTINPUT_VERSION 0x0800
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The following two libraries need to be linked for Direct Input to work.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>/////////////
+// LINKING //
+/////////////
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the required header for Direct Input.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>//////////////
+// INCLUDES //
+//////////////
+#include &lt;dinput.h&gt;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: InputClass
+////////////////////////////////////////////////////////////////////////////////
+class InputClass
+{
+public:
+    InputClass();
+    InputClass(const InputClass&);
+    ~InputClass();
+
+    bool Initialize(HINSTANCE, HWND, int, int);
+    void Shutdown();
+    bool Frame();
+
+    bool IsEscapePressed();
+    void GetMouseLocation(int&, int&);
+    bool IsMousePressed();
+
+private:
+    bool ReadKeyboard();
+    bool ReadMouse();
+    void ProcessInput();
+
+private:
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first three private member variables are the interfaces to Direct Input, the keyboard device, and the mouse device.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    IDirectInput8* m_directInput;
+    IDirectInputDevice8* m_keyboard;
+    IDirectInputDevice8* m_mouse;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The next two private member variables are used for recording the current state of the keyboard and mouse devices. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    unsigned char m_keyboardState[256];
+    DIMOUSESTATE m_mouseState;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The last private member variables record the screen size and the current position of the mouse.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    int m_screenWidth, m_screenHeight, m_mouseX, m_mouseY;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Inputclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: inputclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "inputclass.h"
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The class constructor initializes the Direct Input interface variables to null. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>InputClass::InputClass()
+{
+    m_directInput = 0;
+    m_keyboard = 0;
+    m_mouse = 0;
+}
+
+
+InputClass::InputClass(const InputClass& other)
+{
+}
+
+
+InputClass::~InputClass()
+{
+}
+
+
+bool InputClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeight)
+{
+    HRESULT result;
+
+
+    // Store the screen size which will be used for positioning the mouse cursor.
+    m_screenWidth = screenWidth;
+    m_screenHeight = screenHeight;
+
+    // Initialize the location of the mouse on the screen.
+    m_mouseX = 0;
+    m_mouseY = 0;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This function call will initialize the interface to Direct Input.
+Once you have a Direct Input object you can initialize other input devices. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Initialize the main direct input interface.
+    result = DirectInput8Create(hinstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_directInput, NULL);
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first input device we will initialize will be the keyboard.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Initialize the direct input interface for the keyboard.
+    result = m_directInput->CreateDevice(GUID_SysKeyboard, &m_keyboard, NULL);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Set the data format.  In this case since it is a keyboard we can use the predefined data format.
+    result = m_keyboard->SetDataFormat(&c_dfDIKeyboard);
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Setting the cooperative level of the keyboard is important in both what it does and how you use the device from that point forward.
+In this case we will set it to not share with other programs (DISCL_EXCLUSIVE).
+This way if you press a key only your application can see that input and no other application will have access to it.
+However, if you want other applications to have access to keyboard input while your program is running you can set it to non-exclusive (DISCL_NONEXCLUSIVE).
+Now the print screen key works again and other running applications can be controlled by the keyboard and so forth.
+Just remember that if it is non-exclusive and you are running in a windowed mode then you will need to check for when the device loses focus and when it re-gains that focus so it can re-acquire the device for use again.
+This focus loss generally happens when other windows become the main focus over your window or your window is minimized. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the cooperative level of the keyboard to not share with other programs.
+    result = m_keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Once they keyboard is setup, we then call Acquire to finally get access to the keyboard for use from this point forward.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Now acquire the keyboard.
+    result = m_keyboard->Acquire();
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The next input device we setup is the mouse.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Initialize the direct input interface for the mouse.
+    result = m_directInput->CreateDevice(GUID_SysMouse, &m_mouse, NULL);
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    // Set the data format for the mouse using the pre-defined mouse data format.
+    result = m_mouse->SetDataFormat(&c_dfDIMouse);
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We use non-exclusive cooperative settings for the mouse.
+We will have to check for when it goes in and out of focus and re-acquire it each time. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the cooperative level of the mouse to share with other programs.
+    result = m_mouse->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+    if(FAILED(result))
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Once the mouse is setup, we acquire it so that we can begin using it.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Acquire the mouse.
+    result = m_mouse->Acquire();
+    if(FAILED(result))
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Shutdown function releases the two devices and the interface to Direct Input.
+Notice that the devices are always un-acquired first and then released. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void InputClass::Shutdown()
+{
+    // Release the mouse.
+    if(m_mouse)
+    {
+        m_mouse->Unacquire();
+        m_mouse->Release();
+        m_mouse = 0;
+    }
+
+    // Release the keyboard.
+    if(m_keyboard)
+    {
+        m_keyboard->Unacquire();
+        m_keyboard->Release();
+        m_keyboard = 0;
+    }
+
+    // Release the main interface to direct input.
+    if(m_directInput)
+    {
+        m_directInput->Release();
+        m_directInput = 0;
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Frame function for the InputClass will read the current state of the devices into state buffers we setup. 
+After the state of each device is read it then processes the changes. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool InputClass::Frame()
+{
+    bool result;
+
+
+    // Read the current state of the keyboard.
+    result = ReadKeyboard();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Read the current state of the mouse.
+    result = ReadMouse();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Process the changes in the mouse and keyboard.
+    ProcessInput();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+ReadKeyboard will read the state of the keyboard into the m_keyboardState variable.
+The state will show any keys that are currently pressed or not pressed.
+If it fails reading the keyboard then it can be for one of five different reasons.
+The only two that we want to recover from are if the focus is lost or if it becomes un-acquired.
+If this is the case, we call acquire each frame until we do get control back.
+The window may be minimized in which case Acquire will fail, but once the window comes to the foreground again then Acquire will succeed and we will be able to read the keyboard state.
+The other three error types I don't want to recover from in this tutorial. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool InputClass::ReadKeyboard()
+{
+    HRESULT result;
+
+
+    // Read the keyboard device.
+    result = m_keyboard->GetDeviceState(sizeof(m_keyboardState), (LPVOID)&m_keyboardState);
+    if(FAILED(result))
+    {
+        // If the keyboard lost focus or was not acquired then try to get control back.
+        if((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
+        {
+            m_keyboard->Acquire();
+        }
+        else
+        {
+            return false;
+        }
+    }
+		
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+ReadMouse will read the state of the mouse similar to how ReadKeyboard read in the state of the keyboard.
+However, the state of the mouse is just changes in the position of the mouse from the last frame.
+So, for example updates will look like the mouse has moved 5 units to the right, but it will not give you the actual position of the mouse on the screen.
+This delta information is very useful for different purposes and we can maintain the position of the mouse on the screen ourselves. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool InputClass::ReadMouse()
+{
+    HRESULT result;
+
+
+    // Read the mouse device.
+    result = m_mouse->GetDeviceState(sizeof(DIMOUSESTATE), (LPVOID)&m_mouseState);
+    if(FAILED(result))
+    {
+        // If the mouse lost focus or was not acquired then try to get control back.
+        if((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
+        {
+            m_mouse->Acquire();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ProcessInput function is where we deal with the changes that have happened in the input devices since the last frame.
+For this tutorial we will just do a simple mouse location update similar to how Windows keeps track of where the mouse cursor is.
+To do so we use the m_mouseX and m_mouseY variables that were initialized to zero and simply add the changes in the mouse position to these two variables.
+This will maintain the position of the mouse based on the user moving the mouse around. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Note that we do check to make sure the mouse location never goes off the screen.
+Even if the user keeps moving the mouse to the left, we will just keep the cursor at the zero position until they start moving it to the right again. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void InputClass::ProcessInput()
+{
+    // Update the location of the mouse cursor based on the change of the mouse location during the frame.
+    m_mouseX += m_mouseState.lX;
+    m_mouseY += m_mouseState.lY;
+
+    // Ensure the mouse location doesn't exceed the screen width or height.
+    if(m_mouseX < 0)  { m_mouseX = 0; }
+    if(m_mouseY < 0)  { m_mouseY = 0; }
+	
+    if(m_mouseX > m_screenWidth)  { m_mouseX = m_screenWidth; }
+    if(m_mouseY > m_screenHeight) { m_mouseY = m_screenHeight; }
+	
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+I have added a function to the InputClass called IsEscapePressed.
+This shows how to utilize the keyboard to check if specific keys are currently being pressed.
+You can write other functions to check for any other keys that are of interest to your application. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool InputClass::IsEscapePressed()
+{
+    // Do a bitwise and on the keyboard state to check if the escape key is currently being pressed.
+    if(m_keyboardState[DIK_ESCAPE] & 0x80)
+    {
+        return true;
+    }
+
+    return false;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+GetMouseLocation is a helper function I wrote which returns the location of the mouse.
+ApplicationClass can get this info and then use TextClass to render the mouse X and Y position to the screen. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void InputClass::GetMouseLocation(int& mouseX, int& mouseY)
+{
+    mouseX = m_mouseX;
+    mouseY = m_mouseY;
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The InputClass::IsMousePressed function will let us know if the left mouse button is currently pressed down or not.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool InputClass::IsMousePressed()
+{
+    // Check the left mouse button state.
+    if(m_mouseState.rgbButtons[0] & 0x80)
+    {
+        return true;
+    }
+
+    return false;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Systemclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The header for the SystemClass has not changed for this tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SYSTEMCLASS_H_
+#define _SYSTEMCLASS_H_
+
+
+///////////////////////////////
+// PRE-PROCESSING DIRECTIVES //
+///////////////////////////////
+#define WIN32_LEAN_AND_MEAN
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;windows.h&gt;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "applicationclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SystemClass
+////////////////////////////////////////////////////////////////////////////////
+class SystemClass
+{
+public:
+    SystemClass();
+    SystemClass(const SystemClass&);
+    ~SystemClass();
+
+    bool Initialize();
+    void Shutdown();
+    void Run();
+
+    LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
+
+private:
+    bool Frame();
+    void InitializeWindows(int&, int&);
+    void ShutdownWindows();
+
+private:
+    LPCWSTR m_applicationName;
+    HINSTANCE m_hinstance;
+    HWND m_hwnd;
+
+    InputClass* m_Input;
+    ApplicationClass* m_Application;
+};
+
+
+/////////////////////////
+// FUNCTION PROTOTYPES //
+/////////////////////////
+static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+
+/////////////
+// GLOBALS //
+/////////////
+static SystemClass* ApplicationHandle = 0;
+
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Systemclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: systemclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "systemclass.h"
+
+
+SystemClass::SystemClass()
+{
+    m_Input = 0;
+    m_Application = 0;
+}
+
+
+SystemClass::SystemClass(const SystemClass& other)
+{
+}
+
+
+SystemClass::~SystemClass()
+{
+}
+
+
+bool SystemClass::Initialize()
+{
+    int screenWidth, screenHeight;
+    bool result;
+
+
+    // Initialize the width and height of the screen to zero before sending the variables into the function.
+    screenWidth = 0;
+    screenHeight = 0;
+
+    // Initialize the windows api.
+    InitializeWindows(screenWidth, screenHeight);
+
+    // Create and initialize the input object.  This object will be used to handle reading the keyboard input from the user.
+    m_Input = new InputClass;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first change is that the Initialize function of the updated InputClass now takes in additional variables.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    result = m_Input->Initialize(m_hinstance, m_hwnd, screenWidth, screenHeight);
+    if(!result)
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Create and initialize the application class object.  This object will handle rendering all the graphics for this application.
+    m_Application = new ApplicationClass;
+
+    result = m_Application->Initialize(screenWidth, screenHeight, m_hwnd);
+    if(!result)
+    {
+        return false;
+    }
+	
+    return true;
+}
+
+
+void SystemClass::Shutdown()
+{
+    // Release the application class object.
+    if(m_Application)
+    {
+        m_Application->Shutdown();
+        delete m_Application;
+        m_Application = 0;
+    }
+
+    // Release the input object.
+    if(m_Input)
+    {
+        delete m_Input;
+        m_Input = 0;
+    }
+
+    // Shutdown the window.
+    ShutdownWindows();
+	
+    return;
+}
+
+
+void SystemClass::Run()
+{
+    MSG msg;
+    bool done, result;
+
+
+    // Initialize the message structure.
+    ZeroMemory(&msg, sizeof(MSG));
+	
+    // Loop until there is a quit message from the window or the user.
+    done = false;
+    while(!done)
+    {
+        // Handle the windows messages.
+        if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        // If windows signals to end the application then exit out.
+        if(msg.message == WM_QUIT)
+        {
+            done = true;
+        }
+        else
+        {
+            // Otherwise do the frame processing.
+            result = Frame();
+            if(!result)
+            {
+                done = true;
+            }
+        }
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Frame function we now must call the Frame of the InputClass so it can update the input buffers each frame.
+Also, we no longer process the escape key here, instead we send the InputClass into the Application::Frame function and handle all input in that class object now.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool SystemClass::Frame()
+{
+    bool result;</FONT><font face=arial color=#aaaaff size=2>
+
+
+    // Do the input frame processing.
+    result = m_Input->Frame();
+    if(!result)
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Do the frame processing for the application class object.</FONT><font face=arial color=#aaaaff size=2>
+    result = m_Application->Frame(m_Input);</FONT><font face=arial color=#aaffaa size=2>
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The MessageHandler function has changed as we no longer handle any input in here.
+Instead, we just return the parameters to the default window processor.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>LRESULT CALLBACK SystemClass::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
+{</FONT><font face=arial color=#aaaaff size=2>
+    return DefWindowProc(hwnd, umsg, wparam, lparam);</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
+{
+    WNDCLASSEX wc;
+    DEVMODE dmScreenSettings;
+    int posX, posY;
+
+
+    // Get an external pointer to this object.	
+    ApplicationHandle = this;
+
+    // Get the instance of this application.
+    m_hinstance = GetModuleHandle(NULL);
+
+    // Give the application a name.
+    m_applicationName = L"Engine";
+
+    // Setup the windows class with default settings.
+    wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wc.lpfnWndProc   = WndProc;
+    wc.cbClsExtra    = 0;
+    wc.cbWndExtra    = 0;
+    wc.hInstance     = m_hinstance;
+    wc.hIcon		 = LoadIcon(NULL, IDI_WINLOGO);
+    wc.hIconSm       = wc.hIcon;
+    wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    wc.lpszMenuName  = NULL;
+    wc.lpszClassName = m_applicationName;
+    wc.cbSize        = sizeof(WNDCLASSEX);
+	
+    // Register the window class.
+    RegisterClassEx(&wc);
+
+    // Determine the resolution of the clients desktop screen.
+    screenWidth  = GetSystemMetrics(SM_CXSCREEN);
+    screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+    // Setup the screen settings depending on whether it is running in full screen or in windowed mode.
+    if(FULL_SCREEN)
+    {
+        // If full screen set the screen to maximum size of the users desktop and 32bit.
+        memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+        dmScreenSettings.dmSize       = sizeof(dmScreenSettings);
+        dmScreenSettings.dmPelsWidth  = (unsigned long)screenWidth;
+        dmScreenSettings.dmPelsHeight = (unsigned long)screenHeight;
+        dmScreenSettings.dmBitsPerPel = 32;			
+        dmScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+        // Change the display settings to full screen.
+        ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+
+        // Set the position of the window to the top left corner.
+        posX = posY = 0;
+    }
+    else
+    {
+        // If windowed then set it to 800x600 resolution.
+        screenWidth  = 800;
+        screenHeight = 600;
+
+        // Place the window in the middle of the screen.
+        posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth)  / 2;
+        posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+    }
+
+    // Create the window with the screen settings and get the handle to it.
+    m_hwnd = CreateWindowEx(WS_EX_APPWINDOW, m_applicationName, m_applicationName, 
+                            WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP,
+                            posX, posY, screenWidth, screenHeight, NULL, NULL, m_hinstance, NULL);
+
+    // Bring the window up on the screen and set it as main focus.
+    ShowWindow(m_hwnd, SW_SHOW);
+    SetForegroundWindow(m_hwnd);
+    SetFocus(m_hwnd);
+
+    // Hide the mouse cursor.
+    ShowCursor(false);
+
+    return;
+}
+
+
+void SystemClass::ShutdownWindows()
+{
+    // Show the mouse cursor.
+    ShowCursor(true);
+
+    // Fix the display settings if leaving full screen mode.
+    if(FULL_SCREEN)
+    {
+        ChangeDisplaySettings(NULL, 0);
+    }
+
+    // Remove the window.
+    DestroyWindow(m_hwnd);
+    m_hwnd = NULL;
+
+    // Remove the application instance.
+    UnregisterClass(m_applicationName, m_hinstance);
+    m_hinstance = NULL;
+
+    // Release the pointer to this class.
+    ApplicationHandle = NULL;
+
+    return;
+}
+
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
+{
+    switch(umessage)
+    {
+        // Check if the window is being destroyed.
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
+            return 0;
+        }
+
+        // Check if the window is being closed.
+        case WM_CLOSE:
+        {
+            PostQuitMessage(0);		
+            return 0;
+        }
+
+        // All other messages pass to the message handler in the system class.
+        default:
+        {
+            return ApplicationHandle->MessageHandler(hwnd, umessage, wparam, lparam);
+        }
+    }
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For this tutorial we have added an UpdateMouseStrings function for updating the mouse location and button text strings each frame.
+We have also added TextClass objects for each mouse string we need to render.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "d3dclass.h"
+#include "inputclass.h"
+#include "cameraclass.h"
+#include "fontshaderclass.h"
+#include "fontclass.h"
+#include "textclass.h"
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_DEPTH = 1000.0f;
+const float SCREEN_NEAR = 0.3f;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(int, int, HWND);
+    void Shutdown();</FONT><font face=arial color=#aaaaff size=2>
+    bool Frame(InputClass*);</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    bool Render();</FONT><font face=arial color=#aaaaff size=2>
+    bool UpdateMouseStrings(int, int, bool);</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    D3DClass* m_Direct3D;
+    CameraClass* m_Camera;
+    FontShaderClass* m_FontShader;
+    FontClass* m_Font;</FONT><font face=arial color=#aaaaff size=2>
+    TextClass* m_MouseStrings;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_Direct3D = 0;
+    m_Camera = 0;
+    m_FontShader = 0;
+    m_Font = 0;</FONT><font face=arial color=#aaaaff size=2>
+    m_MouseStrings = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
+{</FONT><font face=arial color=#aaaaff size=2>
+    char mouseString1[32], mouseString2[32], mouseString3[32];</FONT><font face=arial color=#aaffaa size=2>
+    bool result;
+
+
+    // Create and initialize the Direct3D object.
+    m_Direct3D = new D3DClass;
+
+    result = m_Direct3D->Initialize(screenWidth, screenHeight, VSYNC_ENABLED, hwnd, FULL_SCREEN, SCREEN_DEPTH, SCREEN_NEAR);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize Direct3D", L"Error", MB_OK);
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->Render();
+
+    // Create and initialize the font shader object.
+    m_FontShader = new FontShaderClass;
+
+    result = m_FontShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+    if(!result)
+    {
+        MessageBox(hwnd, L"Could not initialize the font shader object.", L"Error", MB_OK);
+        return false;
+    }
+
+    // Create and initialize the font object.
+    m_Font = new FontClass;
+
+    result = m_Font->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), 0);
+    if(!result)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we setup the three mouse strings and TextClass objects.
+Two for the position of the mouse, and one for the button status.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Set the initial mouse strings.
+    strcpy_s(mouseString1, "Mouse X: 0");
+    strcpy_s(mouseString2, "Mouse Y: 0");
+    strcpy_s(mouseString3, "Mouse Button: No");
+
+    // Create and initialize the text objects for the mouse strings.
+    m_MouseStrings = new TextClass[3];
+
+    result = m_MouseStrings[0].Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), screenWidth, screenHeight, 32, m_Font, mouseString1, 10, 10, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    result = m_MouseStrings[1].Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), screenWidth, screenHeight, 32, m_Font, mouseString1, 10, 35, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    result = m_MouseStrings[2].Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), screenWidth, screenHeight, 32, m_Font, mouseString1, 10, 60, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Shutdown function we will now release the mouse TextClass objects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ApplicationClass::Shutdown()
+{</FONT><font face=arial color=#aaaaff size=2>
+    // Release the text objects for the mouse strings.
+    if(m_MouseStrings)
+    {
+        m_MouseStrings[0].Shutdown();
+        m_MouseStrings[1].Shutdown();
+        m_MouseStrings[2].Shutdown();
+
+        delete [] m_MouseStrings;
+        m_MouseStrings = 0;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Release the font object.
+    if(m_Font)
+    {
+        m_Font->Shutdown();
+        delete m_Font;
+        m_Font = 0;
+    }
+
+    // Release the font shader object.
+    if(m_FontShader)
+    {
+        m_FontShader->Shutdown();
+        delete m_FontShader;
+        m_FontShader = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the Direct3D object.
+    if(m_Direct3D)
+    {
+        m_Direct3D->Shutdown();
+        delete m_Direct3D;
+        m_Direct3D = 0;
+    }
+
+    return;
+}</FONT><font face=arial color=#aaaaff size=2>
+
+
+bool ApplicationClass::Frame(InputClass* Input)</FONT><font face=arial color=#aaffaa size=2>
+{</FONT><font face=arial color=#aaaaff size=2>
+    int mouseX, mouseY;
+    bool result, mouseDown;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now check for the escape key press in this function instead of the SystemClass.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Check if the user pressed escape and wants to exit the application.
+    if(Input->IsEscapePressed())
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Each frame we will now get the mouse location and button status from the Input object and then update the mouse strings.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Get the location of the mouse from the input object,
+    Input->GetMouseLocation(mouseX, mouseY);
+
+    // Check if the mouse has been pressed.
+    mouseDown = Input->IsMousePressed();
+
+    // Update the mouse strings each frame.
+    result = UpdateMouseStrings(mouseX, mouseY, mouseDown);
+    if(!result)
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Render the graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::Render()
+{
+    XMMATRIX worldMatrix, viewMatrix, orthoMatrix;
+    int i;
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and projection matrices from the camera and d3d objects.
+    m_Direct3D->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+    // Disable the Z buffer and enable alpha blending for 2D rendering.
+    m_Direct3D->TurnZBufferOff();
+    m_Direct3D->EnableAlphaBlending();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render the three mouse strings.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Render the mouse text strings using the font shader.
+    for(i=0; i<3; i++)
+    {
+        m_MouseStrings[i].Render(m_Direct3D->GetDeviceContext());
+
+        result = m_FontShader->Render(m_Direct3D->GetDeviceContext(), m_MouseStrings[i].GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, 
+                                      m_Font->GetTexture(), m_MouseStrings[i].GetPixelColor());
+        if(!result)
+        {
+            return false;
+        }	
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Enable the Z buffer and disable alpha blending now that 2D rendering is complete.
+    m_Direct3D->TurnZBufferOn();
+    m_Direct3D->DisableAlphaBlending();
+
+    // Present the rendered scene to the screen.
+    m_Direct3D->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The new UpdateMouseStrings function will update the three mouse strings each frame.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool ApplicationClass::UpdateMouseStrings(int mouseX, int mouseY, bool mouseDown)
+{
+    char tempString[16], finalString[32];
+    bool result;
+
+
+    // Convert the mouse X integer to string format.
+    sprintf_s(tempString, "%d", mouseX);
+
+    // Setup the mouse X string.
+    strcpy_s(finalString, "Mouse X: ");
+    strcat_s(finalString, tempString);
+
+    // Update the sentence vertex buffer with the new string information.
+    result = m_MouseStrings[0].UpdateText(m_Direct3D->GetDeviceContext(), m_Font, finalString, 10, 10, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Convert the mouse Y integer to string format.
+    sprintf_s(tempString, "%d", mouseY);
+
+    // Setup the mouse Y string.
+    strcpy_s(finalString, "Mouse Y: ");
+    strcat_s(finalString, tempString);
+
+    // Update the sentence vertex buffer with the new string information.
+    result = m_MouseStrings[1].UpdateText(m_Direct3D->GetDeviceContext(), m_Font, finalString, 10, 35, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Setup the mouse button string.
+    if(mouseDown)
+    {
+        strcpy_s(finalString, "Mouse Button: Yes");
+    }
+    else
+    {
+        strcpy_s(finalString, "Mouse Button: No");
+    }
+
+    // Update the sentence vertex buffer with the new string information.
+    result = m_MouseStrings[2].UpdateText(m_Direct3D->GetDeviceContext(), m_Font, finalString, 10, 60, 1.0f, 1.0f, 1.0f);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now have access to the location of the mouse and the status of the button press.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5036.gif" width="200" height="200"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Recompile and run the program and make sure your mouse location and button presses are updating real-time. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Set FULL_SCREEN to true and run the program again.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Use the information from the 2D Rendering tutorial and combine it with this one to create your own mouse cursor that moves with the mouse movement. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+4. Implement a function that reads the keyboard buffer and displays what you type on the screen. 
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/dx11win10tut16_src.zip">dx11win10tut16_src.zip</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutdx11win10.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

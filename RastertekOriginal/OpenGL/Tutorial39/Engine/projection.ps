@@ -1,0 +1,50 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: projection.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec4 viewPosition;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform sampler2D projectionTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec2 projectTexCoord;
+
+
+    // Calculate the projected texture coordinates.
+    projectTexCoord.x = viewPosition.x / viewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = viewPosition.y / viewPosition.w / 2.0f + 0.5f;
+
+    // Determine if the projected coordinates are in the 0 to 1 range.  If it is then this pixel is inside the projected view port.
+    if((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) && (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))
+    {
+        // Sample the color value from the projection texture using the sampler at the projected texture coordinate location.
+        outputColor = texture(projectionTexture, projectTexCoord);
+    }
+    else
+    {
+        // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+        outputColor = texture(shaderTexture, texCoord);
+    }
+}

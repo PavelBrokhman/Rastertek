@@ -1,0 +1,605 @@
+<html><head><title>Tutorial 15: FPS Counters</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 15: FPS Counters
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This tutorial will introduce a new class that will encapsulate the functionality of a frames per second counter.
+The FpsClass will handle recording the frames per second that the application is running at.
+Knowing how many frames are rendered every second gives us a good metric for measuring our application's performance.
+This is one of the industry standard metrics that is used to determine acceptable graphics render speed.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+FPS counters are also useful when implementing new features to see how they impact the frame speed.
+If the new feature cuts the frame speed in half, then you can immediately realize you have a major problem by using just this simple counter.
+Keep in mind that the current standard fps speed for computers is 60 fps.
+Anything below 60 fps is considered to be performing poorly, and anything below 30 is very noticeable to the human eye.
+A general rule when coding is to keep your fps maximized, and if a properly implemented new feature makes a serious dent in that speed, then it needs to be justified and at a minimum taken note of.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The frame work for this tutorial with the new class looks like the following:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5031.gif" width="641" height="243"></p>
+
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Fpsclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The FpsClass is simply a counter with a timer associated with it.
+It counts how many frames occur in a one second period and constantly updates that count.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: fpsclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _FPSCLASS_H_
+#define _FPSCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;sys/time.h&gt;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: FpsClass
+////////////////////////////////////////////////////////////////////////////////
+class FpsClass
+{
+public:
+	FpsClass();
+	FpsClass(const FpsClass&);
+	~FpsClass();
+
+	void Initialize();
+	void Frame();
+	int GetFps();
+
+private:
+	int m_fps, m_count;
+	long m_startSeconds;
+	long m_startMilliseconds;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Fpsclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>///////////////////////////////////////////////////////////////////////////////
+// Filename: fpsclass.cpp
+///////////////////////////////////////////////////////////////////////////////
+#include "fpsclass.h"
+
+
+FpsClass::FpsClass()
+{
+}
+
+
+FpsClass::FpsClass(const FpsClass& other)
+{
+}
+
+
+FpsClass::~FpsClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function sets all the counters to zero and starts the timer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void FpsClass::Initialize()
+{
+    struct timeval time;
+
+
+    // Initialize the fps counters.
+    m_fps = 0;
+    m_count = 0;
+
+    // Get the start time.
+    gettimeofday(&time, 0);
+
+    // Store the time.
+    m_startSeconds = time.tv_sec;
+    m_startMilliseconds = time.tv_usec / 1000;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Frame function must be called each frame so that it can increment the frame count by 1.
+If it finds that one second has elapsed then it will store the frame count in the m_fps variable.
+It then resets the count and starts the timer again.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void FpsClass::Frame()
+{
+    struct timeval time;
+    long seconds, microseconds, secondsDelta, milliseconds, currentMs;
+
+
+    // Increment the frame count.
+    m_count++;
+
+    // Get the current time.
+    gettimeofday(&time, 0);
+    seconds = time.tv_sec;
+    microseconds = time.tv_usec;
+
+    // Calculate the current milliseconds that have passed since the previous frame count increment.
+    milliseconds = microseconds / 1000;
+    secondsDelta = seconds - m_startSeconds;
+    currentMs = (secondsDelta * 1000) + milliseconds;
+    currentMs = currentMs - m_startMilliseconds;
+
+    // If it has been one second (1000 ms) then store the frames per second count.
+    if(currentMs >= 1000)
+    {
+        m_fps = m_count;
+        m_count = 0;
+
+        // Reset the start timer.
+        gettimeofday(&time, 0);
+        m_startSeconds = time.tv_sec;
+        m_startMilliseconds = time.tv_usec / 1000;
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+GetFps returns the frame per second speed for the last second that just passed.
+This function should be constantly queried so the latest fps can be displayed to the screen.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>int FpsClass::GetFps()
+{
+    return m_fps;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ApplicationClass has the new FpsClass added to it.
+We also include a new function called UpdateFps() that will be called each frame to do the fps processing.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "openglclass.h"
+#include "cameraclass.h"
+#include "fontshaderclass.h"
+#include "fontclass.h"
+#include "textclass.h"</FONT><font face=arial color=#aaaaff size=2>
+#include "fpsclass.h"</FONT><font face=arial color=#aaffaa size=2>
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool Render();</FONT><font face=arial color=#aaaaff size=2>
+    bool UpdateFps();</FONT><font face=arial color=#aaffaa size=2>
+
+private:
+    OpenGLClass* m_OpenGL;
+    CameraClass* m_Camera;
+    FontShaderClass* m_FontShader;
+    FontClass* m_Font;</FONT><font face=arial color=#aaaaff size=2>
+    FpsClass* m_Fps;
+    TextClass* m_FpsString;
+    int m_previousFps;</FONT><font face=arial color=#aaffaa size=2>
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;
+    m_Camera = 0;
+    m_FontShader = 0;
+    m_Font = 0;</FONT><font face=arial color=#aaaaff size=2>
+    m_Fps = 0;
+    m_FpsString = 0;</FONT><font face=arial color=#aaffaa size=2>
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    char fpsString[32];
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->Render();
+
+    // Create and initialize the font shader object.
+    m_FontShader = new FontShaderClass;
+
+    result = m_FontShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the font shader object." << endl;
+        return false;
+    }
+
+    // Create and initialize the font object.
+    m_Font = new FontClass;
+
+    result = m_Font->Initialize(m_OpenGL, 0);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the font object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we create and initialize the FpsClass.
+We also set some initial fps values since we won't have a fps until the program runs for one second.
+We also create a TextClass so we can render the fps in a string to the screen.
+Note that we could have encapsulated the rendering inside the FpsClass, but its better practice to decouple the code whenever possible.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Create and initialize the fps object.
+    m_Fps = new FpsClass();
+
+    m_Fps->Initialize();
+
+    // Set the initial fps and fps string.
+    m_previousFps = -1;
+    strcpy(fpsString, "Fps: 0");
+
+    // Create and initialize the text object for the fps string.
+    m_FpsString = new TextClass;
+
+    result = m_FpsString->Initialize(m_OpenGL, screenWidth, screenHeight, 16, m_Font, fpsString, 10, 50, 0.0f, 1.0f, 0.0f);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the fps string object." << endl;
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Shutdown function will release the fps text string and the new FpsClass object.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ApplicationClass::Shutdown()
+{</FONT><font face=arial color=#aaaaff size=2>
+    // Release the text object for the fps string.
+    if(m_FpsString)
+    {
+        m_FpsString->Shutdown();
+        delete m_FpsString;
+        m_FpsString = 0;
+    }
+
+    // Release the fps object.
+    if(m_Fps)
+    {
+        delete m_Fps;
+        m_Fps = 0;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Release the font object.
+    if(m_Font)
+    {
+        m_Font->Shutdown();
+        delete m_Font;
+        m_Font = 0;
+    }
+
+    // Release the font shader object.
+    if(m_FontShader)
+    {
+        m_FontShader->Shutdown();
+        delete m_FontShader;
+        m_FontShader = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame(InputClass* Input)
+{
+    bool result;
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We use a new function to do the FPS updates and processing each frame.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Update the frames per second each frame.
+    result = UpdateFps();
+    if(!result)
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Render the graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+bool ApplicationClass::Render()
+{
+    float worldMatrix[16], viewMatrix[16], orthoMatrix[16];
+    float pixelColor[4];
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and ortho matrices from the opengl and camera objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetOrthoMatrix(orthoMatrix);
+
+    // Disable the Z buffer and enable alpha blending for 2D rendering.
+    m_OpenGL->TurnZBufferOff();
+    m_OpenGL->EnableAlphaBlending();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Each frame we Render the FPS string to the screen.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Get the color to render the fps text as.
+    m_FpsString->GetPixelColor(pixelColor);
+
+    // Set the font shader as active and set its parameters.
+    result = m_FontShader->SetShaderParameters(worldMatrix, viewMatrix, orthoMatrix, pixelColor);
+    if(!result)
+    {
+        return false;
+    }
+
+    // Set the font texture as the active texture.
+    m_Font->SetTexture(0);
+
+    // Render the fps text string using the font shader.
+    m_FpsString->Render();</FONT><font face=arial color=#aaffaa size=2>
+
+    // Enable the Z buffer and disable alpha blending now that 2D rendering is complete.
+    m_OpenGL->TurnZBufferOn();
+    m_OpenGL->DisableAlphaBlending();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The new UpdateFps function will update the fps counter each frame.
+If the fps ever changes from what its last value was then it will also update the text string that we are using to render the fps text to the screen.
+We also set the color of the string according to the speed with green for 60fps and above, yellow for below 60fps, and red for below 30fps.
+Also most of the time a function like this should sit in a user interface type class, but to help keep these tutorials simple we will add it to the ApplicationClass for now.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool ApplicationClass::UpdateFps()
+{
+    int fps;
+    char tempString[16], finalString[16];
+    float red, green, blue;
+    bool result;
+
+
+    // Update the fps each frame.
+    m_Fps->Frame();
+
+    // Get the current fps.
+    fps = m_Fps->GetFps();
+
+    // Check if the fps from the previous frame was the same, if so don't need to update the text string.
+    if(m_previousFps == fps)
+    {
+        return true;
+    }
+
+    // Store the fps for checking next frame.
+    m_previousFps = fps;
+
+    // Truncate the fps to below 100,000.
+    if(fps > 99999)
+    {
+        fps = 99999;
+    }
+
+    // Convert the fps integer to string format.
+    sprintf(tempString, "%d", fps);
+
+    // Setup the fps string.
+    strcpy(finalString, "Fps: ");
+    strcat(finalString, tempString);
+
+    // If fps is 60 or above set the fps color to green.
+    if(fps >= 60)
+    {
+        red = 0.0f;
+        green = 1.0f;
+        blue = 0.0f;
+    }
+
+    // If fps is below 60 set the fps color to yellow.
+    if(fps < 60)
+    {
+        red = 1.0f;
+        green = 1.0f;
+        blue = 0.0f;
+    }
+
+    // If fps is below 30 set the fps color to red.
+    if(fps < 30)
+    {
+        red = 1.0f;
+        green = 0.0f;
+        blue = 0.0f;
+    }
+
+    // Update the sentence vertex buffer with the new string information.
+    result = m_FpsString->UpdateText(m_Font, finalString, 10, 10, red, green, blue);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now we can see the FPS speed while rendering our scenes.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic5030.gif" width="200" height="200"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Recompile the code and ensure you can see the fps value. Press escape to quit.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Turn off the vsync in the applicationclass.h file to see what speed your video card runs the application at.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Set the application to full screen in the applicationclass.h with the vsync off to see what speed it runs at.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut15_src.tar.gz">gl4linuxtut15_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>

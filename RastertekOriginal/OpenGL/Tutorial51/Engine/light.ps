@@ -1,0 +1,68 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 lightDir;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D normalTexture;
+uniform sampler2D ssaoTexture;
+uniform sampler2D colorTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+	float ambientOcclusion;
+	vec4 ambientColor;
+	vec4 color;
+	vec3 normal;
+	float lightIntensity;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(colorTexture, texCoord);
+
+    // Sample the ambient occlusion value at this pixel.
+    ambientOcclusion = texture(ssaoTexture, texCoord).r;
+	ambientColor = vec4(ambientOcclusion, ambientOcclusion, ambientOcclusion, 1.0f);
+
+	// Invert the ao map.
+	color = 1.0f - ambientColor;
+
+	// Get the normal.
+    normal = texture(normalTexture, texCoord).xyz;
+
+	// Calculate the light intensity.
+    lightIntensity = clamp(dot(normal, lightDir), 0.0f, 1.0f);
+	if(lightIntensity > 0.0f)
+	{
+		color += vec4(1.0f, 1.0f, 1.0f, 1.0f) * lightIntensity;
+	}
+
+	// Saturate the final light color.
+    color = clamp(color, 0.0f, 1.0f);
+
+	// Multiply the texture pixel and the light intensity to get the final pixel color result.
+	color = color * textureColor;
+
+    outputColor = color;
+}

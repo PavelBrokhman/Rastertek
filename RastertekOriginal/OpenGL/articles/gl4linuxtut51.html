@@ -1,0 +1,3849 @@
+<html><head><title>Tutorial 51: Screen Space Ambient Occlusion</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 51: Screen Space Ambient Occlusion
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this tutorial we will cover one of the basic implementations of screen space ambient occlusion using OpenGL 4.0, C++, and GLSL.
+The code in this tutorial will be built on the code from the previous deferred shading tutorial.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Screen space ambient occlusion (SSAO) is an ambient lighting technique that fits under the broad category of global illumination.
+The majority of global illumination techniques try to simulate real world lighting by casting rays into a 3D scene mimicking how real light particles actually illuminate areas.
+Almost all global illumination techniques are too computationally expensive to perform in real time, and so there has been a large amount of research into approximation techniques so that we can have real time global illumination.
+One such approximation technique is screen space ambient occlusion. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Screen space ambient occlusion starts like most global illumination techniques by casting random rays into a 3D scene and accumulating the results.
+However, instead of determining how much light each point in the scene receives, we instead determine how much light each point does not receive due to occlusion caused by objects blocking the rays. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now there are many ways to implement SSAO in OpenGL 4.0.
+The most popular of which is to use just a depth buffer and normal buffer, and then calculate a small number of random ray casts for a radius of pixels around each pixel in the depth buffer.
+If the ray casts do intersect a surface before reaching the depth of the current pixel we have an occlusion. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+However, since we just finished a deferred rendering tutorial, I would like to instead use one of the ssao techniques that does takes advantage of deferred rendering.
+With deferred rendering our scene is already rendered out to a G buffer, so we already have all the information we need (positions and normals) to perform ssao without the need of a depth buffer and projection calculations.
+The only change from the previous tutorial is that we need to make sure our vertex shader is rendering out our position and normals in view space. 
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Once we have a G buffer with position and normal in view space we can do the same type of pixel sampling in a radius around our current pixel, and then sum up the occlusions that occur.
+We do this for each pixel and then render it out to its own texture called the ambient occlusion map.
+In this tutorial we will use a sphere model on a flat plane model, and the resulting ambient occlusion map will look like the following: 
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6069.gif" width="500" height="280"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Once we have our ambient occlusion map, we can just pass it into any of our deferred light shaders and we can use that as the ambient value.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+And so, our previous light shaders used a set ambient lighting value which produced a sharp lighting look:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6067.gif" width="802" height="452"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+But once we start using ssao for the ambient lighting we get a softer and more realistic ambient light appearance:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6068.gif" width="802" height="452"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Now since we are doing this in real time, we can only use a limited number of samples per pixel.
+This causes the resulting ambient occlusion map to look rough and spotty:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6070.gif" width="600" height="400"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+To correct this side effect, we will be doing an edge aware horizontal and vertical blur on the ambient occlusion map to create a smoother AO map:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6071.gif" width="500" height="282"></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+And now when we use the blurred ambient occlusion map as our ambient value, we can get a more realistic looking scene:
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6072.gif" width="500" height="282"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The framework for this tutorial is similar to the deferred shading tutorial framework.
+However, a number of the classes have been modified to support ambient occlusion.
+We also have added three new shaders named GBufferShaderClass, SsaoShaderClass, and SsaoBlurShaderClass. 
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6116.gif" width="1413" height="202"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredbuffersclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The DeferredBuffersClass has been updated since the last tutorial.
+We now use three different buffers to create our G buffer for deferred shading.
+It now supports position, normal, and color.
+We have also added functions to clearly indicate which buffer you are calling when you do a GetShaderResource function call.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferredbuffersclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _DEFERREDBUFFERSCLASS_H_
+#define _DEFERREDBUFFERSCLASS_H_
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: DeferredBuffersClass
+////////////////////////////////////////////////////////////////////////////////
+class DeferredBuffersClass
+{
+public:
+    DeferredBuffersClass();
+    DeferredBuffersClass(const DeferredBuffersClass&);
+    ~DeferredBuffersClass();
+
+    bool Initialize(OpenGLClass*, int, int, float, float);
+    void Shutdown(OpenGLClass*);
+
+    void SetRenderTarget(OpenGLClass*);
+    void ClearRenderTargets(float, float, float, float);
+
+    void SetShaderResourcePositions(OpenGLClass*, unsigned int);
+    void SetShaderResourceNormals(OpenGLClass*, unsigned int);
+    void SetShaderResourceColors(OpenGLClass*, unsigned int);
+
+private:
+    int m_textureWidth, m_textureHeight;
+    unsigned int m_frameBufferId, m_depthBufferId;
+    unsigned int m_textureIDArray[3];
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Deferredbuffersclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: deferredbuffersclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "deferredbuffersclass.h"
+
+
+DeferredBuffersClass::DeferredBuffersClass()
+{
+}
+
+
+DeferredBuffersClass::DeferredBuffersClass(const DeferredBuffersClass& other)
+{
+}
+
+
+DeferredBuffersClass::~DeferredBuffersClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Initialize function we now build three seperate textures for position, normal, and color.
+Once they are created they are attached to the frame buffer.
+And finally we define that the pixel shader output will now be these three buffers which represent the gbuffer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool DeferredBuffersClass::Initialize(OpenGLClass* OpenGL, int textureWidth, int textureHeight, float screenNear, float screenDepth)
+{
+    unsigned int drawBuffersArray[3];
+
+
+    // Store the width and height of the render texture.
+    m_textureWidth = textureWidth;
+    m_textureHeight = textureHeight;
+
+    // Generate an ID for the frame buffer and bind the frame buffer.
+    OpenGL->glGenFramebuffers(1, &m_frameBufferId);
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferId);
+
+    // Create the depth buffer and attach it to the frame buffer using GL_DEPTH_ATTACHMENT.
+    OpenGL->glGenRenderbuffers(1, &m_depthBufferId);
+    OpenGL->glBindRenderbuffer(GL_RENDERBUFFER, m_depthBufferId);
+    OpenGL->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_textureWidth, m_textureHeight);
+    OpenGL->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBufferId);
+
+    // Create the positions texture and attach it to the frame buffer using GL_COLOR_ATTACHMENT0.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + 0);
+    glGenTextures(1, &m_textureIDArray[0]);
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, m_textureWidth, m_textureHeight, 0, GL_RGBA, GL_FLOAT, NULL);  // Positions - GL_RGBA32F
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    OpenGL->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureIDArray[0], 0);
+
+    // Create the normal texture and attach it to the frame buffer using GL_COLOR_ATTACHMENT1.  Normals will require GL_RGBA32F format for third internalformat input.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + 0);
+    glGenTextures(1, &m_textureIDArray[1]);
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, m_textureWidth, m_textureHeight, 0, GL_RGBA,  GL_FLOAT, NULL);  // Normals - GL_RGBA32F
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    OpenGL->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_textureIDArray[1], 0);
+
+    // Create the color texture and attach it to the frame buffer using GL_COLOR_ATTACHMENT2.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + 0);
+    glGenTextures(1, &m_textureIDArray[2]);
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[2]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_textureWidth, m_textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);  // Color - GL_RGBA
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  // Requires GL_NEAREST.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    OpenGL->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_textureIDArray[2], 0);
+
+    // Now set the format for the pixel shader output when rendering with this frame buffer.
+    drawBuffersArray[0] = GL_COLOR_ATTACHMENT0;
+    drawBuffersArray[1] = GL_COLOR_ATTACHMENT1;
+    drawBuffersArray[2] = GL_COLOR_ATTACHMENT2;
+    OpenGL->glDrawBuffers(3, drawBuffersArray);
+
+    // Now that we are done setting up the render texture frame buffer, we can switch back to the regular back buffer that is used for rendering.
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Shutdown function now releases three textures instead of two in the previous tutorial.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void DeferredBuffersClass::Shutdown(OpenGLClass* OpenGL)
+{
+    // Release the depth buffer.
+    OpenGL->glDeleteRenderbuffers(1, &m_depthBufferId);
+
+    // Release the textures.
+    glDeleteTextures(1, &m_textureIDArray[0]);
+    glDeleteTextures(1, &m_textureIDArray[1]);
+    glDeleteTextures(1, &m_textureIDArray[2]);
+
+    // Release the frame buffer.
+    OpenGL->glDeleteFramebuffers(1, &m_frameBufferId);
+
+    return;
+}
+
+
+void DeferredBuffersClass::SetRenderTarget(OpenGLClass* OpenGL)
+{
+    // Set the frame buffer (and its attached textures and depth buffer) as the render target.
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferId);
+
+    // Set the viewport to be the correct dimensions for the texture dimensions used.
+    glViewport(0, 0, m_textureWidth, m_textureHeight);
+
+    return;
+}
+
+
+void DeferredBuffersClass::ClearRenderTargets(float red, float green, float blue, float alpha)
+{
+    // Clear the back buffer.
+    glClearColor(red, green, blue, alpha);
+
+    // Clear the depth buffer.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+These are the new SetShaderResource functions for setting the position, normal, or color buffers for rendering.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void DeferredBuffersClass::SetShaderResourcePositions(OpenGLClass* OpenGL, unsigned int textureUnit)
+{
+    // Set the texture unit we are working with.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + textureUnit);
+
+    // Bind the position texture as a 2D texture.
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[0]);
+
+    return;
+}
+
+
+void DeferredBuffersClass::SetShaderResourceNormals(OpenGLClass* OpenGL, unsigned int textureUnit)
+{
+    // Set the texture unit we are working with.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + textureUnit);
+
+    // Bind the normal texture as a 2D texture.
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[1]);
+
+    return;
+}
+
+
+void DeferredBuffersClass::SetShaderResourceColors(OpenGLClass* OpenGL, unsigned int textureUnit)
+{
+    // Set the texture unit we are working with.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + textureUnit);
+
+    // Bind the color texture as a 2D texture.
+    glBindTexture(GL_TEXTURE_2D, m_textureIDArray[2]);
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffer.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Gbuffer shader is not actually a new shader.
+We have taken the deferred.vs and deferred.ps shaders from the previous tutorial and renamed them gbuffer.
+They will also work slightly differently as we need the position and normals outputted in view space to perform ssao calculations easily. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffer.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+in vec3 inputNormal;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec2 texCoord;
+out vec3 normal;
+out vec4 viewPosition;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the texture coordinates for the pixel shader.
+    texCoord = inputTexCoord;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we now transform the position and normal into view space before sending them to the pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>    // Transform the position into view space.
+    viewPosition = vec4(inputPosition, 1.0f) * worldMatrix;
+    viewPosition = viewPosition * viewMatrix;
+
+    // Transform the normals into view space.
+    normal = inputNormal * mat3(worldMatrix);
+    normal = normal * mat3(viewMatrix);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffer.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffer.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 normal;
+in vec4 viewPosition;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The output will now be three render targets instead of just two since we are also outputting the position.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputPosition;
+out vec4 outputNormal;
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec3 inputNormal;
+
+
+    // Store the view space position into the RGB of the render to texture.
+    outputPosition = vec4(viewPosition.x, viewPosition.y, viewPosition.z, 1.0f);
+
+    // Normalize the interpolated input normals.
+    inputNormal = normalize(normal);
+
+    // Set the ouput data to be the normals into the RGB of the render to texture.
+    outputNormal = vec4(inputNormal.x, inputNormal.y, inputNormal.z, 1.0f);
+
+    // Sample the color from the texture and store it for output to the deferred render target.
+    outputColor = texture(shaderTexture, texCoord);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffershaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The GBufferShaderClass is exactly like the DeferredShaderClass except for the changing of the names of the GLSL shaders.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffershaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _GBUFFERSHADERCLASS_H_
+#define _GBUFFERSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: GBufferShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class GBufferShaderClass
+{
+public:
+    GBufferShaderClass();
+    GBufferShaderClass(const GBufferShaderClass&);
+    ~GBufferShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+
+    bool SetShaderParameters(float*, float*, float*);
+
+private:
+    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Gbuffershaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffershaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "gbuffershaderclass.h"
+
+
+GBufferShaderClass::GBufferShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+GBufferShaderClass::GBufferShaderClass(const GBufferShaderClass& other)
+{
+}
+
+
+GBufferShaderClass::~GBufferShaderClass()
+{
+}
+
+
+bool GBufferShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set the gbuffer shader file names.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/gbuffer.vs");
+    strcpy(psFilename, "../Engine/gbuffer.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void GBufferShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+
+
+bool GBufferShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 2, "inputNormal");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+
+
+void GBufferShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+
+
+char* GBufferShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+
+
+void GBufferShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+
+
+void GBufferShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+
+
+bool GBufferShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix)
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix not set." << endl;
+    }
+    m_OpenGLPtr ->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+
+    // Set the texture in the pixel shader to use the data from the first texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "shaderTexture");
+    if(location == -1)
+    {
+        cout << "Shader texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 0);
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Rendertextureclass.cpp</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The RenderTextureClass::Initialize function has had one change in this tutorial.
+We have added a second texture format called GL_R32F.
+Most of the Ssao textures will just be rendering out in gray scale so we won't need 4 channels of color.
+Also, it will be a 32-bit floating-point value instead of an unsigned integer. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: rendertextureclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "rendertextureclass.h"
+
+
+RenderTextureClass::RenderTextureClass()
+{
+}
+
+
+RenderTextureClass::RenderTextureClass(const RenderTextureClass& other)
+{
+}
+
+
+RenderTextureClass::~RenderTextureClass()
+{
+}
+
+
+bool RenderTextureClass::Initialize(OpenGLClass* OpenGL, int textureWidth, int textureHeight, float screenNear, float screenDepth, int format)
+{
+    int internalFormat, textureFormat, pixelDataType, filter;
+    unsigned int drawBuffersArray[1];
+    float fieldOfView, screenAspect;
+
+
+    // Store the width and height of the render texture.
+    m_textureWidth = textureWidth;
+    m_textureHeight = textureHeight;
+
+    // Set the texture format.
+    switch(format)
+    {
+        case 0:
+        {
+            internalFormat = GL_RGBA;
+            textureFormat = GL_RGBA;
+            pixelDataType =  GL_UNSIGNED_BYTE;
+            filter = GL_LINEAR;
+            break;
+        }
+        case 1:
+        {
+            internalFormat = GL_R32F;
+            textureFormat = GL_RED;
+            pixelDataType = GL_FLOAT;
+            filter = GL_NEAREST;
+            break;
+        }
+        default:
+        {
+            internalFormat = GL_RGBA;
+            textureFormat = GL_RGBA;
+            pixelDataType =  GL_UNSIGNED_BYTE;
+            filter = GL_LINEAR;
+            break;
+        }
+    }
+
+    // Generate an ID for the frame buffer and bind the frame buffer.
+    OpenGL->glGenFramebuffers(1, &m_frameBufferId);
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferId);
+
+    // Set the texture unit we are working with.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + 0);
+
+    // Generate an ID for the texture and bind the 2D texture.
+    glGenTextures(1, &m_textureID);
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
+
+    // Create an empty texture with our desired format settings and no mipmapping.
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_textureWidth, m_textureHeight, 0, textureFormat, pixelDataType, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+
+    // Now attach the texture that was just created to the frame buffer.
+    OpenGL->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureID, 0);
+
+    // Next generate and ID for a depth buffer and bind the depth buffer.
+    OpenGL->glGenRenderbuffers(1, &m_depthBufferId);
+    OpenGL->glBindRenderbuffer(GL_RENDERBUFFER, m_depthBufferId);
+
+    // Create the depth buffer.
+    OpenGL->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_textureWidth, m_textureHeight);
+
+    // Attach the depth buffer to the frame buffer.
+    OpenGL->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBufferId);
+
+    // Now set the format for the pixel shader output when rendering with this frame buffer.
+    drawBuffersArray[0] = GL_COLOR_ATTACHMENT0;
+    OpenGL->glDrawBuffers(1, drawBuffersArray);
+
+    // Now that we are done setting up the render texture frame buffer, we can switch back to the regular back buffer that is used for rendering.
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Setup the projection matrix for this render texture's dimensions.
+    fieldOfView = 3.14159265358979323846f / 4.0f;
+    screenAspect = (float)m_textureWidth / (float)m_textureHeight;
+    OpenGL->BuildPerspectiveFovMatrix(m_projectionMatrix, fieldOfView, screenAspect, screenNear, screenDepth);
+
+    // Create an orthographic projection matrix for this render texture's dimensions.
+    OpenGL->BuildOrthoMatrix(m_orthoMatrix, (float)m_textureWidth, (float)m_textureHeight, screenNear, screenDepth);
+
+    return true;
+}
+
+
+void RenderTextureClass::Shutdown(OpenGLClass* OpenGL)
+{
+    // Release the depth buffer.
+    OpenGL->glDeleteRenderbuffers(1, &m_depthBufferId);
+
+    // Release the texture.
+    glDeleteTextures(1, &m_textureID);
+
+    // Release the frame buffer.
+    OpenGL->glDeleteFramebuffers(1, &m_frameBufferId);
+
+    return;
+}
+
+
+void RenderTextureClass::SetRenderTarget(OpenGLClass* OpenGL)
+{
+    // Set the frame buffer (and its attached texture and depth buffer) as the render target.
+    OpenGL->glBindFramebuffer(GL_FRAMEBUFFER, m_frameBufferId);
+
+    // Set the viewport to be the correct dimensions for the texture dimensions used.
+    glViewport(0, 0, m_textureWidth, m_textureHeight);
+
+    return;
+}
+
+
+void RenderTextureClass::ClearRenderTarget(float red, float green, float blue, float alpha)
+{
+    // Clear the back buffer.
+    glClearColor(red, green, blue, alpha);
+
+    // Clear the depth buffer.
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    return;
+}
+
+
+void RenderTextureClass::SetTexture(OpenGLClass* OpenGL, unsigned int textureUnit)
+{
+    // Set the texture unit we are working with.
+    OpenGL->glActiveTexture(GL_TEXTURE0 + textureUnit);
+
+    // Bind the texture as a 2D texture.
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
+
+    return;
+}
+
+
+int RenderTextureClass::GetTextureWidth()
+{
+    return m_textureWidth;
+}
+
+
+int RenderTextureClass::GetTextureHeight()
+{
+    return m_textureHeight;
+}
+
+
+void RenderTextureClass::GetProjectionMatrix(float* matrix)
+{
+    matrix[0]  = m_projectionMatrix[0];
+    matrix[1]  = m_projectionMatrix[1];
+    matrix[2]  = m_projectionMatrix[2];
+    matrix[3]  = m_projectionMatrix[3];
+
+    matrix[4]  = m_projectionMatrix[4];
+    matrix[5]  = m_projectionMatrix[5];
+    matrix[6]  = m_projectionMatrix[6];
+    matrix[7]  = m_projectionMatrix[7];
+
+    matrix[8]  = m_projectionMatrix[8];
+    matrix[9]  = m_projectionMatrix[9];
+    matrix[10] = m_projectionMatrix[10];
+    matrix[11] = m_projectionMatrix[11];
+
+    matrix[12] = m_projectionMatrix[12];
+    matrix[13] = m_projectionMatrix[13];
+    matrix[14] = m_projectionMatrix[14];
+    matrix[15] = m_projectionMatrix[15];
+
+    return;
+}
+
+
+void RenderTextureClass::GetOrthoMatrix(float* matrix)
+{
+    matrix[0]  = m_orthoMatrix[0];
+    matrix[1]  = m_orthoMatrix[1];
+    matrix[2]  = m_orthoMatrix[2];
+    matrix[3]  = m_orthoMatrix[3];
+
+    matrix[4]  = m_orthoMatrix[4];
+    matrix[5]  = m_orthoMatrix[5];
+    matrix[6]  = m_orthoMatrix[6];
+    matrix[7]  = m_orthoMatrix[7];
+
+    matrix[8]  = m_orthoMatrix[8];
+    matrix[9]  = m_orthoMatrix[9];
+    matrix[10] = m_orthoMatrix[10];
+    matrix[11] = m_orthoMatrix[11];
+
+    matrix[12] = m_orthoMatrix[12];
+    matrix[13] = m_orthoMatrix[13];
+    matrix[14] = m_orthoMatrix[14];
+    matrix[15] = m_orthoMatrix[15];
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssao.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Ssao vertex shader will just be our standard deferred vertex shader which only requires position and texture coordinates since it is doing 2D post-processing on the gbuffer data.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssao.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec2 texCoord;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the texture coordinates for the pixel shader.
+    texCoord = inputTexCoord;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssao.ps</u></font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssao.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The output will be a single float to match the GL_R32F format of our output render texture.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>out float ambientOcclusion;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The positionTexture and normalTexture are the position and normals from the G buffer.
+The randomTexture is a 64x64 texture full of random vectors to make the sampling random as possible. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>uniform sampler2D positionTexture;
+uniform sampler2D normalTexture;
+uniform sampler2D randomTexture;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will have a number of input parameters to control the look of the ssao map.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>uniform float screenWidth;
+uniform float screenHeight;
+uniform float randomTextureSize;
+uniform float sampleRadius;
+uniform float ssaoScale;
+uniform float ssaoBias;
+uniform float ssaoIntensity;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have created a function for performing the ambient occlusion calculation.
+The reason the equation sits in its own function is because we will need to call this function multiple times in the pixel shader with different texture coordinates to perform multiple ray casts. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Functions
+////////////////////////////////////////////////////////////////////////////////
+float AmbientOcclusionFunction(vec2 texCoords, vec2 uv, vec3 position, vec3 normal)
+{
+    vec3 posVector;
+    vec3 vec;
+    float distance;
+    float occlusion;
+
+
+    // Get the position vector from the position portion of the G buffer.
+    posVector = texture(positionTexture, (texCoords + uv)).xyz;
+
+    // Subtract the input position.
+    posVector = posVector - position;
+
+    // Normalize the result to get the vector between the occluder and the pixel being occluded.
+    vec = normalize(posVector);
+
+    // Calculate distance of occluder.
+    distance = length(posVector) * ssaoScale;
+
+    // Calculate the ambient occlusion.
+    occlusion = max(0.0, dot(normal, vec) - ssaoBias) * (1.0f / (1.0f + distance)) * ssaoIntensity;
+
+    return occlusion;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SsaoPixelShader works by setting up all the ray casts as texture coordinates.
+It then loops through all the ray casts and calls the AmbientOcclusionFunction function for each of them.
+Once they are all done it sums up the results and then takes an average.
+We also invert the output as we usually work with the inverted data result in the shaders that will use the resulting ambient occlusion map as an input. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec3 position;
+    vec3 normal;
+    vec2 texCoords;
+    vec2 randomVector;
+    vec2 vectorArray[4];
+    float radius;
+    int count;
+    int i;
+    vec2 texCoord1;
+    vec2 texCoord2;
+
+
+    // Get the position from the G buffer.
+    position = texture(positionTexture, texCoord).xyz;
+
+    // Get the normal from the G buffer.
+    normal = texture(normalTexture, texCoord).xyz;
+
+    // Expand the range of the normal value from (0, +1) to (-1, +1) and normalize it.
+    normal = (normal * 2.0f) - 1.0f;
+    normal = normalize(normal);
+
+    // Setup the random texture sampling coordinates for the random vector
+    texCoords.x = screenWidth / randomTextureSize;
+    texCoords.y = screenHeight / randomTextureSize;
+    texCoords = texCoords * texCoord;
+
+    // Sample a random vector from the random vector texture.
+    randomVector = texture(randomTexture, texCoords).xy;
+
+    // Move the random vector into the -1.0 to +1.0 range and normalize it.
+    randomVector = (randomVector * 2.0f) - 1.0f;
+    randomVector = normalize(randomVector);
+
+    // Setup four vectors for sampling with.
+    vectorArray[0] = vec2( 1.0f,  0.0f);
+    vectorArray[1] = vec2(-1.0f,  0.0f);
+    vectorArray[2] = vec2( 0.0f,  1.0f);
+    vectorArray[3] = vec2( 0.0f, -1.0f);
+
+    // Set the sample radius to take into account the depth of the pixel.
+    radius = sampleRadius / position.z;
+
+    // Set the number of loops to calculate the ssao effect with.
+    count = 4;
+
+    // Initialize the ambient occlusion to zero.
+    ambientOcclusion = 0.0f;
+
+    // Loop and calculate the ambient occlusion sum using random vector sampling.
+    for(i=0; i&lt;count; i++)
+    {
+        // Set the coordinates of our random sample.
+        texCoord1 = reflect(vectorArray[i], randomVector) * radius;
+        texCoord2 = vec2(((texCoord1.x * 0.7f) - (texCoord1.y * 0.7f)), ((texCoord1.x * 0.7f) + (texCoord1.y * 0.7f)));
+
+        // Perform the ao sampling from the four coordinate locations.
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord1 * 0.25f), position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord2 * 0.5f),  position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord1 * 0.75f), position, normal);
+        ambientOcclusion += AmbientOcclusionFunction(texCoord, (texCoord2 * 1.0f),  position, normal);
+    }
+
+    // Take an average of the sum based on how many loops we ran.
+    ambientOcclusion = ambientOcclusion / (count * 4.0f);
+
+    // Invert the ambient occlusion output.
+    ambientOcclusion = 1.0f - ambientOcclusion;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoshaderclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SSAOSHADERCLASS_H_
+#define _SSAOSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SsaoShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class SsaoShaderClass
+{
+public:
+    SsaoShaderClass();
+    SsaoShaderClass(const SsaoShaderClass&);
+    ~SsaoShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+
+    bool SetShaderParameters(float*, float*, float*, float, float, float, float, float, float, float);
+
+private:
+    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "ssaoshaderclass.h"
+
+
+SsaoShaderClass::SsaoShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+SsaoShaderClass::SsaoShaderClass(const SsaoShaderClass& other)
+{
+}
+
+
+SsaoShaderClass::~SsaoShaderClass()
+{
+}
+
+
+bool SsaoShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set the ssao shader file names.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/ssao.vs");
+    strcpy(psFilename, "../Engine/ssao.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+
+
+bool SsaoShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is a deferred shader so it only requires position and texture coordinates as inputs to the vertex shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+
+
+char* SsaoShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+
+
+void SsaoShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+
+
+void SsaoShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+
+
+bool SsaoShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float screenWidth, float screenHeight, float randomTextureSize, float sampleRadius,
+                                          float ssaoScale, float ssaoBias, float ssaoIntensity)
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix not set." << endl;
+    }
+    m_OpenGLPtr ->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set the G buffer textures and the random sampling vector texture in the pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the position texture in the pixel shader to use the data from the first texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "positionTexture");
+    if(location == -1)
+    {
+        cout << "Position texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 0);
+
+    // Set the normal texture in the pixel shader to use the data from the second texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "normalTexture");
+    if(location == -1)
+    {
+        cout << "Normal texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 1);
+
+    // Set the random texture in the pixel shader to use the data from the third texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "randomTexture");
+    if(location == -1)
+    {
+        cout << "Random texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 2);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Set all of the ssao effect modification parameters here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the screen width in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "screenWidth");
+    if(location == -1)
+    {
+        cout << "Screen width not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, screenWidth);
+
+    // Set the screen height in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "screenHeight");
+    if(location == -1)
+    {
+        cout << "Screen height not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, screenHeight);
+
+    // Set the random texture size in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "randomTextureSize");
+    if(location == -1)
+    {
+        cout << "Random texture size not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, randomTextureSize);
+
+    // Set the sample radius in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "sampleRadius");
+    if(location == -1)
+    {
+        cout << "Sample radius not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, sampleRadius);
+
+    // Set the ssao scale in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "ssaoScale");
+    if(location == -1)
+    {
+        cout << "Ssao scale not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, ssaoScale);
+
+    // Set the ssao bias in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "ssaoBias");
+    if(location == -1)
+    {
+        cout << "Ssao bias not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, ssaoBias);
+
+    // Set the ssao intensity in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "ssaoIntensity");
+    if(location == -1)
+    {
+        cout << "Ssao intensity not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, ssaoIntensity);
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblur.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SSAO blur vertex shader will be the standard deferred vertex shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblur.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec2 texCoord;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the texture coordinates for the pixel shader.
+    texCoord = inputTexCoord;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblur.ps</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+To remove the roughness on the ambient occlusion map we need to perform a horizontal and vertical blur similar to tutorial 36.
+However, a regular blur would also blur over all the edges which would ruin the ssao effect.
+So, we need to incorporate a check to see if it is trying to blur over an edge, and if so, then not blur that portion of the map.
+Otherwise, it works the same as our traditional blur shader. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblur.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out float colorSum;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SSAO blur will require the ambient occlusion map as well as the normals from the G buffer.
+It will be using the normals to determine where edges are located. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>uniform sampler2D ssaoTexture;
+uniform sampler2D normalDepthTexture;
+uniform float screenWidth;
+uniform float screenHeight;
+uniform float blurType;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    float texelSize;
+    vec2 texOffset;
+    int radius;
+    float weightArray[11];
+    float weightSum;
+    vec4 centerDepth;
+    int i;
+    vec2 tex;
+    vec4 neighborDepth;
+    float ssaoValue;
+    float weight;
+
+
+    // Setup a horizontal blur if the blurType is 0.0f, otherwise setup a vertical blur.
+    if(blurType < 0.1f)
+    {
+        // Determine the floating point size of a texel for a screen with this specific width.
+        texelSize = 1.0f / screenWidth;
+        texOffset = vec2(texelSize, 0.0f);
+    }
+    else
+    {
+        // Determine the floating point size of a texel for a screen with this specific height.
+        texelSize = 1.0f / screenHeight;
+        texOffset = vec2(0.0f, texelSize);
+    }
+
+    // Set the blur radius.
+    radius = 5;
+
+    // Set an array of weights for how much a pixel contributes to the blur.
+    weightArray[0]  = 0.05f;
+    weightArray[1]  = 0.05f;
+    weightArray[2]  = 0.1f;
+    weightArray[3]  = 0.1f;
+    weightArray[4]  = 0.1f;
+    weightArray[5]  = 0.2f;
+    weightArray[6]  = 0.1f;
+    weightArray[7]  = 0.1f;
+    weightArray[8]  = 0.1f;
+    weightArray[9]  = 0.05f;
+    weightArray[10] = 0.05f;
+
+    // Start the blurring sum with the center pixel first (array goes -radius to +radius).  'textureLod' will be used instead of 'texture' to make sure we are not sampling a mipmap.
+    colorSum = weightArray[radius] * textureLod(ssaoTexture, texCoord, 0).r;
+    weightSum = weightArray[radius];
+
+    // Store the center pixel depth to help determine if we are encountering an edge or not.
+    centerDepth = textureLod(normalDepthTexture, texCoord, 0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We have changed the blur to use a for loop instead of manually defining all the sampling points.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>    // Loop through all the neighbor pixels.
+    for(i=-radius; i<=radius; i++)
+    {
+        // Skip the center as we started with it and it is in the sum already.
+        if(i==0)
+        {
+            continue;
+        }
+
+        // Offset the texture sampling coordinates by the position in the radius.
+        tex = texCoord + (i * texOffset);
+
+        // Point sample the neighbor pixel depth from the G buffer normals that are in view space.
+        neighborDepth = textureLod(normalDepthTexture, tex, 0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here is the main difference from our regular blur shader.
+For this ssao blur we use the normals from our G buffer to determine if there is a large variation between the pixels.
+If there is a large variation then we are sampling across an edge, and we don't want to blur that pixel. 
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>        // We make the blur edge aware by only sampling values that do not differ too much.
+        // If the normal or depth value varies wildly then we are sampling across a discontinuity, and that cannot be included in the blur averaging.
+        if(dot(neighborDepth.xyz, centerDepth.xyz) >= 0.8f)
+        {
+            // Sample the neighbor value from the ambient occlusion map.
+            ssaoValue = textureLod(ssaoTexture, tex, 0).r;
+
+            // Get the weight that this pixel contributes to the blur from the weight array.
+            weight = weightArray[i + radius];
+
+            // Add neighbor ssao pixel to blur using the weight array to determine its contribution to the sum.
+            colorSum += (ssaoValue * weight);
+
+            // Increment the weight sum to perform an average later.
+            weightSum += weight;
+        }
+    }
+
+    // Get the blur average value based on the two sums.
+    colorSum = colorSum / weightSum;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblurshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The SsaoBlurShaderClass is similar to the original BlurShaderClass.
+However, it will take in the normals from the G buffer since the shader requires those for edge detection. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblurshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _SSAOBLURSHADERCLASS_H_
+#define _SSAOBLURSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: SsaoBlurShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class SsaoBlurShaderClass
+{
+public:
+    SsaoBlurShaderClass();
+    SsaoBlurShaderClass(const SsaoBlurShaderClass&);
+    ~SsaoBlurShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+
+    bool SetShaderParameters(float*, float*, float*, float, float, float);
+
+private:
+    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Ssaoblurshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: ssaoblurshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "ssaoblurshaderclass.h"
+
+
+SsaoBlurShaderClass::SsaoBlurShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+SsaoBlurShaderClass::SsaoBlurShaderClass(const SsaoBlurShaderClass& other)
+{
+}
+
+
+SsaoBlurShaderClass::~SsaoBlurShaderClass()
+{
+}
+
+
+bool SsaoBlurShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+
+    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/ssaoblur.vs");
+    strcpy(psFilename, "../Engine/ssaoblur.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoBlurShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+
+
+bool SsaoBlurShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+
+
+void SsaoBlurShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+
+
+char* SsaoBlurShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+
+
+void SsaoBlurShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+
+
+void SsaoBlurShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+
+
+bool SsaoBlurShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float screenWidth, float screenHeight, float blurType)
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+
+    // Set the ssao texture in the pixel shader to use the data from the first texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "ssaoTexture");
+    if(location == -1)
+    {
+        cout << "Ssao texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 0);
+
+    // Set the normal depth texture in the pixel shader to use the data from the second texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "normalDepthTexture");
+    if(location == -1)
+    {
+        cout << "Normal depth texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 1);
+
+    // Set the screen width in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "screenWidth");
+    if(location == -1)
+    {
+        cout << "Screen width not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, screenWidth);
+
+    // Set the screen height in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "screenHeight");
+    if(location == -1)
+    {
+        cout << "Screen height not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, screenHeight);
+
+    // Set the blur type in the pixel shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "blurType");
+    if(location == -1)
+    {
+        cout << "Blur type not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, blurType);
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The first change of the light shader from the previous tutorial is that we now are working in view space and need to calculate the light direction in view space to pass into the pixel shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec2 inputTexCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec2 texCoord;
+out vec3 lightDir;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 cameraViewMatrix;
+uniform vec3 lightDirection;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    // Calculate the position of the vertex against the world, view, and projection matrices.
+    gl_Position = vec4(inputPosition, 1.0f) * worldMatrix;
+    gl_Position = gl_Position * viewMatrix;
+    gl_Position = gl_Position * projectionMatrix;
+
+    // Store the texture coordinates for the pixel shader.
+    texCoord = inputTexCoord;
+
+    // Invert the light direction for calculations.
+    lightDir = -lightDirection;
+
+    // Multiply light direction by the view matrix to put it in view space.
+    lightDir = lightDir * mat3(cameraViewMatrix);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Light.ps</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The light pixel shader now incorporates ssao by sampling the ssao texture for our ambient light level.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 lightDir;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D normalTexture;
+uniform sampler2D ssaoTexture;
+uniform sampler2D colorTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+    float ambientOcclusion;
+    vec4 ambientColor;
+    vec4 color;
+    vec3 normal;
+    float lightIntensity;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(colorTexture, texCoord);
+
+    // Sample the ambient occlusion value at this pixel.
+    ambientOcclusion = texture(ssaoTexture, texCoord).r;
+    ambientColor = vec4(ambientOcclusion, ambientOcclusion, ambientOcclusion, 1.0f);
+
+    // Invert the ao map.
+    color = 1.0f - ambientColor;
+
+    // Get the normal.
+    normal = texture(normalTexture, texCoord).xyz;
+
+    // Calculate the light intensity.
+    lightIntensity = clamp(dot(normal, lightDir), 0.0f, 1.0f);
+    if(lightIntensity > 0.0f)
+    {
+        color += vec4(1.0f, 1.0f, 1.0f, 1.0f) * lightIntensity;
+    }
+
+    // Saturate the final light color.
+    color = clamp(color, 0.0f, 1.0f);
+
+    // Multiply the texture pixel and the light intensity to get the final pixel color result.
+    color = color * textureColor;
+
+    outputColor = color;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _LIGHTSHADERCLASS_H_
+#define _LIGHTSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: LightShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class LightShaderClass
+{
+public:
+    LightShaderClass();
+    LightShaderClass(const LightShaderClass&);
+    ~LightShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+
+    bool SetShaderParameters(float*, float*, float*, float*, float*);
+
+private:
+    bool InitializeShader(char*, char*);
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Lightshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: lightshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "lightshaderclass.h"
+
+
+LightShaderClass::LightShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+LightShaderClass::LightShaderClass(const LightShaderClass& other)
+{
+}
+
+
+LightShaderClass::~LightShaderClass()
+{
+}
+
+
+bool LightShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+
+    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/light.vs");
+    strcpy(psFilename, "../Engine/light.ps");
+
+    // Initialize the vertex and pixel shaders.
+    result = InitializeShader(vsFilename, psFilename);
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void LightShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+
+
+bool LightShaderClass::InitializeShader(char* vsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create a vertex and fragment shader object.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the vertex and fragment shader buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not compile then write the syntax error message out to a text file for review.
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex and fragment shader to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        // If it did not link then write the syntax error message out to a text file for review.
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+
+
+void LightShaderClass::ShutdownShader()
+{
+    // Detach the vertex and fragment shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the vertex and fragment shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+
+
+char* LightShaderClass::LoadShaderSourceFile(char* filename)
+{
+    FILE* filePtr;
+    char* buffer;
+    long fileSize, count;
+    int error;
+
+
+    // Open the shader file for reading in text modee.
+    filePtr = fopen(filename, "r");
+    if(filePtr == NULL)
+    {
+        return 0;
+    }
+
+    // Go to the end of the file and get the size of the file.
+    fseek(filePtr, 0, SEEK_END);
+    fileSize = ftell(filePtr);
+
+    // Initialize the buffer to read the shader source file into, adding 1 for an extra null terminator.
+    buffer = new char[fileSize + 1];
+
+    // Return the file pointer back to the beginning of the file.
+    fseek(filePtr, 0, SEEK_SET);
+
+    // Read the shader text file into the buffer.
+    count = fread(buffer, 1, fileSize, filePtr);
+    if(count != fileSize)
+    {
+        return 0;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        return 0;
+    }
+
+    // Null terminate the buffer.
+    buffer[fileSize] = '\0';
+
+    return buffer;
+}
+
+
+void LightShaderClass::OutputShaderErrorMessage(unsigned int shaderId, char* shaderFilename)
+{
+    long count;
+    int logSize, error;
+    char* infoLog;
+    FILE* filePtr;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetShaderInfoLog(shaderId, logSize, NULL, infoLog);
+
+    // Open a text file to write the error message to.
+    filePtr = fopen("shader-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening shader error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing shader error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing shader error message output file." << endl;
+        return;
+    }
+
+    // Notify the user to check the text file for compile errors.
+    cout << "Error compiling shader.  Check shader-error.txt for error message.  Shader filename: " << shaderFilename << endl;
+
+    return;
+}
+
+
+void LightShaderClass::OutputLinkerErrorMessage(unsigned int programId)
+{
+    long count;
+    FILE* filePtr;
+    int logSize, error;
+    char* infoLog;
+
+
+    // Get the size of the string containing the information log for the failed shader compilation message.
+    m_OpenGLPtr->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logSize);
+
+    // Increment the size by one to handle also the null terminator.
+    logSize++;
+
+    // Create a char buffer to hold the info log.
+    infoLog = new char[logSize];
+
+    // Now retrieve the info log.
+    m_OpenGLPtr->glGetProgramInfoLog(programId, logSize, NULL, infoLog);
+
+    // Open a file to write the error message to.
+    filePtr = fopen("linker-error.txt", "w");
+    if(filePtr == NULL)
+    {
+        cout << "Error opening linker error message output file." << endl;
+        return;
+    }
+
+    // Write out the error message.
+    count = fwrite(infoLog, sizeof(char), logSize, filePtr);
+    if(count != logSize)
+    {
+        cout << "Error writing linker error message output file." << endl;
+        return;
+    }
+
+    // Close the file.
+    error = fclose(filePtr);
+    if(error != 0)
+    {
+        cout << "Error closing linker error message output file." << endl;
+        return;
+    }
+
+    // Pop a message up on the screen to notify the user to check the text file for linker errors.
+    cout << "Error linking shader program.  Check linker-error.txt for message." << endl;
+
+    return;
+}
+
+
+bool LightShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float* cameraViewMatrix, float* lightDirection)
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16], tpCameraViewMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will need to transpose the camera's view matrix.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    m_OpenGLPtr->MatrixTranspose(tpCameraViewMatrix, cameraViewMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix not set." << endl;
+    }
+    m_OpenGLPtr ->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Provide the light vertex shader the camera's view matrix so that we can calculate the direction light in view space.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the camera view matrix in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "cameraViewMatrix");
+    if(location == -1)
+    {
+        cout << "Camera view matrix not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpCameraViewMatrix);
+
+    // Set the normal texture in the pixel shader to use the data from the first texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "normalTexture");
+    if(location == -1)
+    {
+        cout << "Normal texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 0);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We now provide the light pixel shader the SSAO texture for it ambient lighting values.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the ssao texture in the pixel shader to use the data from the second texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "ssaoTexture");
+    if(location == -1)
+    {
+        cout << "Ssao texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 1);
+
+    // Set the color texture in the pixel shader to use the data from the third texture unit.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "colorTexture");
+    if(location == -1)
+    {
+        cout << "Color texture not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1i(location, 2);
+
+    // Set the light direction in the vertex shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "lightDirection");
+    if(location == -1)
+    {
+        cout << "Light direction not set." << endl;
+    }
+    m_OpenGLPtr->glUniform3fv(location, 1, lightDirection);
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+#include "inputclass.h"
+#include "cameraclass.h"
+#include "lightclass.h"
+#include "modelclass.h"
+#include "orthowindowclass.h"
+#include "deferredbuffersclass.h"
+#include "gbuffershaderclass.h"
+#include "rendertextureclass.h"
+#include "ssaoshaderclass.h"
+#include "ssaoblurshaderclass.h"
+#include "lightshaderclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool RenderGBuffer();
+    bool RenderSsao();
+    bool BlurSsaoTexture();
+    bool Render();
+
+private:
+    OpenGLClass* m_OpenGL;
+    CameraClass* m_Camera;
+    LightClass* m_Light;
+    ModelClass *m_SphereModel, *m_GroundModel;
+    DeferredBuffersClass* m_DeferredBuffers;
+    GBufferShaderClass* m_GBufferShader;
+    RenderTextureClass* m_SsaoRenderTexture;
+    OrthoWindowClass* m_FullScreenWindow;
+    SsaoShaderClass* m_SsaoShader;
+    TextureClass* m_RandomTexture;
+    RenderTextureClass* m_BlurSsaoRenderTexture;
+    SsaoBlurShaderClass* m_SsaoBlurShader;
+    LightShaderClass* m_LightShader;
+    int m_screenWidth, m_screenHeight;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;
+    m_Camera = 0;
+    m_Light = 0;
+    m_SphereModel = 0;
+    m_GroundModel = 0;
+    m_DeferredBuffers = 0;
+    m_GBufferShader = 0;
+    m_SsaoRenderTexture = 0;
+    m_FullScreenWindow = 0;
+    m_SsaoShader = 0;
+    m_RandomTexture = 0;
+    m_BlurSsaoRenderTexture = 0;
+    m_SsaoBlurShader = 0;
+    m_LightShader = 0;
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    char modelFilename[128], textureFilename[128];
+    bool result;
+
+
+    // Store the screen width and height.
+    m_screenWidth = screenWidth;
+    m_screenHeight = screenHeight;
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+    m_Camera->RenderBaseViewMatrix();
+
+    m_Camera->SetPosition(0.0f, 7.0f, -10.0f);
+    m_Camera->SetRotation(35.0f, 0.0f, 0.0f);
+    m_Camera->Render();
+
+    // Create and initialize the light object.
+    m_Light = new LightClass;
+
+    m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_Light->SetDirection(1.0f, -0.5f, 0.0f);
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Load in the sphere and the ground model.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the sphere model object.
+    m_SphereModel = new ModelClass;
+
+    strcpy(modelFilename, "../Engine/data/sphere.txt");
+    strcpy(textureFilename, "../Engine/data/ice.tga");
+
+    result = m_SphereModel->Initialize(m_OpenGL, modelFilename, textureFilename, true, NULL, false, NULL, false);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the sphere model object." << endl;
+        return false;
+    }
+
+    // Create and initialize the ground model object.
+    m_GroundModel = new ModelClass;
+
+    strcpy(modelFilename, "../Engine/data/plane01.txt");
+    strcpy(textureFilename, "../Engine/data/metal001.tga");
+
+    result = m_GroundModel->Initialize(m_OpenGL, modelFilename, textureFilename, true, NULL, false, NULL, false);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the ground model object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the G buffer object here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the deferred buffers object.
+    m_DeferredBuffers = new DeferredBuffersClass;
+
+    result = m_DeferredBuffers->Initialize(m_OpenGL, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the deferred buffers object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the G buffer shader which will do the job of rendering the 3D scene into our G buffer in view space.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the and initialize gbuffer shader object.
+    m_GBufferShader = new GBufferShaderClass;
+
+    result = m_GBufferShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the gbuffer shader object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create a render texture to hold the ambient occlusion map. Note we use 1 as its type so we are creating a single channel 32-bit float render texture. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the ssao render to texture object.
+    m_SsaoRenderTexture = new RenderTextureClass;
+
+    result = m_SsaoRenderTexture->Initialize(m_OpenGL, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, 1);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the ssao render texture object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create a render texture for blurring the ambient occlusion map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the blur ssao render to texture object.
+    m_BlurSsaoRenderTexture = new RenderTextureClass;
+
+    result = m_BlurSsaoRenderTexture->Initialize(m_OpenGL, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, 1);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the blur ssao render texture object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will need a 2D ortho window since all the rendering will be done in 2D as post processing effects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the full screen ortho window object.
+    m_FullScreenWindow = new OrthoWindowClass;
+
+    result = m_FullScreenWindow->Initialize(m_OpenGL, screenWidth, screenHeight);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the full screen window object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here we setup the Ssao shader that will be used for creating the ambient occlusion map from the scene data in the G buffer.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the and initialize ssao shader object.
+    m_SsaoShader = new SsaoShaderClass;
+
+    result = m_SsaoShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the ssao shader object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Here is where we load our texture that is full of random vectors.
+This texture is used for randomizing sampling in our ssao shader.
+The texture was created by just blurring a small random normal map. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the random texture object.
+    m_RandomTexture = new TextureClass;
+
+    strcpy(textureFilename, "../Engine/data/random_vec.tga");
+
+    result = m_RandomTexture->Initialize(m_OpenGL, textureFilename, true);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the random texture object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the ssao blur shader here.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create the and initialize ssao blur shader object.
+    m_SsaoBlurShader = new SsaoBlurShaderClass;
+
+    result = m_SsaoBlurShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the ssao blur shader object." << endl;
+        return false;
+    }
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Create the deferred light shader that will now use the blurred ambient occlusion map as input for its ambient lighting term.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Create and initialize the deferred light shader object.
+    m_LightShader = new LightShaderClass;
+
+    result = m_LightShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the light shader object." << endl;
+        return false;
+    }
+
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{
+    // Release the deferred light shader object.
+    if(m_LightShader)
+    {
+        m_LightShader->Shutdown();
+        delete m_LightShader;
+        m_LightShader = 0;
+    }
+
+    // Release the ssao blur shader object.
+    if(m_SsaoBlurShader)
+    {
+        m_SsaoBlurShader->Shutdown();
+        delete m_SsaoBlurShader;
+        m_SsaoBlurShader = 0;
+    }
+
+    // Release the random texture object.
+    if(m_RandomTexture)
+    {
+        m_RandomTexture->Shutdown();
+        delete m_RandomTexture;
+        m_RandomTexture = 0;
+    }
+
+    // Release the ssao shader object.
+    if(m_SsaoShader)
+    {
+        m_SsaoShader->Shutdown();
+        delete m_SsaoShader;
+        m_SsaoShader = 0;
+    }
+
+    // Release the full screen ortho window object.
+    if(m_FullScreenWindow)
+    {
+        m_FullScreenWindow->Shutdown();
+        delete m_FullScreenWindow;
+        m_FullScreenWindow = 0;
+    }
+
+    // Release the blur ssao render to texture object.
+    if(m_BlurSsaoRenderTexture)
+    {
+        m_BlurSsaoRenderTexture->Shutdown(m_OpenGL);
+        delete m_BlurSsaoRenderTexture;
+        m_BlurSsaoRenderTexture = 0;
+    }
+
+    // Release the ssao render to texture object.
+    if(m_SsaoRenderTexture)
+    {
+        m_SsaoRenderTexture->Shutdown(m_OpenGL);
+        delete m_SsaoRenderTexture;
+        m_SsaoRenderTexture = 0;
+    }
+
+    // Release the gbuffer shader object.
+    if(m_GBufferShader)
+    {
+        m_GBufferShader->Shutdown();
+        delete m_GBufferShader;
+        m_GBufferShader = 0;
+    }
+
+    // Release the deferred buffers object.
+    if(m_DeferredBuffers)
+    {
+        m_DeferredBuffers->Shutdown(m_OpenGL);
+        delete m_DeferredBuffers;
+        m_DeferredBuffers = 0;
+    }
+
+    // Release the ground model object.
+    if(m_GroundModel)
+    {
+        m_GroundModel->Shutdown();
+        delete m_GroundModel;
+        m_GroundModel = 0;
+    }
+
+    // Release the sphere model object.
+    if(m_SphereModel)
+    {
+        m_SphereModel->Shutdown();
+        delete m_SphereModel;
+        m_SphereModel = 0;
+    }
+
+    // Release the light object.
+    if(m_Light)
+    {
+        delete m_Light;
+        m_Light = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Frame function will implement the algorithm described at the top of this tutorial.
+It will first render the scene to our G buffer in view space.
+After that it will perform the SSAO calculations and render out the data to an ambient occlusion map render texture.
+We then blur that AO map using the SSAO edge aware blur shader.
+And then finally we render the resulting scene using our deferred light shader and blurred AO map. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Frame(InputClass* Input)
+{
+    bool result;
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+
+    // Render the scene data to the G buffer to setup deferred rendering.
+    result = RenderGBuffer();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Render the screen space ambient occlusion of the scene to a render texture.
+    result = RenderSsao();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Blur the ssao render texture.
+    result = BlurSsaoTexture();
+    if(!result)
+    {
+        return false;
+    }
+
+    // Render the final graphics scene using deferred shading.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The RenderGBuffer function will render the 3D scene of the sphere and the ground model into the G buffer and store the data in view space so it is ready for SSAO and deferred light shader calculations.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::RenderGBuffer()
+{
+    float worldMatrix[16], viewMatrix[16], projectionMatrix[16], translateMatrix[16];
+    bool result;
+
+
+    // Get the view, and projection matrices from the camera and OpenGL objects.
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetProjectionMatrix(projectionMatrix);
+
+    // Set the render target to be the deferred buffers.  Also clear the buffers.
+    m_DeferredBuffers->SetRenderTarget(m_OpenGL);
+    m_DeferredBuffers->ClearRenderTargets(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Setup the translation matrix for the sphere model.
+    m_OpenGL->MatrixTranslation(translateMatrix, 2.0f, 2.0f, 0.0f);
+
+    // Render the sphere model using the gbuffer shader.
+    result = m_GBufferShader->SetShaderParameters(translateMatrix, viewMatrix, projectionMatrix);
+    if(!result)
+    {
+        return false;
+    }
+    m_SphereModel->SetTexture1(0);
+    m_SphereModel->Render();
+
+    // Setup the translation matrix for the sphere model.
+    m_OpenGL->MatrixTranslation(translateMatrix, 0.0f, 1.0f, 0.0f);
+
+    // Render the sphere model using the gbuffer shader.
+    result = m_GBufferShader->SetShaderParameters(translateMatrix, viewMatrix, projectionMatrix);
+    if(!result)
+    {
+        return false;
+    }
+    m_GroundModel->SetTexture1(0);
+    m_GroundModel->Render();
+
+    // Reset the render target back to the original back buffer and not the deferred buffers anymore.  Also reset the viewport back to the original.
+    m_OpenGL->SetBackBufferRenderTarget();
+    m_OpenGL->ResetViewport();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In this RenderSsao function we use the scene data located in the G buffer to create an ambient occlusion map using the m_SsaoShader.
+We store the result in the m_SsaoRenderTexture. 
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::RenderSsao()
+{
+    float worldMatrix[16], baseViewMatrix[16], orthoMatrix[16];
+    float sampleRadius, ssaoScale, ssaoBias, ssaoIntensity, randomTextureSize, screenWidth, screenHeight;
+    bool result;
+
+
+    // Set the sample radius for the ssao shader.
+    sampleRadius = 1.0f;
+    ssaoScale = 1.0f;
+    ssaoBias = 0.1f;
+    ssaoIntensity = 2.0f;
+
+    // Set the random texture width in float for the ssao shader.
+    randomTextureSize = 64.0f;
+
+    // Convert the screen size to float for the shader.
+    screenWidth = (float)m_screenWidth;
+    screenHeight = (float)m_screenHeight;
+
+    // Get the matrices from the camera and OpenGL objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetBaseViewMatrix(baseViewMatrix);
+    m_OpenGL->GetOrthoMatrix(orthoMatrix);
+
+    // Set the render target to be the ssao texture.
+    m_SsaoRenderTexture->SetRenderTarget(m_OpenGL);
+    m_SsaoRenderTexture->ClearRenderTarget(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Begin 2D rendering.
+    m_OpenGL->TurnZBufferOff();
+
+    // Render the ssao effect to a 2D full screen window.
+    result = m_SsaoShader->SetShaderParameters(worldMatrix, baseViewMatrix, orthoMatrix, screenWidth, screenHeight, randomTextureSize, sampleRadius, ssaoScale, ssaoBias, ssaoIntensity);
+    if(!result)
+    {
+        return false;
+    }
+
+    m_DeferredBuffers->SetShaderResourcePositions(m_OpenGL, 0);
+    m_DeferredBuffers->SetShaderResourceNormals(m_OpenGL, 1);
+    m_RandomTexture->SetTexture(m_OpenGL, 2);
+
+    m_FullScreenWindow->Render();
+
+    // End 2D rendering.
+    m_OpenGL->TurnZBufferOn();
+
+    // Reset the render target back to the original back buffer and not the render to texture anymore.  Also reset the viewport back to the original.
+    m_OpenGL->SetBackBufferRenderTarget();
+    m_OpenGL->ResetViewport();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The BlurSsaoTexture function performs the horizontal and vertical edge aware blur of the ambient occlusion map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::BlurSsaoTexture()
+{
+    float worldMatrix[16], baseViewMatrix[16], orthoMatrix[16];
+    bool result;
+
+
+    // Get the matrices from the camera and d3d objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetBaseViewMatrix(baseViewMatrix);
+    m_OpenGL->GetOrthoMatrix(orthoMatrix);
+
+    // Begin 2D rendering.
+    m_OpenGL->TurnZBufferOff();
+
+    // Set the blur render texture as the render target, and clear it.
+    m_BlurSsaoRenderTexture->SetRenderTarget(m_OpenGL);
+    m_BlurSsaoRenderTexture->ClearRenderTarget(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Perform a horizontal blur of the ssao texture.
+    result = m_SsaoBlurShader->SetShaderParameters(worldMatrix, baseViewMatrix, orthoMatrix, m_screenWidth, m_screenHeight, 0);
+    if(!result)
+    {
+        return false;
+    }
+
+    m_SsaoRenderTexture->SetTexture(m_OpenGL, 0);
+    m_DeferredBuffers->SetShaderResourceNormals(m_OpenGL, 1);
+
+    m_FullScreenWindow->Render();
+
+    // Set the original ssao render texture as the render target, and clear it.
+    m_SsaoRenderTexture->SetRenderTarget(m_OpenGL);
+    m_SsaoRenderTexture->ClearRenderTarget(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Now perform a vertical blur of the ssao texture that was already horizontally blurred.
+    result = m_SsaoBlurShader->SetShaderParameters(worldMatrix, baseViewMatrix, orthoMatrix, m_screenWidth, m_screenHeight, 1);
+    if(!result)
+    {
+        return false;
+    }
+
+    m_BlurSsaoRenderTexture->SetTexture(m_OpenGL, 0);
+    m_DeferredBuffers->SetShaderResourceNormals(m_OpenGL, 1);
+
+    m_FullScreenWindow->Render();
+
+    // End 2D rendering.
+    m_OpenGL->TurnZBufferOn();
+
+    // Reset the render target back to the original back buffer and not the render to texture anymore.  Also reset the viewport back to the original.
+    m_OpenGL->SetBackBufferRenderTarget();
+    m_OpenGL->ResetViewport();
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In the Render function we render the final scene using the deferred light shader and the blurred ambient occlusion map.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Render()
+{
+    float worldMatrix[16], baseViewMatrix[16], orthoMatrix[16], viewMatrix[16];
+    float lightDirection[3];
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and ortho matrices from the camera and OpenGL objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetBaseViewMatrix(baseViewMatrix);
+    m_OpenGL->GetOrthoMatrix(orthoMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+
+    // Get the light properties.
+    m_Light->GetDirection(lightDirection);
+
+    // Begin 2D rendering and turn off the Z buffer.
+    m_OpenGL->TurnZBufferOff();
+
+    // Set the parameters for the deferred light shader.
+    result = m_LightShader->SetShaderParameters(worldMatrix, baseViewMatrix, orthoMatrix, viewMatrix, lightDirection);
+    if(!result)
+    {
+        return false;
+    }
+
+    m_DeferredBuffers->SetShaderResourceNormals(m_OpenGL, 0);
+    m_SsaoRenderTexture->SetTexture(m_OpenGL, 1);
+    m_DeferredBuffers->SetShaderResourceColors(m_OpenGL, 2);
+
+    // Render the full screen ortho window using the deferred light shader and the deferred buffer texture resources.
+    m_FullScreenWindow->Render();
+
+    // Re-enable the Z buffer after 2D rendering complete.
+    m_OpenGL->TurnZBufferOn();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+With the use of SSAO we can now create more realistic ambient lighting in our 3D scenes.
+</font></p>
+
+<p align="left"><img border="0" src="../../images/pic6072.gif" width="500" height="282"></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Compile and run the program to see the 3D scene rendered using ssao. Press escape to quit.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Return just the ambient term in the deferred lighting shader to see what the AO map looks like.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Modify the ssao parameters in the RenderSsao function to see the effect it has on the AO map.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut51_src.tar.gz">gl4linuxtut51_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>
