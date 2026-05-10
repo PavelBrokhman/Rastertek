@@ -1,0 +1,57 @@
+Texture2D shaderTexture : register(t0);
+Texture2D depthMapTexture : register(t1);
+SamplerState SampleType : register(s0);
+
+cbuffer LightBuffer
+{
+    float4 ambientColor;
+    float4 diffuseColor;
+    float3 lightDirection;
+    float bias;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
+    float4 lightViewPosition : TEXCOORD1;
+};
+
+float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
+{
+    float3 lightDir = -lightDirection;
+    float4 color = ambientColor;
+
+    float2 projectTexCoord;
+    projectTexCoord.x =  input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = -input.lightViewPosition.y / input.lightViewPosition.w / 2.0f + 0.5f;
+
+    if ((saturate(projectTexCoord.x) == projectTexCoord.x) &&
+        (saturate(projectTexCoord.y) == projectTexCoord.y))
+    {
+        float depthValue = depthMapTexture.Sample(SampleType, projectTexCoord).r;
+        float lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w - bias;
+        if (lightDepthValue < depthValue)
+        {
+            float lightIntensity = saturate(dot(input.normal, lightDir));
+            if (lightIntensity > 0.0f)
+            {
+                color += diffuseColor * lightIntensity;
+                color = saturate(color);
+            }
+        }
+    }
+    else
+    {
+        float lightIntensity = saturate(dot(input.normal, lightDir));
+        if (lightIntensity > 0.0f)
+        {
+            color += diffuseColor * lightIntensity;
+            color = saturate(color);
+        }
+    }
+
+    float4 textureColor = shaderTexture.Sample(SampleType, input.tex);
+    return color * textureColor;
+}
