@@ -11,7 +11,7 @@ public class GraphicsFramework
     private Model _model;
     private LightShader _lightShader;
     private Light _light;
-    private float _rotation;
+    private float _rotation = 360.0f;
 
     public bool Initialize(GL4 OpenGL)
     {
@@ -50,9 +50,10 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        _rotation += 0.01f;
-        if (_rotation > MathF.Tau)
-            _rotation -= MathF.Tau;
+        // C++ applicationclass.cpp: rotation -= 0.0174532925f; wrap to 360.
+        _rotation -= 0.0174532925f * 1.0f;
+        if (_rotation <= 0.0f)
+            _rotation += 360.0f;
         return Render();
     }
 

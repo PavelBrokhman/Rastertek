@@ -12,21 +12,49 @@ public class Texture
         var gl = OpenGL.Driver;
 
         if (!File.Exists(filename))
-        {
             GenerateCheckerboardTga(filename, 64);
-        }
 
-        if (!LoadTga(filename, out int width, out int height, out byte[] pixels))
-        {
-            global::System.Console.WriteLine($"Не удалось загрузить текстуру: {filename}");
+        // Open the targa file and read 18-byte header (C++ textureclass.cpp LoadTarga32Bit).
+        using var fs = File.OpenRead(filename);
+        using var reader = new BinaryReader(fs);
+
+        byte[] header = reader.ReadBytes(18);
+        if (header.Length != 18)
             return false;
+
+        int width = header[12] | (header[13] << 8);
+        int height = header[14] | (header[15] << 8);
+        int bpp = header[16];
+
+        // Check that it is 32 bit and not 24 bit.
+        if (bpp != 32)
+            return false;
+
+        int imageSize = width * height * 4;
+        byte[] targaImage = reader.ReadBytes(imageSize);
+        if (targaImage.Length != imageSize)
+            return false;
+
+        // BGRA -> RGBA linear copy, no V-flip (matches C++ textureclass.cpp).
+        byte[] targaData = new byte[imageSize];
+        int index = 0;
+        for (int j = 0; j < height; j++)
+        {
+            for (int i = 0; i < width; i++)
+            {
+                targaData[index + 0] = targaImage[index + 2]; // Red.
+                targaData[index + 1] = targaImage[index + 1]; // Green.
+                targaData[index + 2] = targaImage[index + 0]; // Blue.
+                targaData[index + 3] = targaImage[index + 3]; // Alpha.
+                index += 4;
+            }
         }
 
         gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
         _textureId = gl.GenTexture();
         gl.BindTexture(TextureTarget.Texture2D, _textureId);
 
-        fixed (byte* p = pixels)
+        fixed (byte* p = targaData)
         {
             gl.TexImage2D(
                 TextureTarget.Texture2D,
@@ -41,21 +69,21 @@ public class Texture
             );
         }
 
-        gl.GenerateMipmap(TextureTarget.Texture2D);
+        if (wrap)
+        {
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        }
+        else
+        {
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        }
 
-        var wrapMode = wrap ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToEdge;
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, wrapMode);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, wrapMode);
-        gl.TexParameter(
-            TextureTarget.Texture2D,
-            TextureParameterName.TextureMinFilter,
-            (int)TextureMinFilter.LinearMipmapLinear
-        );
-        gl.TexParameter(
-            TextureTarget.Texture2D,
-            TextureParameterName.TextureMagFilter,
-            (int)TextureMagFilter.Linear
-        );
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+
+        gl.GenerateMipmap(TextureTarget.Texture2D);
 
         _loaded = true;
         return true;
@@ -68,51 +96,6 @@ public class Texture
             OpenGL.Driver.DeleteTexture(_textureId);
             _loaded = false;
         }
-    }
-
-    private static bool LoadTga(string filename, out int width, out int height, out byte[] rgba)
-    {
-        width = 0;
-        height = 0;
-        rgba = null;
-        byte[] data = File.ReadAllBytes(filename);
-        if (data.Length < 18)
-            return false;
-        int idLength = data[0];
-        int imageType = data[2];
-        width = data[12] | (data[13] << 8);
-        height = data[14] | (data[15] << 8);
-        int bpp = data[16];
-        int descriptor = data[17];
-        if (imageType != 2)
-            return false;
-        if (bpp != 24 && bpp != 32)
-            return false;
-        int offset = 18 + idLength;
-        int channels = bpp / 8;
-        int pixelCount = width * height;
-        if (data.Length < offset + pixelCount * channels)
-            return false;
-        rgba = new byte[pixelCount * 4];
-        bool topLeft = (descriptor & 0x20) != 0;
-        for (int y = 0; y < height; y++)
-        {
-            int srcRow = topLeft ? y : (height - 1 - y);
-            int srcOff = offset + srcRow * width * channels;
-            int dstOff = y * width * 4;
-            for (int x = 0; x < width; x++)
-            {
-                byte b = data[srcOff + x * channels + 0];
-                byte g = data[srcOff + x * channels + 1];
-                byte r = data[srcOff + x * channels + 2];
-                byte a = channels == 4 ? data[srcOff + x * channels + 3] : (byte)255;
-                rgba[dstOff + x * 4 + 0] = r;
-                rgba[dstOff + x * 4 + 1] = g;
-                rgba[dstOff + x * 4 + 2] = b;
-                rgba[dstOff + x * 4 + 3] = a;
-            }
-        }
-        return true;
     }
 
     private static void GenerateCheckerboardTga(string filename, int size)

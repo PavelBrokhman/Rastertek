@@ -38,12 +38,17 @@ public class LightShader
     {
         var gl = OpenGL.Driver;
 
+        // C++ lightshaderclass.cpp: transpose matrices before glUniformMatrix4fv(false).
+        var tpWorld = Transpose(worldMatrix);
+        var tpView = Transpose(viewMatrix);
+        var tpProj = Transpose(projectionMatrix);
+
         int loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc == -1)
             return false;
         unsafe
         {
-            gl.UniformMatrix4(loc, 1, false, (float*)&worldMatrix);
+            gl.UniformMatrix4(loc, 1, false, (float*)&tpWorld);
         }
 
         loc = gl.GetUniformLocation(_shaderProgram, "viewMatrix");
@@ -51,7 +56,7 @@ public class LightShader
             return false;
         unsafe
         {
-            gl.UniformMatrix4(loc, 1, false, (float*)&viewMatrix);
+            gl.UniformMatrix4(loc, 1, false, (float*)&tpView);
         }
 
         loc = gl.GetUniformLocation(_shaderProgram, "projectionMatrix");
@@ -59,7 +64,7 @@ public class LightShader
             return false;
         unsafe
         {
-            gl.UniformMatrix4(loc, 1, false, (float*)&projectionMatrix);
+            gl.UniformMatrix4(loc, 1, false, (float*)&tpProj);
         }
 
         loc = gl.GetUniformLocation(_shaderProgram, "shaderTexture");
@@ -124,6 +129,14 @@ public class LightShader
         }
         return true;
     }
+
+    private static Matrix4X4<float> Transpose(Matrix4X4<float> m) =>
+        new(
+            m.M11, m.M21, m.M31, m.M41,
+            m.M12, m.M22, m.M32, m.M42,
+            m.M13, m.M23, m.M33, m.M43,
+            m.M14, m.M24, m.M34, m.M44
+        );
 
     private static bool CheckShaderCompile(GL gl, uint shader, string filename)
     {
