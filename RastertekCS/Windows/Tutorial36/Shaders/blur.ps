@@ -1,0 +1,77 @@
+cbuffer ScreenBuffer
+{
+    float screenWidth;
+    float screenHeight;
+    float blurType;
+    float padding;
+};
+
+Texture2D shaderTexture : register(t0);
+SamplerState SampleType : register(s0);
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+float4 BlurPixelShader(PixelInputType input) : SV_TARGET
+{
+    float texelSize;
+    float2 t1, t2, t3, t4, t5, t6, t7, t8, t9;
+    float w0, w1, w2, w3, w4;
+    float normalization;
+    float4 color;
+
+    if (blurType < 0.1f)
+    {
+        texelSize = 1.0f / screenWidth;
+        t1 = input.tex + float2(texelSize * -4.0f, 0.0f);
+        t2 = input.tex + float2(texelSize * -3.0f, 0.0f);
+        t3 = input.tex + float2(texelSize * -2.0f, 0.0f);
+        t4 = input.tex + float2(texelSize * -1.0f, 0.0f);
+        t5 = input.tex + float2(texelSize *  0.0f, 0.0f);
+        t6 = input.tex + float2(texelSize *  1.0f, 0.0f);
+        t7 = input.tex + float2(texelSize *  2.0f, 0.0f);
+        t8 = input.tex + float2(texelSize *  3.0f, 0.0f);
+        t9 = input.tex + float2(texelSize *  4.0f, 0.0f);
+    }
+    else
+    {
+        texelSize = 1.0f / screenHeight;
+        t1 = input.tex + float2(0.0f, texelSize * -4.0f);
+        t2 = input.tex + float2(0.0f, texelSize * -3.0f);
+        t3 = input.tex + float2(0.0f, texelSize * -2.0f);
+        t4 = input.tex + float2(0.0f, texelSize * -1.0f);
+        t5 = input.tex + float2(0.0f, texelSize *  0.0f);
+        t6 = input.tex + float2(0.0f, texelSize *  1.0f);
+        t7 = input.tex + float2(0.0f, texelSize *  2.0f);
+        t8 = input.tex + float2(0.0f, texelSize *  3.0f);
+        t9 = input.tex + float2(0.0f, texelSize *  4.0f);
+    }
+
+    w0 = 1.0f;
+    w1 = 0.9f;
+    w2 = 0.55f;
+    w3 = 0.18f;
+    w4 = 0.1f;
+    normalization = (w0 + 2.0f * (w1 + w2 + w3 + w4));
+    w0 = w0 / normalization;
+    w1 = w1 / normalization;
+    w2 = w2 / normalization;
+    w3 = w3 / normalization;
+    w4 = w4 / normalization;
+
+    color = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    color += shaderTexture.Sample(SampleType, t1) * w4;
+    color += shaderTexture.Sample(SampleType, t2) * w3;
+    color += shaderTexture.Sample(SampleType, t3) * w2;
+    color += shaderTexture.Sample(SampleType, t4) * w1;
+    color += shaderTexture.Sample(SampleType, t5) * w0;
+    color += shaderTexture.Sample(SampleType, t6) * w1;
+    color += shaderTexture.Sample(SampleType, t7) * w2;
+    color += shaderTexture.Sample(SampleType, t8) * w3;
+    color += shaderTexture.Sample(SampleType, t9) * w4;
+    color.a = 1.0f;
+    return color;
+}

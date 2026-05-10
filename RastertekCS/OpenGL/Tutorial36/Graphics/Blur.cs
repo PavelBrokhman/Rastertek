@@ -1,107 +1,143 @@
-using Silk.NET.Maths;
-
 namespace RastertekCS.OpenGL.Tutorial36.Graphics;
 
 public class Blur
 {
-    private RenderTexture m_DownSampleTexture1, m_DownSampleTexture2;
-    private OrthoWindow m_DownSampleWindow, m_UpSampleWindow;
-    private int m_downSampleWidth, m_downSampleHeight;
+    private RenderTexture _downSampleTexture1,
+        _downSampleTexture2;
+    private OrthoWindow _downSampleWindow,
+        _upSampleWindow;
+    private int _downSampleWidth,
+        _downSampleHeight;
 
-    public bool Initialize(GL4 OpenGL, int downSampleWidth, int downSampleHeight,
-        float screenNear, float screenDepth, int renderWidth, int renderHeight)
+    public bool Initialize(
+        GL4 OpenGL,
+        int downSampleWidth,
+        int downSampleHeight,
+        float screenNear,
+        float screenDepth,
+        int renderWidth,
+        int renderHeight
+    )
     {
-        m_downSampleWidth = downSampleWidth;
-        m_downSampleHeight = downSampleHeight;
-
-        m_DownSampleTexture1 = new RenderTexture();
-        if (!m_DownSampleTexture1.Initialize(OpenGL, m_downSampleWidth, m_downSampleHeight, screenNear, screenDepth))
+        _downSampleWidth = downSampleWidth;
+        _downSampleHeight = downSampleHeight;
+        _downSampleTexture1 = new RenderTexture();
+        if (
+            !_downSampleTexture1.Initialize(
+                OpenGL,
+                _downSampleWidth,
+                _downSampleHeight,
+                screenNear,
+                screenDepth
+            )
+        )
             return false;
-
-        m_DownSampleTexture2 = new RenderTexture();
-        if (!m_DownSampleTexture2.Initialize(OpenGL, m_downSampleWidth, m_downSampleHeight, screenNear, screenDepth))
+        _downSampleTexture2 = new RenderTexture();
+        if (
+            !_downSampleTexture2.Initialize(
+                OpenGL,
+                _downSampleWidth,
+                _downSampleHeight,
+                screenNear,
+                screenDepth
+            )
+        )
             return false;
-
-        m_DownSampleWindow = new OrthoWindow();
-        if (!m_DownSampleWindow.Initialize(OpenGL, m_downSampleWidth, m_downSampleHeight))
+        _downSampleWindow = new OrthoWindow();
+        if (!_downSampleWindow.Initialize(OpenGL, _downSampleWidth, _downSampleHeight))
             return false;
-
-        m_UpSampleWindow = new OrthoWindow();
-        if (!m_UpSampleWindow.Initialize(OpenGL, renderWidth, renderHeight))
+        _upSampleWindow = new OrthoWindow();
+        if (!_upSampleWindow.Initialize(OpenGL, renderWidth, renderHeight))
             return false;
-
         return true;
     }
 
     public void Shutdown(GL4 OpenGL)
     {
-        m_UpSampleWindow?.Shutdown(OpenGL); m_UpSampleWindow = null;
-        m_DownSampleWindow?.Shutdown(OpenGL); m_DownSampleWindow = null;
-        m_DownSampleTexture2?.Shutdown(OpenGL); m_DownSampleTexture2 = null;
-        m_DownSampleTexture1?.Shutdown(OpenGL); m_DownSampleTexture1 = null;
+        _upSampleWindow?.Shutdown(OpenGL);
+        _upSampleWindow = null;
+        _downSampleWindow?.Shutdown(OpenGL);
+        _downSampleWindow = null;
+        _downSampleTexture2?.Shutdown(OpenGL);
+        _downSampleTexture2 = null;
+        _downSampleTexture1?.Shutdown(OpenGL);
+        _downSampleTexture1 = null;
     }
 
-    public bool BlurTexture(RenderTexture renderTexture, GL4 OpenGL, Camera camera,
-        TextureShader textureShader, BlurShader blurShader)
+    public bool BlurTexture(
+        RenderTexture renderTexture,
+        GL4 OpenGL,
+        Camera camera,
+        TextureShader textureShader,
+        BlurShader blurShader
+    )
     {
         var worldMatrix = OpenGL.GetWorldMatrix();
         var baseViewMatrix = camera.GetBaseViewMatrix();
 
         OpenGL.TurnZBufferOff();
 
-        // Step 1: Down sample the render to texture
-        m_DownSampleTexture1.SetRenderTarget(OpenGL);
-        m_DownSampleTexture1.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
-        var orthoMatrix = m_DownSampleTexture1.GetOrthoMatrix();
-
+        // STEP 1: Down sample the render-to-texture into _downSampleTexture1.
+        _downSampleTexture1.SetRenderTarget(OpenGL);
+        _downSampleTexture1.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
+        var orthoMatrix = _downSampleTexture1.GetOrthoMatrix();
         if (!textureShader.SetShaderParameters(OpenGL, worldMatrix, baseViewMatrix, orthoMatrix))
             return false;
-
         renderTexture.SetTexture(OpenGL, 0);
-        m_DownSampleWindow.Render(OpenGL);
+        _downSampleWindow.Render(OpenGL);
 
-        // Step 2: Horizontal blur
+        // STEP 2: Horizontal blur into _downSampleTexture2.
         float blurType = 0.0f;
-        m_DownSampleTexture2.SetRenderTarget(OpenGL);
-        m_DownSampleTexture2.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
-        orthoMatrix = m_DownSampleTexture2.GetOrthoMatrix();
-
-        if (!blurShader.SetShaderParameters(OpenGL, worldMatrix, baseViewMatrix, orthoMatrix,
-            m_downSampleWidth, m_downSampleHeight, blurType))
+        _downSampleTexture2.SetRenderTarget(OpenGL);
+        _downSampleTexture2.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
+        orthoMatrix = _downSampleTexture2.GetOrthoMatrix();
+        if (
+            !blurShader.SetShaderParameters(
+                OpenGL,
+                worldMatrix,
+                baseViewMatrix,
+                orthoMatrix,
+                _downSampleWidth,
+                _downSampleHeight,
+                blurType
+            )
+        )
             return false;
+        _downSampleTexture1.SetTexture(OpenGL, 0);
+        _downSampleWindow.Render(OpenGL);
 
-        m_DownSampleTexture1.SetTexture(OpenGL, 0);
-        m_DownSampleWindow.Render(OpenGL);
-
-        // Step 3: Vertical blur
+        // STEP 3: Vertical blur back into _downSampleTexture1.
         blurType = 1.0f;
-        m_DownSampleTexture1.SetRenderTarget(OpenGL);
-        m_DownSampleTexture1.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
-        orthoMatrix = m_DownSampleTexture1.GetOrthoMatrix();
-
-        if (!blurShader.SetShaderParameters(OpenGL, worldMatrix, baseViewMatrix, orthoMatrix,
-            m_downSampleWidth, m_downSampleHeight, blurType))
+        _downSampleTexture1.SetRenderTarget(OpenGL);
+        _downSampleTexture1.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
+        orthoMatrix = _downSampleTexture1.GetOrthoMatrix();
+        if (
+            !blurShader.SetShaderParameters(
+                OpenGL,
+                worldMatrix,
+                baseViewMatrix,
+                orthoMatrix,
+                _downSampleWidth,
+                _downSampleHeight,
+                blurType
+            )
+        )
             return false;
+        _downSampleTexture2.SetTexture(OpenGL, 0);
+        _downSampleWindow.Render(OpenGL);
 
-        m_DownSampleTexture2.SetTexture(OpenGL, 0);
-        m_DownSampleWindow.Render(OpenGL);
-
-        // Step 4: Up sample the blurred result
+        // STEP 4: Up sample back into the input render texture.
         renderTexture.SetRenderTarget(OpenGL);
         renderTexture.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
         orthoMatrix = renderTexture.GetOrthoMatrix();
-
         if (!textureShader.SetShaderParameters(OpenGL, worldMatrix, baseViewMatrix, orthoMatrix))
             return false;
-
-        m_DownSampleTexture1.SetTexture(OpenGL, 0);
-        m_UpSampleWindow.Render(OpenGL);
+        _downSampleTexture1.SetTexture(OpenGL, 0);
+        _upSampleWindow.Render(OpenGL);
 
         OpenGL.TurnZBufferOn();
-
         OpenGL.SetBackBufferRenderTarget();
         OpenGL.ResetViewport();
-
         return true;
     }
 }

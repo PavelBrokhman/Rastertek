@@ -5,73 +5,84 @@ namespace RastertekCS.OpenGL.Tutorial36.Graphics;
 
 public class TextureShader
 {
-    private uint m_vertexShader, m_fragmentShader, m_shaderProgram;
+    private uint _vertexShader,
+        _fragmentShader,
+        _shaderProgram;
 
-    public bool Initialize(GL4 OpenGL) => InitializeShader(OpenGL, "Shaders/Texture.vs", "Shaders/Texture.ps");
+    public bool Initialize(GL4 OpenGL) =>
+        InitializeShader(OpenGL, "Shaders/Texture.vs", "Shaders/Texture.ps");
 
     public void Shutdown(GL4 OpenGL)
     {
-        var gl = OpenGL.Gl;
-        gl.DetachShader(m_shaderProgram, m_vertexShader);
-        gl.DetachShader(m_shaderProgram, m_fragmentShader);
-        gl.DeleteShader(m_vertexShader);
-        gl.DeleteShader(m_fragmentShader);
-        gl.DeleteProgram(m_shaderProgram);
+        var gl = OpenGL.Driver;
+        gl.DetachShader(_shaderProgram, _vertexShader);
+        gl.DetachShader(_shaderProgram, _fragmentShader);
+        gl.DeleteShader(_vertexShader);
+        gl.DeleteShader(_fragmentShader);
+        gl.DeleteProgram(_shaderProgram);
     }
 
-    public void SetShader(GL4 OpenGL) => OpenGL.Gl.UseProgram(m_shaderProgram);
-
-    public bool SetShaderParameters(GL4 OpenGL,
-        Matrix4X4<float> worldMatrix, Matrix4X4<float> viewMatrix, Matrix4X4<float> projectionMatrix)
+    public unsafe bool SetShaderParameters(
+        GL4 OpenGL,
+        Matrix4X4<float> worldMatrix,
+        Matrix4X4<float> viewMatrix,
+        Matrix4X4<float> projectionMatrix
+    )
     {
-        var gl = OpenGL.Gl;
-        gl.UseProgram(m_shaderProgram);
-
-        int loc = gl.GetUniformLocation(m_shaderProgram, "worldMatrix");
-        if (loc == -1) return false;
-        unsafe { gl.UniformMatrix4(loc, 1, false, (float*)&worldMatrix); }
-
-        loc = gl.GetUniformLocation(m_shaderProgram, "viewMatrix");
-        if (loc == -1) return false;
-        unsafe { gl.UniformMatrix4(loc, 1, false, (float*)&viewMatrix); }
-
-        loc = gl.GetUniformLocation(m_shaderProgram, "projectionMatrix");
-        if (loc == -1) return false;
-        unsafe { gl.UniformMatrix4(loc, 1, false, (float*)&projectionMatrix); }
-
-        loc = gl.GetUniformLocation(m_shaderProgram, "shaderTexture");
-        if (loc == -1) return false;
+        var gl = OpenGL.Driver;
+        gl.UseProgram(_shaderProgram);
+        int loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
+        if (loc == -1)
+            return false;
+        gl.UniformMatrix4(loc, 1, false, (float*)&worldMatrix);
+        loc = gl.GetUniformLocation(_shaderProgram, "viewMatrix");
+        if (loc == -1)
+            return false;
+        gl.UniformMatrix4(loc, 1, false, (float*)&viewMatrix);
+        loc = gl.GetUniformLocation(_shaderProgram, "projectionMatrix");
+        if (loc == -1)
+            return false;
+        gl.UniformMatrix4(loc, 1, false, (float*)&projectionMatrix);
+        loc = gl.GetUniformLocation(_shaderProgram, "shaderTexture");
+        if (loc == -1)
+            return false;
         gl.Uniform1(loc, 0);
-
         return true;
     }
 
-    private bool InitializeShader(GL4 OpenGL, string vsFilename, string psFilename)
+    private bool InitializeShader(GL4 OpenGL, string vertexShaderFile, string pixelShaderFile)
     {
-        var gl = OpenGL.Gl;
-        string vsSrc = File.ReadAllText(vsFilename);
-        string psSrc = File.ReadAllText(psFilename);
-
-        m_vertexShader = gl.CreateShader(ShaderType.VertexShader);
-        gl.ShaderSource(m_vertexShader, vsSrc);
-        gl.CompileShader(m_vertexShader);
-        gl.GetShader(m_vertexShader, ShaderParameterName.CompileStatus, out int s);
-        if (s != 1) { Console.WriteLine($"Compile {vsFilename}: {gl.GetShaderInfoLog(m_vertexShader)}"); return false; }
-
-        m_fragmentShader = gl.CreateShader(ShaderType.FragmentShader);
-        gl.ShaderSource(m_fragmentShader, psSrc);
-        gl.CompileShader(m_fragmentShader);
-        gl.GetShader(m_fragmentShader, ShaderParameterName.CompileStatus, out s);
-        if (s != 1) { Console.WriteLine($"Compile {psFilename}: {gl.GetShaderInfoLog(m_fragmentShader)}"); return false; }
-
-        m_shaderProgram = gl.CreateProgram();
-        gl.AttachShader(m_shaderProgram, m_vertexShader);
-        gl.AttachShader(m_shaderProgram, m_fragmentShader);
-        gl.BindAttribLocation(m_shaderProgram, 0, "inputPosition");
-        gl.BindAttribLocation(m_shaderProgram, 1, "inputTexCoord");
-        gl.LinkProgram(m_shaderProgram);
-        gl.GetProgram(m_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
-        if (ls != 1) { Console.WriteLine($"Link: {gl.GetProgramInfoLog(m_shaderProgram)}"); return false; }
+        var gl = OpenGL.Driver;
+        _vertexShader = gl.CreateShader(ShaderType.VertexShader);
+        gl.ShaderSource(_vertexShader, File.ReadAllText(vertexShaderFile));
+        gl.CompileShader(_vertexShader);
+        gl.GetShader(_vertexShader, ShaderParameterName.CompileStatus, out int s);
+        if (s != 1)
+        {
+            Console.WriteLine($"VS: {gl.GetShaderInfoLog(_vertexShader)}");
+            return false;
+        }
+        _fragmentShader = gl.CreateShader(ShaderType.FragmentShader);
+        gl.ShaderSource(_fragmentShader, File.ReadAllText(pixelShaderFile));
+        gl.CompileShader(_fragmentShader);
+        gl.GetShader(_fragmentShader, ShaderParameterName.CompileStatus, out s);
+        if (s != 1)
+        {
+            Console.WriteLine($"PS: {gl.GetShaderInfoLog(_fragmentShader)}");
+            return false;
+        }
+        _shaderProgram = gl.CreateProgram();
+        gl.AttachShader(_shaderProgram, _vertexShader);
+        gl.AttachShader(_shaderProgram, _fragmentShader);
+        gl.BindAttribLocation(_shaderProgram, 0, "inputPosition");
+        gl.BindAttribLocation(_shaderProgram, 1, "inputTexCoord");
+        gl.LinkProgram(_shaderProgram);
+        gl.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
+        if (ls != 1)
+        {
+            Console.WriteLine($"Link: {gl.GetProgramInfoLog(_shaderProgram)}");
+            return false;
+        }
         return true;
     }
 }
