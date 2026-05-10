@@ -76,7 +76,8 @@ public class Model
             _modelData[off + 1] = float.Parse(parts[1]);
             _modelData[off + 2] = float.Parse(parts[2]);
             _modelData[off + 3] = float.Parse(parts[3]);
-            _modelData[off + 4] = float.Parse(parts[4]);
+            // C++ modelclass.cpp: tv = 1.0f - tv (invert V for OpenGL texture coord system).
+            _modelData[off + 4] = 1.0f - float.Parse(parts[4]);
             _modelData[off + 5] = float.Parse(parts[5]);
             _modelData[off + 6] = float.Parse(parts[6]);
             _modelData[off + 7] = float.Parse(parts[7]);
