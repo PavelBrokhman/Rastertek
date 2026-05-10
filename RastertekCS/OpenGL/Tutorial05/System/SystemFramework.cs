@@ -79,8 +79,8 @@ public class SystemFramework
 
     private bool InitializeWindows(ref int screenWidth, ref int screenHeight)
     {
-        screenWidth = SystemConfiguration.FullScreen ? 1920 : 800;
-        screenHeight = SystemConfiguration.FullScreen ? 1080 : 600;
+        screenWidth = SystemConfiguration.FullScreen ? 1920 : 1024;
+        screenHeight = SystemConfiguration.FullScreen ? 1080 : 768;
 
         var options = WindowOptions.Default;
         options.Title = "Tutorial05";

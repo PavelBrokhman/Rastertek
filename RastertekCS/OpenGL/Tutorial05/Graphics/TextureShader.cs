@@ -36,12 +36,17 @@ public class TextureShader
     {
         var gl = OpenGL.Driver;
 
+        // C++ textureshaderclass.cpp: transpose matrices before glUniformMatrix4fv(false).
+        var tpWorld = GL4.MatrixTranspose(worldMatrix);
+        var tpView = GL4.MatrixTranspose(viewMatrix);
+        var tpProj = GL4.MatrixTranspose(projectionMatrix);
+
         int location = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (location == -1)
             return false;
         unsafe
         {
-            gl.UniformMatrix4(location, 1, false, (float*)&worldMatrix);
+            gl.UniformMatrix4(location, 1, false, (float*)&tpWorld);
         }
 
         location = gl.GetUniformLocation(_shaderProgram, "viewMatrix");
@@ -49,7 +54,7 @@ public class TextureShader
             return false;
         unsafe
         {
-            gl.UniformMatrix4(location, 1, false, (float*)&viewMatrix);
+            gl.UniformMatrix4(location, 1, false, (float*)&tpView);
         }
 
         location = gl.GetUniformLocation(_shaderProgram, "projectionMatrix");
@@ -57,7 +62,7 @@ public class TextureShader
             return false;
         unsafe
         {
-            gl.UniformMatrix4(location, 1, false, (float*)&projectionMatrix);
+            gl.UniformMatrix4(location, 1, false, (float*)&tpProj);
         }
 
         // Привязываем sampler2D к нужному texture unit.

@@ -4,27 +4,12 @@ namespace RastertekCS.OpenGL.Tutorial05.Graphics;
 
 public class Camera
 {
-    private float _positionX,
-        _positionY,
-        _positionZ;
-    private float _rotationX,
-        _rotationY,
-        _rotationZ;
+    private float _positionX, _positionY, _positionZ;
+    private float _rotationX, _rotationY, _rotationZ;
     private Matrix4X4<float> _viewMatrix;
 
-    public void SetPosition(float x, float y, float z)
-    {
-        _positionX = x;
-        _positionY = y;
-        _positionZ = z;
-    }
-
-    public void SetRotation(float x, float y, float z)
-    {
-        _rotationX = x;
-        _rotationY = y;
-        _rotationZ = z;
-    }
+    public void SetPosition(float x, float y, float z) { _positionX = x; _positionY = y; _positionZ = z; }
+    public void SetRotation(float x, float y, float z) { _rotationX = x; _rotationY = y; _rotationZ = z; }
 
     public void Render()
     {
@@ -32,46 +17,80 @@ public class Camera
         var position = new Vector3D<float>(_positionX, _positionY, _positionZ);
         var lookAt = new Vector3D<float>(0.0f, 0.0f, 1.0f);
 
-        float pitch = _rotationX * (MathF.PI / 180.0f);
-        float yaw = _rotationY * (MathF.PI / 180.0f);
-        float roll = _rotationZ * (MathF.PI / 180.0f);
+        float pitch = _rotationX * 0.0174532925f;
+        float yaw = _rotationY * 0.0174532925f;
+        float roll = _rotationZ * 0.0174532925f;
 
-        var rotationMatrix = Matrix4X4.CreateFromYawPitchRoll(yaw, pitch, roll);
-        lookAt = Vector3D.Transform(lookAt, rotationMatrix);
-        up = Vector3D.Transform(up, rotationMatrix);
+        // C++ cameraclass.cpp MatrixRotationYawPitchRoll — 3x3 row-major.
+        Span<float> rot = stackalloc float[9];
+        MatrixRotationYawPitchRoll(rot, yaw, pitch, roll);
+
+        TransformCoord(ref lookAt, rot);
+        TransformCoord(ref up, rot);
 
         lookAt = position + lookAt;
-        _viewMatrix = LookAtLH(position, lookAt, up);
+        _viewMatrix = BuildMatrixLookAtLH(position, lookAt, up);
     }
 
     public Matrix4X4<float> GetViewMatrix() => _viewMatrix;
 
-    private static Matrix4X4<float> LookAtLH(
-        Vector3D<float> eye,
-        Vector3D<float> target,
-        Vector3D<float> up
-    )
+    // C++ cameraclass.cpp MatrixRotationYawPitchRoll
+    private static void MatrixRotationYawPitchRoll(Span<float> m, float yaw, float pitch, float roll)
     {
-        var zAxis = Vector3D.Normalize(target - eye);
-        var xAxis = Vector3D.Normalize(Vector3D.Cross(up, zAxis));
-        var yAxis = Vector3D.Cross(zAxis, xAxis);
+        float cYaw = MathF.Cos(yaw);
+        float cPitch = MathF.Cos(pitch);
+        float cRoll = MathF.Cos(roll);
+        float sYaw = MathF.Sin(yaw);
+        float sPitch = MathF.Sin(pitch);
+        float sRoll = MathF.Sin(roll);
+
+        m[0] = (cRoll * cYaw) + (sRoll * sPitch * sYaw);
+        m[1] = (sRoll * cPitch);
+        m[2] = (cRoll * -sYaw) + (sRoll * sPitch * cYaw);
+
+        m[3] = (-sRoll * cYaw) + (cRoll * sPitch * sYaw);
+        m[4] = (cRoll * cPitch);
+        m[5] = (sRoll * sYaw) + (cRoll * sPitch * cYaw);
+
+        m[6] = (cPitch * sYaw);
+        m[7] = -sPitch;
+        m[8] = (cPitch * cYaw);
+    }
+
+    // C++ cameraclass.cpp TransformCoord — row-vec * 3x3 row-major
+    private static void TransformCoord(ref Vector3D<float> v, ReadOnlySpan<float> m)
+    {
+        float x = (v.X * m[0]) + (v.Y * m[3]) + (v.Z * m[6]);
+        float y = (v.X * m[1]) + (v.Y * m[4]) + (v.Z * m[7]);
+        float z = (v.X * m[2]) + (v.Y * m[5]) + (v.Z * m[8]);
+        v = new Vector3D<float>(x, y, z);
+    }
+
+    // C++ cameraclass.cpp BuildViewMatrix
+    private static Matrix4X4<float> BuildMatrixLookAtLH(Vector3D<float> position, Vector3D<float> lookAt, Vector3D<float> up)
+    {
+        var zAxis = lookAt - position;
+        zAxis = Vector3D.Normalize(zAxis);
+
+        var xAxis = new Vector3D<float>(
+            (up.Y * zAxis.Z) - (up.Z * zAxis.Y),
+            (up.Z * zAxis.X) - (up.X * zAxis.Z),
+            (up.X * zAxis.Y) - (up.Y * zAxis.X));
+        xAxis = Vector3D.Normalize(xAxis);
+
+        var yAxis = new Vector3D<float>(
+            (zAxis.Y * xAxis.Z) - (zAxis.Z * xAxis.Y),
+            (zAxis.Z * xAxis.X) - (zAxis.X * xAxis.Z),
+            (zAxis.X * xAxis.Y) - (zAxis.Y * xAxis.X));
+
+        float r1 = -((xAxis.X * position.X) + (xAxis.Y * position.Y) + (xAxis.Z * position.Z));
+        float r2 = -((yAxis.X * position.X) + (yAxis.Y * position.Y) + (yAxis.Z * position.Z));
+        float r3 = -((zAxis.X * position.X) + (zAxis.Y * position.Y) + (zAxis.Z * position.Z));
+
         return new Matrix4X4<float>(
-            xAxis.X,
-            yAxis.X,
-            zAxis.X,
-            0,
-            xAxis.Y,
-            yAxis.Y,
-            zAxis.Y,
-            0,
-            xAxis.Z,
-            yAxis.Z,
-            zAxis.Z,
-            0,
-            -Vector3D.Dot(xAxis, eye),
-            -Vector3D.Dot(yAxis, eye),
-            -Vector3D.Dot(zAxis, eye),
-            1
-        );
+            xAxis.X, yAxis.X, zAxis.X, 0,
+            xAxis.Y, yAxis.Y, zAxis.Y, 0,
+            xAxis.Z, yAxis.Z, zAxis.Z, 0,
+            r1, r2, r3, 1);
     }
 }

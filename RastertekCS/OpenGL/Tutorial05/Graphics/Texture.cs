@@ -105,12 +105,12 @@ public class Texture
 
         rgba = new byte[pixelCount * 4];
 
-        // TGA хранит BGR(A). Если бит 5 дескриптора = 0, строки снизу вверх — переворачиваем.
-        bool topLeft = (descriptor & 0x20) != 0;
+        // C++ textureclass.cpp: linear copy, no V-flip (matches C++ OpenGL Rastertek).
+        _ = descriptor;
 
         for (int y = 0; y < height; y++)
         {
-            int srcRow = topLeft ? y : (height - 1 - y);
+            int srcRow = y;
             int srcOff = offset + srcRow * width * channels;
             int dstOff = y * width * 4;
 
