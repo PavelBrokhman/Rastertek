@@ -1,10 +1,118 @@
-using RastertekCS.OpenGL.Tutorial35.Graphics; using RastertekCS.OpenGL.Tutorial35.Inputs; using Silk.NET.Input; using Silk.NET.Maths; using Silk.NET.Windowing;
+using RastertekCS.OpenGL.Tutorial35.Graphics;
+using RastertekCS.OpenGL.Tutorial35.Inputs;
+using Silk.NET.Input;
+using Silk.NET.Maths;
+using Silk.NET.Windowing;
+
 namespace RastertekCS.OpenGL.Tutorial35.System;
+
 public class SystemFramework
 {
-    private IWindow m_w; private IInputContext m_ic; private GL4 m_gl; private Input m_in; private GraphicsFramework m_gfx; private bool m_done, m_init;
-    public bool Initialize() { int sw = 0, sh = 0; m_gl = new GL4(); if (!InitWin(ref sw, ref sh)) return false; if (!m_gl.Initialize(m_w, sw, sh, SystemConfiguration.ScreenDepth, SystemConfiguration.ScreenNear, SystemConfiguration.VerticalSyncEnabled)) return false; m_in = new Input(); m_in.Initialize(); m_gfx = new GraphicsFramework(); if (!m_gfx.Initialize(m_gl, sw, sh)) return false; m_init = true; return true; }
-    public void Shutdown() { m_gfx?.Shutdown(); m_gfx = null; m_gl?.Shutdown(); m_gl = null; m_ic?.Dispose(); m_ic = null; m_w?.Dispose(); m_w = null; }
-    public void Run() { m_done = false; m_w.Run(); }
-    bool InitWin(ref int sw, ref int sh) { sw = 800; sh = 600; var o = WindowOptions.Default; o.Title = "Tutorial 35"; o.Size = new Vector2D<int>(sw, sh); o.WindowBorder = WindowBorder.Resizable; o.VSync = SystemConfiguration.VerticalSyncEnabled; o.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.ForwardCompatible, new APIVersion(4, 0)); m_w = Window.Create(o); m_w.Load += () => { m_ic = m_w.CreateInput(); foreach (var kb in m_ic.Keyboards) { kb.KeyDown += (_, key, _) => m_in?.KeyDown(key); kb.KeyUp += (_, key, _) => m_in?.KeyUp(key); } }; m_w.Render += _ => { if (!m_init) return; if (m_done || m_in.IsKeyDown(Key.Escape)) { m_done = true; m_w.Close(); return; } if (!m_gfx.Frame()) { m_done = true; m_w.Close(); } }; m_w.Closing += () => { m_done = true; m_gfx?.Shutdown(); m_gfx = null; m_gl?.Shutdown(); m_gl = null; }; m_w.Initialize(); sw = m_w.Size.X; sh = m_w.Size.Y; return true; }
+    private IWindow _window;
+    private IInputContext _inputContext;
+    private GL4 _driver;
+    private Input _input;
+    private GraphicsFramework _graphics;
+    private bool _done,
+        _initialized;
+
+    public bool Initialize()
+    {
+        int screenWidth = 0,
+            screenHeight = 0;
+        _driver = new GL4();
+        if (!InitWin(ref screenWidth, ref screenHeight))
+            return false;
+        if (
+            !_driver.Initialize(
+                _window,
+                screenWidth,
+                screenHeight,
+                SystemConfiguration.ScreenDepth,
+                SystemConfiguration.ScreenNear,
+                SystemConfiguration.VerticalSyncEnabled
+            )
+        )
+            return false;
+        _input = new Input();
+        _input.Initialize();
+        _graphics = new GraphicsFramework();
+        if (!_graphics.Initialize(_driver, screenWidth, screenHeight))
+            return false;
+        _initialized = true;
+        return true;
+    }
+
+    public void Shutdown()
+    {
+        _graphics?.Shutdown();
+        _graphics = null;
+        _driver?.Shutdown();
+        _driver = null;
+        _inputContext?.Dispose();
+        _inputContext = null;
+        _window?.Dispose();
+        _window = null;
+    }
+
+    public void Run()
+    {
+        _done = false;
+        _window.Run();
+    }
+
+    bool InitWin(ref int screenWidth, ref int screenHeight)
+    {
+        screenWidth = 800;
+        screenHeight = 600;
+        var o = WindowOptions.Default;
+        o.Title = "Tutorial 35";
+        o.Size = new Vector2D<int>(screenWidth, screenHeight);
+        o.WindowBorder = WindowBorder.Resizable;
+        o.VSync = SystemConfiguration.VerticalSyncEnabled;
+        o.API = new GraphicsAPI(
+            ContextAPI.OpenGL,
+            ContextProfile.Core,
+            ContextFlags.ForwardCompatible,
+            new APIVersion(4, 0)
+        );
+        _window = Window.Create(o);
+        _window.Load += () =>
+        {
+            _inputContext = _window.CreateInput();
+            foreach (var kb in _inputContext.Keyboards)
+            {
+                kb.KeyDown += (_, key, _) => _input?.KeyDown(key);
+                kb.KeyUp += (_, key, _) => _input?.KeyUp(key);
+            }
+        };
+        _window.Render += _ =>
+        {
+            if (!_initialized)
+                return;
+            if (_done || _input.IsKeyDown(Key.Escape))
+            {
+                _done = true;
+                _window.Close();
+                return;
+            }
+            if (!_graphics.Frame())
+            {
+                _done = true;
+                _window.Close();
+            }
+        };
+        _window.Closing += () =>
+        {
+            _done = true;
+            _graphics?.Shutdown();
+            _graphics = null;
+            _driver?.Shutdown();
+            _driver = null;
+        };
+        _window.Initialize();
+        screenWidth = _window.Size.X;
+        screenHeight = _window.Size.Y;
+        return true;
+    }
 }

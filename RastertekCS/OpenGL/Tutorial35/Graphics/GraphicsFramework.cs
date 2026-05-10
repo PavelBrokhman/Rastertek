@@ -1,27 +1,45 @@
 namespace RastertekCS.OpenGL.Tutorial35.Graphics;
+
 public class GraphicsFramework
 {
-    private GL4 m_gl; private Camera m_cam; private DepthShader m_depthShader; private Model m_model;
-    public bool Initialize(GL4 gl, int sw, int sh)
+    private GL4 _driver;
+    private Camera _camera;
+    private DepthShader _depthShader;
+    private Model _model;
+
+    public bool Initialize(GL4 gl, int screenWidth, int screenHeight)
     {
-        m_gl = gl; m_cam = new Camera(); m_cam.SetPosition(0, 2, -10); m_cam.Render();
-        m_depthShader = new DepthShader();
-        if (!m_depthShader.Initialize(gl)) { Console.WriteLine("ERROR: DepthShader init failed"); return false; }
-        Console.WriteLine("DepthShader OK");
-        m_model = new Model();
-        if (!m_model.Initialize(gl, "Models/floor.txt")) { Console.WriteLine("ERROR: Model init failed"); return false; }
-        Console.WriteLine("Model OK");
+        _driver = gl;
+        _camera = new Camera();
+        _camera.SetPosition(0, 2, -10);
+        _camera.Render();
+        _depthShader = new DepthShader();
+        if (!_depthShader.Initialize(gl))
+            return false;
+        _model = new Model();
+        if (!_model.Initialize(gl, "Models/floor.txt"))
+            return false;
         return true;
     }
-    public void Shutdown() { m_depthShader?.Shutdown(m_gl); m_model?.Shutdown(m_gl); m_gl = null; }
+
+    public void Shutdown()
+    {
+        _depthShader?.Shutdown(_driver);
+        _model?.Shutdown(_driver);
+        _driver = null;
+    }
+
     public bool Frame() => Render();
+
     bool Render()
     {
-        m_gl.BeginScene(0, 0, 0, 1);
-        m_gl.Gl.Disable(Silk.NET.OpenGL.EnableCap.CullFace);
-        var w = m_gl.GetWorldMatrix(); var v = m_cam.GetViewMatrix(); var p = m_gl.GetProjectionMatrix();
-        m_depthShader.SetShaderParameters(m_gl, w, v, p); m_model.Render(m_gl);
-        m_gl.Gl.Enable(Silk.NET.OpenGL.EnableCap.CullFace);
-        m_gl.EndScene(); return true;
+        _driver.BeginScene(0, 0, 0, 1);
+        var worldMatrix = _driver.GetWorldMatrix();
+        var viewMatrix = _camera.GetViewMatrix();
+        var projectionMatrix = _driver.GetProjectionMatrix();
+        _depthShader.SetShaderParameters(_driver, worldMatrix, viewMatrix, projectionMatrix);
+        _model.Render(_driver);
+        _driver.EndScene();
+        return true;
     }
 }
