@@ -1,6 +1,6 @@
 using Silk.NET.Maths;
 
-namespace RastertekCS.OpenGL.Tutorial39.Graphics;
+namespace RastertekCS.Windows.Tutorial39.Graphics;
 
 public class ViewPoint
 {
