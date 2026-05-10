@@ -1,0 +1,36 @@
+#version 400
+
+in vec2 texCoord;
+in vec3 normal;
+in vec4 lightViewPosition;
+in vec3 lightPos;
+
+out vec4 outputColor;
+
+uniform sampler2D depthMapTexture;
+uniform float bias;
+
+void main(void)
+{
+    vec4 color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    vec2 projectTexCoord;
+    projectTexCoord.x =  lightViewPosition.x / lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = -lightViewPosition.y / lightViewPosition.w / 2.0f + 0.5f;
+
+    if ((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) &&
+        (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))
+    {
+        float depthValue = texture(depthMapTexture, projectTexCoord).r;
+        float lightDepthValue = lightViewPosition.z / lightViewPosition.w - bias;
+
+        if (lightDepthValue < depthValue)
+        {
+            float lightIntensity = clamp(dot(normal, lightPos), 0.0f, 1.0f);
+            if (lightIntensity > 0.0f)
+                color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+    }
+
+    outputColor = color;
+}

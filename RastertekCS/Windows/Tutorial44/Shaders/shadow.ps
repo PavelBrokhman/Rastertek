@@ -1,0 +1,40 @@
+Texture2D depthMapTexture : register(t0);
+SamplerState SampleType : register(s0);
+
+cbuffer LightBuffer
+{
+    float bias;
+    float3 padding;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
+    float4 lightViewPosition : TEXCOORD1;
+    float3 lightPos : TEXCOORD2;
+};
+
+float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
+{
+    float4 color = float4(0, 0, 0, 1);
+
+    float2 projectTexCoord;
+    projectTexCoord.x =  input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = -input.lightViewPosition.y / input.lightViewPosition.w / 2.0f + 0.5f;
+
+    if ((saturate(projectTexCoord.x) == projectTexCoord.x) &&
+        (saturate(projectTexCoord.y) == projectTexCoord.y))
+    {
+        float depthValue = depthMapTexture.Sample(SampleType, projectTexCoord).r;
+        float lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w - bias;
+        if (lightDepthValue < depthValue)
+        {
+            float lightIntensity = saturate(dot(input.normal, input.lightPos));
+            if (lightIntensity > 0.0f)
+                color = float4(1, 1, 1, 1);
+        }
+    }
+    return color;
+}
