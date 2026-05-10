@@ -23,5 +23,5 @@ public class Timer
         _frameTime = (float)delta / Stopwatch.Frequency * 1000.0f;
     }
 
-    public float GetTime() => _frameTime / 1000.0f;
+    public float GetTime() => _frameTime;
 }
