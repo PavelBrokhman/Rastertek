@@ -1,0 +1,20 @@
+#version 400
+
+in vec4 depthPosition;
+in vec2 texCoord;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+
+void main(void)
+{
+    vec4 textureColor = texture(shaderTexture, texCoord);
+    float depthValue;
+    if (textureColor.a > 0.8f)
+        depthValue = depthPosition.z / depthPosition.w;
+    else
+        discard;
+
+    outputColor = vec4(depthValue, depthValue, depthValue, 1.0f);
+}

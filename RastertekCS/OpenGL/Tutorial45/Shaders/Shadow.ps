@@ -1,0 +1,52 @@
+#version 400
+
+in vec2 texCoord;
+in vec3 normal;
+in vec4 lightViewPosition;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+uniform sampler2D depthMapTexture;
+uniform vec4 ambientColor;
+uniform vec4 diffuseColor;
+uniform float bias;
+uniform vec3 lightDirection;
+
+void main(void)
+{
+    vec3 lightDir = -lightDirection;
+    vec4 color = ambientColor;
+
+    vec2 projectTexCoord;
+    projectTexCoord.x =  lightViewPosition.x / lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = -lightViewPosition.y / lightViewPosition.w / 2.0f + 0.5f;
+
+    if ((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) &&
+        (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))
+    {
+        float depthValue = texture(depthMapTexture, projectTexCoord).r;
+        float lightDepthValue = lightViewPosition.z / lightViewPosition.w - bias;
+        if (lightDepthValue < depthValue)
+        {
+            float lightIntensity = clamp(dot(normal, lightDir), 0.0f, 1.0f);
+            if (lightIntensity > 0.0f)
+            {
+                color += diffuseColor * lightIntensity;
+                color = clamp(color, 0.0f, 1.0f);
+            }
+        }
+    }
+    else
+    {
+        float lightIntensity = clamp(dot(normal, lightDir), 0.0f, 1.0f);
+        if (lightIntensity > 0.0f)
+        {
+            color += diffuseColor * lightIntensity;
+            color = clamp(color, 0.0f, 1.0f);
+        }
+    }
+
+    vec4 textureColor = texture(shaderTexture, texCoord);
+    outputColor = color * textureColor;
+}
