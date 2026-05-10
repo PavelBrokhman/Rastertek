@@ -5,62 +5,17 @@ namespace RastertekCS.OpenGL.Tutorial05.Graphics;
 public class Texture
 {
     private uint _textureId;
+    private int _width;
+    private int _height;
     private bool _loaded;
 
-    public unsafe bool Initialize(GL4 OpenGL, string filename, uint textureUnit, bool wrap)
+    public bool Initialize(GL4 OpenGL, string filename, bool wrap)
     {
-        var gl = OpenGL.Driver;
-
-        // Если файл отсутствует, генерируем шахматный паттерн TGA на лету
-        // (в оригинальном Rastertek используется stone01.tga).
-        if (!File.Exists(filename))
-        {
-            GenerateCheckerboardTga(filename, 64);
-        }
-
-        // Читаем TGA файл.
-        if (!LoadTga(filename, out int width, out int height, out byte[] pixels))
-        {
-            global::System.Console.WriteLine($"Не удалось загрузить текстуру: {filename}");
+        // Load the texture from the file.
+        if (!LoadTarga32Bit(OpenGL, filename, wrap))
             return false;
-        }
 
-        // Создаём GL-текстуру.
-        gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
-        _textureId = gl.GenTexture();
-        gl.BindTexture(TextureTarget.Texture2D, _textureId);
-
-        fixed (byte* p = pixels)
-        {
-            gl.TexImage2D(
-                TextureTarget.Texture2D,
-                0,
-                (int)InternalFormat.Rgba,
-                (uint)width,
-                (uint)height,
-                0,
-                PixelFormat.Rgba,
-                PixelType.UnsignedByte,
-                p
-            );
-        }
-
-        gl.GenerateMipmap(TextureTarget.Texture2D);
-
-        var wrapMode = wrap ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToEdge;
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, wrapMode);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, wrapMode);
-        gl.TexParameter(
-            TextureTarget.Texture2D,
-            TextureParameterName.TextureMinFilter,
-            (int)TextureMinFilter.LinearMipmapLinear
-        );
-        gl.TexParameter(
-            TextureTarget.Texture2D,
-            TextureParameterName.TextureMagFilter,
-            (int)TextureMagFilter.Linear
-        );
-
+        // Set that the texture is loaded.
         _loaded = true;
         return true;
     }
@@ -74,62 +29,121 @@ public class Texture
         }
     }
 
-    // Минимальный TGA-reader: поддерживает uncompressed 24-bit и 32-bit BGR/BGRA.
-    private static bool LoadTga(string filename, out int width, out int height, out byte[] rgba)
+    private unsafe bool LoadTarga32Bit(GL4 OpenGL, string filename, bool wrap)
     {
-        width = 0;
-        height = 0;
-        rgba = null;
+        var gl = OpenGL.Driver;
 
-        byte[] data = File.ReadAllBytes(filename);
-        if (data.Length < 18)
+        // Если файл отсутствует, генерируем шахматный паттерн TGA на лету.
+        if (!File.Exists(filename))
+            GenerateCheckerboardTga(filename, 64);
+
+        // Open the targa file for reading in binary.
+        using var fs = File.OpenRead(filename);
+        using var reader = new BinaryReader(fs);
+
+        // Read in the file header (18 bytes).
+        byte[] header = reader.ReadBytes(18);
+        if (header.Length != 18)
             return false;
 
-        int idLength = data[0];
-        int imageType = data[2]; // 2 = uncompressed true-color
-        width = data[12] | (data[13] << 8);
-        height = data[14] | (data[15] << 8);
-        int bpp = data[16];
-        int descriptor = data[17];
+        // Get the important information from the header.
+        _width = header[12] | (header[13] << 8);
+        _height = header[14] | (header[15] << 8);
+        int bpp = header[16];
 
-        if (imageType != 2)
-            return false;
-        if (bpp != 24 && bpp != 32)
+        // Check that it is 32 bit and not 24 bit.
+        if (bpp != 32)
             return false;
 
-        int offset = 18 + idLength;
-        int channels = bpp / 8;
-        int pixelCount = width * height;
-        if (data.Length < offset + pixelCount * channels)
+        // Calculate the size of the 32 bit image data.
+        int imageSize = _width * _height * 4;
+
+        // Read in the targa image data.
+        byte[] targaImage = reader.ReadBytes(imageSize);
+        if (targaImage.Length != imageSize)
             return false;
 
-        rgba = new byte[pixelCount * 4];
+        // Allocate memory for the targa destination data.
+        byte[] targaData = new byte[imageSize];
 
-        // C++ textureclass.cpp: linear copy, no V-flip (matches C++ OpenGL Rastertek).
-        _ = descriptor;
+        // Initialize the index into the targa destination data array.
+        int index = 0;
 
-        for (int y = 0; y < height; y++)
+        // Now copy the targa image data into the targa destination array in the correct order since the targa format is not stored in the RGBA order.
+        for (int j = 0; j < _height; j++)
         {
-            int srcRow = y;
-            int srcOff = offset + srcRow * width * channels;
-            int dstOff = y * width * 4;
-
-            for (int x = 0; x < width; x++)
+            for (int i = 0; i < _width; i++)
             {
-                byte b = data[srcOff + x * channels + 0];
-                byte g = data[srcOff + x * channels + 1];
-                byte r = data[srcOff + x * channels + 2];
-                byte a = channels == 4 ? data[srcOff + x * channels + 3] : (byte)255;
+                targaData[index + 0] = targaImage[index + 2]; // Red.
+                targaData[index + 1] = targaImage[index + 1]; // Green.
+                targaData[index + 2] = targaImage[index + 0]; // Blue.
+                targaData[index + 3] = targaImage[index + 3]; // Alpha.
 
-                rgba[dstOff + x * 4 + 0] = r;
-                rgba[dstOff + x * 4 + 1] = g;
-                rgba[dstOff + x * 4 + 2] = b;
-                rgba[dstOff + x * 4 + 3] = a;
+                index += 4;
             }
         }
 
+        // Set the active texture unit in which to store the data.
+        gl.ActiveTexture(TextureUnit.Texture0 + 0);
+
+        // Generate an ID for the texture.
+        _textureId = gl.GenTexture();
+
+        // Bind the texture as a 2D texture.
+        gl.BindTexture(TextureTarget.Texture2D, _textureId);
+
+        // Load the image data into the texture unit.
+        fixed (byte* p = targaData)
+        {
+            gl.TexImage2D(
+                TextureTarget.Texture2D,
+                0,
+                (int)InternalFormat.Rgba,
+                (uint)_width,
+                (uint)_height,
+                0,
+                PixelFormat.Rgba,
+                PixelType.UnsignedByte,
+                p
+            );
+        }
+
+        // Set the texture color to either wrap around or clamp to the edge.
+        if (wrap)
+        {
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        }
+        else
+        {
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        }
+
+        // Set the texture filtering.
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+
+        // Generate mipmaps for the texture.
+        gl.GenerateMipmap(TextureTarget.Texture2D);
+
         return true;
     }
+
+    public void SetTexture(GL4 OpenGL, uint textureUnit)
+    {
+        if (_loaded)
+        {
+            var gl = OpenGL.Driver;
+            // Set the texture unit we are working with.
+            gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
+            // Bind the texture as a 2D texture.
+            gl.BindTexture(TextureTarget.Texture2D, _textureId);
+        }
+    }
+
+    public int GetWidth() => _width;
+    public int GetHeight() => _height;
 
     // Генерирует 32-bit TGA шахматный паттерн (как замена для stone01.tga).
     private static void GenerateCheckerboardTga(string filename, int size)
@@ -138,15 +152,14 @@ public class Texture
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
-        // TGA header: 18 байт.
         byte[] header = new byte[18];
-        header[2] = 2; // image type = uncompressed true-color
+        header[2] = 2;
         header[12] = (byte)(size & 0xFF);
         header[13] = (byte)((size >> 8) & 0xFF);
         header[14] = (byte)(size & 0xFF);
         header[15] = (byte)((size >> 8) & 0xFF);
-        header[16] = 32; // bits per pixel
-        header[17] = 0x28; // top-left origin + 8 bits alpha
+        header[16] = 32;
+        header[17] = 0x28;
 
         byte[] pixels = new byte[size * size * 4];
         int cell = size / 8;
@@ -156,10 +169,10 @@ public class Texture
             {
                 bool white = (((x / cell) + (y / cell)) & 1) == 0;
                 int i = (y * size + x) * 4;
-                pixels[i + 0] = white ? (byte)220 : (byte)40; // B
-                pixels[i + 1] = white ? (byte)220 : (byte)40; // G
-                pixels[i + 2] = white ? (byte)220 : (byte)40; // R
-                pixels[i + 3] = 255; // A
+                pixels[i + 0] = white ? (byte)220 : (byte)40;
+                pixels[i + 1] = white ? (byte)220 : (byte)40;
+                pixels[i + 2] = white ? (byte)220 : (byte)40;
+                pixels[i + 3] = 255;
             }
         }
 
