@@ -19,7 +19,7 @@ if errorlevel 1 (
 )
 
 pushd "%DIR%"
-cl /EHsc /nologo /std:c++17 *.cpp /link /SUBSYSTEM:WINDOWS /OUT:client.exe
+cl /EHsc /nologo /std:c++17 /DUNICODE /D_UNICODE *.cpp /link /SUBSYSTEM:WINDOWS /OUT:client.exe
 if errorlevel 1 (
     popd
     exit /b 1
