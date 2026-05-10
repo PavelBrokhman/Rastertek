@@ -15,8 +15,8 @@ void main(void)
     vec4 color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     vec2 projectTexCoord;
-    projectTexCoord.x =  lightViewPosition.x / lightViewPosition.w / 2.0f + 0.5f;
-    projectTexCoord.y = -lightViewPosition.y / lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.x = lightViewPosition.x / lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = lightViewPosition.y / lightViewPosition.w / 2.0f + 0.5f;
 
     if ((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) &&
         (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))

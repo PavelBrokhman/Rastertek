@@ -27,8 +27,8 @@ void main(void)
     color = color * textureColor;
 
     vec2 projectTexCoord;
-    projectTexCoord.x =  viewPosition.x / viewPosition.w / 2.0f + 0.5f;
-    projectTexCoord.y = -viewPosition.y / viewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.x = viewPosition.x / viewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = viewPosition.y / viewPosition.w / 2.0f + 0.5f;
 
     float shadowValue = texture(shadowTexture, projectTexCoord).r;
     outputColor = color * shadowValue;
