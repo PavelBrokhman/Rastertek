@@ -77,10 +77,10 @@ public class Font
         foreach (var line in lines)
         {
             if (i >= 95) break;
-            var trimmed = line.Trim();
-            if (trimmed.Length == 0) continue;
-            var parts = trimmed.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 5) continue;
+            if (line.Length == 0) continue;
+            // Last 3 whitespace-separated tokens are: left, right, size.
+            var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 3) continue;
             _font[i].left = float.Parse(parts[parts.Length - 3], CultureInfo.InvariantCulture);
             _font[i].right = float.Parse(parts[parts.Length - 2], CultureInfo.InvariantCulture);
             _font[i].size = int.Parse(parts[parts.Length - 1], CultureInfo.InvariantCulture);
