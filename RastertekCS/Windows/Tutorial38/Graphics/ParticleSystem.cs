@@ -1,8 +1,10 @@
-using Silk.NET.OpenGL;
+using Silk.NET.Core.Native;
+using Silk.NET.Direct3D11;
+using Silk.NET.DXGI;
 
-namespace RastertekCS.OpenGL.Tutorial38.Graphics;
+namespace RastertekCS.Windows.Tutorial38.Graphics;
 
-public class ParticleSystem
+public unsafe class ParticleSystem
 {
     private struct ParticleType
     {
@@ -32,11 +34,10 @@ public class ParticleSystem
     private Texture _texture;
     private ParticleType[] _particleList;
     private VertexType[] _vertices;
-    private uint _vertexArrayId,
-        _vertexBufferId,
-        _indexBufferId;
-    private int _vertexCount,
-        _indexCount;
+    private ComPtr<ID3D11Buffer> _vertexBuffer;
+    private ComPtr<ID3D11Buffer> _indexBuffer;
+    private int _vertexCount;
+    private int _indexCount;
 
     private float _particleDeviationX,
         _particleDeviationY,
@@ -50,37 +51,48 @@ public class ParticleSystem
     private float _accumulatedTime;
     private readonly Random _random = new();
 
-    public bool Initialize(GL4 OpenGL, string textureFilename)
+    public bool Initialize(DX11 DirectX, string textureFilename)
     {
         _texture = new Texture();
-        if (!_texture.Initialize(OpenGL, textureFilename, 0, false))
+        if (!_texture.Initialize(DirectX, textureFilename, false))
             return false;
         InitializeParticleSystem();
-        return InitializeBuffers(OpenGL);
+        return InitializeBuffers(DirectX);
     }
 
-    public void Shutdown(GL4 OpenGL)
+    public void Shutdown()
     {
-        ShutdownBuffers(OpenGL);
+        _indexBuffer.Release();
+        _vertexBuffer.Release();
+        _vertices = null;
         _particleList = null;
-        _texture?.Shutdown(OpenGL);
+        _texture?.Shutdown();
         _texture = null;
     }
 
-    public void Frame(GL4 OpenGL, float frameTime)
+    public void Frame(DX11 DirectX, float frameTime)
     {
         KillParticles();
         EmitParticles(frameTime);
         UpdateParticles(frameTime);
-        UpdateBuffers(OpenGL);
+        UpdateBuffers(DirectX);
     }
 
-    public unsafe void Render(GL4 OpenGL)
+    public void Render(DX11 DirectX)
     {
-        _texture.SetTexture(OpenGL, 0);
-        OpenGL.Driver.BindVertexArray(_vertexArrayId);
-        OpenGL.Driver.DrawElements(PrimitiveType.Triangles, (uint)_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        var context = DirectX.DeviceContext;
+        uint stride = (uint)sizeof(VertexType);
+        uint offset = 0;
+        var vb = _vertexBuffer.GetPinnableReference();
+        context.IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+        context.IASetIndexBuffer(_indexBuffer, Format.FormatR32Uint, 0);
+        context.IASetPrimitiveTopology(D3DPrimitiveTopology.D3DPrimitiveTopologyTrianglelist);
+        _texture.SetTexture(DirectX, 0);
     }
+
+    public ComPtr<ID3D11ShaderResourceView> GetTextureView() => _texture.GetTextureView();
+
+    public int GetIndexCount() => _indexCount;
 
     private void InitializeParticleSystem()
     {
@@ -99,9 +111,9 @@ public class ParticleSystem
         _accumulatedTime = 0.0f;
     }
 
-    private unsafe bool InitializeBuffers(GL4 OpenGL)
+    private bool InitializeBuffers(DX11 DirectX)
     {
-        var gl = OpenGL.Driver;
+        var device = DirectX.Device;
         _vertexCount = _maxParticles * 6;
         _indexCount = _vertexCount;
         _vertices = new VertexType[_vertexCount];
@@ -109,35 +121,32 @@ public class ParticleSystem
         for (int i = 0; i < _indexCount; i++)
             indices[i] = (uint)i;
 
-        _vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(_vertexArrayId);
-        _vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
-        fixed (VertexType* p = _vertices)
-            gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(VertexType) * _vertexCount), p, BufferUsageARB.DynamicDraw);
-        gl.EnableVertexAttribArray(0);
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)0);
-        gl.EnableVertexAttribArray(1);
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(3 * sizeof(float)));
-        gl.EnableVertexAttribArray(2);
-        gl.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(5 * sizeof(float)));
-        _indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
-        fixed (uint* p = indices)
-            gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(sizeof(uint) * _indexCount), p, BufferUsageARB.StaticDraw);
+        fixed (VertexType* pVertices = _vertices)
+        {
+            var vbDesc = new BufferDesc
+            {
+                Usage = Usage.Dynamic,
+                ByteWidth = (uint)(sizeof(VertexType) * _vertexCount),
+                BindFlags = (uint)BindFlag.VertexBuffer,
+                CPUAccessFlags = (uint)CpuAccessFlag.Write,
+                MiscFlags = 0,
+                StructureByteStride = 0,
+            };
+            var vbData = new SubresourceData { PSysMem = pVertices };
+            SilkMarshal.ThrowHResult(device.CreateBuffer(&vbDesc, &vbData, ref _vertexBuffer));
+        }
+        fixed (uint* pIndices = indices)
+        {
+            var ibDesc = new BufferDesc
+            {
+                Usage = Usage.Default,
+                ByteWidth = (uint)(sizeof(uint) * _indexCount),
+                BindFlags = (uint)BindFlag.IndexBuffer,
+            };
+            var ibData = new SubresourceData { PSysMem = pIndices };
+            SilkMarshal.ThrowHResult(device.CreateBuffer(&ibDesc, &ibData, ref _indexBuffer));
+        }
         return true;
-    }
-
-    private void ShutdownBuffers(GL4 OpenGL)
-    {
-        var gl = OpenGL.Driver;
-        gl.BindVertexArray(0);
-        gl.DeleteVertexArray(_vertexArrayId);
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(_vertexBufferId);
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(_indexBufferId);
-        _vertices = null;
     }
 
     private float Centered() => ((float)_random.NextDouble() - (float)_random.NextDouble());
@@ -161,8 +170,6 @@ public class ParticleSystem
             float red = Centered() + 0.5f;
             float green = Centered() + 0.5f;
             float blue = Centered() + 0.5f;
-
-            // Insert sorted by Z descending (back to front for blending).
             int index = 0;
             bool found = false;
             while (!found)
@@ -211,7 +218,7 @@ public class ParticleSystem
         }
     }
 
-    private unsafe void UpdateBuffers(GL4 OpenGL)
+    private void UpdateBuffers(DX11 DirectX)
     {
         Array.Clear(_vertices, 0, _vertices.Length);
         int index = 0;
@@ -223,22 +230,18 @@ public class ParticleSystem
             float r = _particleList[i].red;
             float g = _particleList[i].green;
             float b = _particleList[i].blue;
-            // Bottom left
-            _vertices[index++] = new VertexType { x = px - _particleSize, y = py - _particleSize, z = pz, tu = 0, tv = 0, red = r, green = g, blue = b, alpha = 1 };
-            // Top left
-            _vertices[index++] = new VertexType { x = px - _particleSize, y = py + _particleSize, z = pz, tu = 0, tv = 1, red = r, green = g, blue = b, alpha = 1 };
-            // Bottom right
-            _vertices[index++] = new VertexType { x = px + _particleSize, y = py - _particleSize, z = pz, tu = 1, tv = 0, red = r, green = g, blue = b, alpha = 1 };
-            // Bottom right
-            _vertices[index++] = new VertexType { x = px + _particleSize, y = py - _particleSize, z = pz, tu = 1, tv = 0, red = r, green = g, blue = b, alpha = 1 };
-            // Top left
-            _vertices[index++] = new VertexType { x = px - _particleSize, y = py + _particleSize, z = pz, tu = 0, tv = 1, red = r, green = g, blue = b, alpha = 1 };
-            // Top right
-            _vertices[index++] = new VertexType { x = px + _particleSize, y = py + _particleSize, z = pz, tu = 1, tv = 1, red = r, green = g, blue = b, alpha = 1 };
+            _vertices[index++] = new VertexType { x = px - _particleSize, y = py - _particleSize, z = pz, tu = 0, tv = 1, red = r, green = g, blue = b, alpha = 1 };
+            _vertices[index++] = new VertexType { x = px - _particleSize, y = py + _particleSize, z = pz, tu = 0, tv = 0, red = r, green = g, blue = b, alpha = 1 };
+            _vertices[index++] = new VertexType { x = px + _particleSize, y = py - _particleSize, z = pz, tu = 1, tv = 1, red = r, green = g, blue = b, alpha = 1 };
+            _vertices[index++] = new VertexType { x = px + _particleSize, y = py - _particleSize, z = pz, tu = 1, tv = 1, red = r, green = g, blue = b, alpha = 1 };
+            _vertices[index++] = new VertexType { x = px - _particleSize, y = py + _particleSize, z = pz, tu = 0, tv = 0, red = r, green = g, blue = b, alpha = 1 };
+            _vertices[index++] = new VertexType { x = px + _particleSize, y = py + _particleSize, z = pz, tu = 1, tv = 0, red = r, green = g, blue = b, alpha = 1 };
         }
-        var gl = OpenGL.Driver;
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
+        var context = DirectX.DeviceContext;
+        MappedSubresource mr;
+        SilkMarshal.ThrowHResult(context.Map(_vertexBuffer, 0, Map.WriteDiscard, 0, &mr));
         fixed (VertexType* p = _vertices)
-            gl.BufferSubData(BufferTargetARB.ArrayBuffer, 0, (nuint)(sizeof(VertexType) * _vertexCount), p);
+            Buffer.MemoryCopy(p, mr.PData, sizeof(VertexType) * _vertexCount, sizeof(VertexType) * _vertexCount);
+        context.Unmap(_vertexBuffer, 0);
     }
 }

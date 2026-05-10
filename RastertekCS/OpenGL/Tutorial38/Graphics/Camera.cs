@@ -1,19 +1,28 @@
 using Silk.NET.Maths;
+
 namespace RastertekCS.OpenGL.Tutorial38.Graphics;
+
 public class Camera
 {
-    private float m_positionX, m_positionY, m_positionZ;
-    private float m_rotationX, m_rotationY, m_rotationZ;
-    private Matrix4X4<float> m_viewMatrix;
-    public void SetPosition(float x, float y, float z) { m_positionX = x; m_positionY = y; m_positionZ = z; }
+    private float _positionX,
+        _positionY,
+        _positionZ;
+    private Matrix4X4<float> _viewMatrix;
+
+    public void SetPosition(float x, float y, float z)
+    {
+        _positionX = x;
+        _positionY = y;
+        _positionZ = z;
+    }
+
     public void Render()
     {
-        var up = new Vector3D<float>(0,1,0); var pos = new Vector3D<float>(m_positionX,m_positionY,m_positionZ); var lookAt = new Vector3D<float>(0,0,1);
-        var rot = Matrix4X4.CreateFromYawPitchRoll(m_rotationY*(MathF.PI/180f),m_rotationX*(MathF.PI/180f),m_rotationZ*(MathF.PI/180f));
-        lookAt = Vector3D.Transform(lookAt,rot); up = Vector3D.Transform(up,rot); lookAt = pos + lookAt;
-        m_viewMatrix = LookAtLH(pos,lookAt,up);
+        var pos = new Vector3D<float>(_positionX, _positionY, _positionZ);
+        _viewMatrix = LookAtLH(pos, pos + new Vector3D<float>(0, 0, 1), new Vector3D<float>(0, 1, 0));
     }
-    public Matrix4X4<float> GetViewMatrix() => m_viewMatrix;
+
+    public Matrix4X4<float> GetViewMatrix() => _viewMatrix;
 
     private static Matrix4X4<float> LookAtLH(Vector3D<float> eye, Vector3D<float> target, Vector3D<float> up)
     {
@@ -24,6 +33,7 @@ public class Camera
             xAxis.X, yAxis.X, zAxis.X, 0,
             xAxis.Y, yAxis.Y, zAxis.Y, 0,
             xAxis.Z, yAxis.Z, zAxis.Z, 0,
-            -Vector3D.Dot(xAxis, eye), -Vector3D.Dot(yAxis, eye), -Vector3D.Dot(zAxis, eye), 1);
+            -Vector3D.Dot(xAxis, eye), -Vector3D.Dot(yAxis, eye), -Vector3D.Dot(zAxis, eye), 1
+        );
     }
 }

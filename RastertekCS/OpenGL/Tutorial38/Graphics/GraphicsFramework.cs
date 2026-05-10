@@ -2,51 +2,59 @@ namespace RastertekCS.OpenGL.Tutorial38.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 m_OpenGL;
-    private Camera m_Camera;
-    private ParticleSystem m_ParticleSystem;
-    private ParticleShader m_ParticleShader;
+    private GL4 _driver;
+    private Camera _camera;
+    private Timer _timer;
+    private ParticleSystem _particleSystem;
+    private ParticleShader _particleShader;
 
-    public bool Initialize(GL4 OpenGL, int sw, int sh)
+    public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        m_OpenGL = OpenGL;
-        m_Camera = new Camera();
-        m_Camera.SetPosition(0, -1, -10);
-        m_Camera.Render();
-
-        m_ParticleSystem = new ParticleSystem();
-        if (!m_ParticleSystem.Initialize(OpenGL, "Data/star01.tga")) return false;
-
-        m_ParticleShader = new ParticleShader();
-        if (!m_ParticleShader.Initialize(OpenGL)) return false;
-
+        _driver = OpenGL;
+        _camera = new Camera();
+        _camera.SetPosition(0.0f, -1.0f, -10.0f);
+        _camera.Render();
+        _timer = new Timer();
+        _timer.Initialize();
+        _particleSystem = new ParticleSystem();
+        if (!_particleSystem.Initialize(OpenGL, "Data/star01.tga"))
+            return false;
+        _particleShader = new ParticleShader();
+        if (!_particleShader.Initialize(OpenGL))
+            return false;
         return true;
     }
 
     public void Shutdown()
     {
-        m_ParticleShader?.Shutdown(m_OpenGL); m_ParticleShader = null;
-        m_ParticleSystem?.Shutdown(); m_ParticleSystem = null;
-        m_Camera = null; m_OpenGL = null;
+        _particleShader?.Shutdown(_driver);
+        _particleSystem?.Shutdown(_driver);
+        _particleShader = null;
+        _particleSystem = null;
+        _camera = null;
+        _driver = null;
     }
 
-    public bool Frame(float dt)
+    public bool Frame()
     {
-        m_ParticleSystem.Frame(dt);
+        _timer.Frame();
+        // Convert ms to seconds for particle physics.
+        _particleSystem.Frame(_driver, _timer.GetTime() / 1000.0f);
         return Render();
     }
 
     private bool Render()
     {
-        m_OpenGL.BeginScene(0, 0, 0, 1);
-        var world = m_OpenGL.GetWorldMatrix();
-        var view = m_Camera.GetViewMatrix();
-        var proj = m_OpenGL.GetProjectionMatrix();
-        m_OpenGL.EnableAlphaBlending();
-        if (!m_ParticleShader.SetShaderParameters(m_OpenGL, world, view, proj)) return false;
-        m_ParticleSystem.Render();
-        m_OpenGL.DisableAlphaBlending();
-        m_OpenGL.EndScene();
+        _driver.BeginScene(0, 0, 0, 1);
+        var worldMatrix = _driver.GetWorldMatrix();
+        var viewMatrix = _camera.GetViewMatrix();
+        var projectionMatrix = _driver.GetProjectionMatrix();
+        _driver.EnableAlphaBlending();
+        if (!_particleShader.SetShaderParameters(_driver, worldMatrix, viewMatrix, projectionMatrix))
+            return false;
+        _particleSystem.Render(_driver);
+        _driver.DisableAlphaBlending();
+        _driver.EndScene();
         return true;
     }
 }
