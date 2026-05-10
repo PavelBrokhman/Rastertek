@@ -19,7 +19,7 @@ if errorlevel 1 (
 )
 
 pushd "%DIR%"
-cl /EHsc /nologo /std:c++17 /DUNICODE /D_UNICODE *.cpp /link /SUBSYSTEM:WINDOWS /OUT:client.exe user32.lib gdi32.lib d3d11.lib dxgi.lib d3dcompiler.lib
+cl /EHsc /nologo /std:c++17 /DUNICODE /D_UNICODE /D_HAS_STD_BYTE=0 *.cpp /link /SUBSYSTEM:WINDOWS /OUT:client.exe user32.lib gdi32.lib d3d11.lib dxgi.lib d3dcompiler.lib
 if errorlevel 1 (
     popd
     exit /b 1
