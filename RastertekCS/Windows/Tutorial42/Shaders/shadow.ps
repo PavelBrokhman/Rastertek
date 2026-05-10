@@ -1,0 +1,66 @@
+Texture2D shaderTexture : register(t0);
+Texture2D depthMapTexture : register(t1);
+Texture2D depthMapTexture2 : register(t2);
+SamplerState SampleType : register(s0);
+
+cbuffer LightBuffer
+{
+    float4 ambientColor;
+    float4 diffuseColor;
+    float4 diffuseColor2;
+    float bias;
+    float3 padding;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
+    float4 lightViewPosition : TEXCOORD1;
+    float3 lightPos : TEXCOORD2;
+    float4 lightViewPosition2 : TEXCOORD3;
+    float3 lightPos2 : TEXCOORD4;
+};
+
+float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
+{
+    float4 color = ambientColor;
+
+    float2 projectTexCoord;
+    projectTexCoord.x =  input.lightViewPosition.x / input.lightViewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = -input.lightViewPosition.y / input.lightViewPosition.w / 2.0f + 0.5f;
+
+    if ((saturate(projectTexCoord.x) == projectTexCoord.x) &&
+        (saturate(projectTexCoord.y) == projectTexCoord.y))
+    {
+        float depthValue = depthMapTexture.Sample(SampleType, projectTexCoord).r;
+        float lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w - bias;
+        if (lightDepthValue < depthValue)
+        {
+            float lightIntensity = saturate(dot(input.normal, input.lightPos));
+            if (lightIntensity > 0.0f)
+                color += diffuseColor * lightIntensity;
+        }
+    }
+
+    projectTexCoord.x =  input.lightViewPosition2.x / input.lightViewPosition2.w / 2.0f + 0.5f;
+    projectTexCoord.y = -input.lightViewPosition2.y / input.lightViewPosition2.w / 2.0f + 0.5f;
+
+    if ((saturate(projectTexCoord.x) == projectTexCoord.x) &&
+        (saturate(projectTexCoord.y) == projectTexCoord.y))
+    {
+        float depthValue = depthMapTexture2.Sample(SampleType, projectTexCoord).r;
+        float lightDepthValue = input.lightViewPosition2.z / input.lightViewPosition2.w - bias;
+        if (lightDepthValue < depthValue)
+        {
+            float lightIntensity = saturate(dot(input.normal, input.lightPos2));
+            if (lightIntensity > 0.0f)
+                color += diffuseColor2 * lightIntensity;
+        }
+    }
+
+    color = saturate(color);
+    float4 textureColor = shaderTexture.Sample(SampleType, input.tex);
+    return color * textureColor;
+}
