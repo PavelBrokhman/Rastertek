@@ -61,7 +61,7 @@ public class SystemFramework
         screenWidth = SystemConfiguration.FullScreen ? 1920 : 800;
         screenHeight = SystemConfiguration.FullScreen ? 1080 : 600;
         var options = WindowOptions.Default;
-        options.Title = "Tutorial46 - Transparency in Shadow Mapping (DirectX 11)";
+        options.Title = "Tutorial46 - Glow (DirectX 11)";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);
         options.WindowBorder = WindowBorder.Fixed;
         options.WindowState = SystemConfiguration.FullScreen

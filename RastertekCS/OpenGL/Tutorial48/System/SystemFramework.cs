@@ -42,7 +42,7 @@ public class SystemFramework
     {
         sw = 800; sh = 600;
         var o = WindowOptions.Default;
-        o.Title = "Tutorial 45";
+        o.Title = "Tutorial 48 - Instancing & Mipmaps (OpenGL)";
         o.Size = new Vector2D<int>(sw, sh);
         o.WindowBorder = WindowBorder.Resizable;
         o.VSync = SystemConfiguration.VerticalSyncEnabled;

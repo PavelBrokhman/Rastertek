@@ -44,7 +44,7 @@ public class SystemFramework
         sw = SystemConfiguration.FullScreen ? 1920 : 800;
         sh = SystemConfiguration.FullScreen ? 1080 : 600;
         var options = WindowOptions.Default;
-        options.Title = "Tutorial50";
+        options.Title = "Tutorial 50 - Deferred Shading (OpenGL)";
         options.Size = new Vector2D<int>(sw, sh);
         options.WindowBorder = WindowBorder.Resizable;
         options.WindowState = SystemConfiguration.FullScreen ? WindowState.Fullscreen : WindowState.Normal;
@@ -56,7 +56,7 @@ public class SystemFramework
         _window.Render += OnRender;
         _window.Closing += OnClosing;
         _window.Initialize();
-        _window.Title = "Tutorial50";
+        _window.Title = "Tutorial 50 - Deferred Shading (OpenGL)";
         sw = _window.Size.X; sh = _window.Size.Y;
         return true;
     }
