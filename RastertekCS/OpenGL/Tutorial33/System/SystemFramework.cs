@@ -63,8 +63,8 @@ public class SystemFramework
 
     bool InitWin(ref int screenWidth, ref int screenHeight)
     {
-        screenWidth = 800;
-        screenHeight = 600;
+        screenWidth = 1024;
+        screenHeight = 768;
         var o = WindowOptions.Default;
         o.Title = "Tutorial 33";
         o.Size = new Vector2D<int>(screenWidth, screenHeight);

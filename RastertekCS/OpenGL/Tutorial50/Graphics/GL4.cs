@@ -60,6 +60,14 @@ public class GL4
     public Matrix4X4<float> GetOrthoMatrix() => _orthoMatrix;
     public string GetVideoCardInfo() => _videoCardDescription;
 
+    public static Matrix4X4<float> MatrixTranspose(Matrix4X4<float> m) =>
+        new(
+            m.M11, m.M21, m.M31, m.M41,
+            m.M12, m.M22, m.M32, m.M42,
+            m.M13, m.M23, m.M33, m.M43,
+            m.M14, m.M24, m.M34, m.M44
+        );
+
     private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);

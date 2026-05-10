@@ -59,10 +59,9 @@ public class Texture
         int offset = 18 + idLength, channels = bpp / 8, pixelCount = width * height;
         if (data.Length < offset + pixelCount * channels) return false;
         rgba = new byte[pixelCount * 4];
-        bool topLeft = (descriptor & 0x20) != 0;
         for (int y = 0; y < height; y++)
         {
-            int srcRow = topLeft ? y : (height - 1 - y);
+            int srcRow = height - 1 - y;
             int srcOff = offset + srcRow * width * channels;
             int dstOff = y * width * 4;
             for (int x = 0; x < width; x++)

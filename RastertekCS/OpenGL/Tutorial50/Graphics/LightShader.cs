@@ -30,17 +30,21 @@ public class LightShader
         var gl = OpenGL.Gl;
         gl.UseProgram(_shaderProgram);
 
+        var tpWorld = GL4.MatrixTranspose(worldMatrix);
+        var tpView = GL4.MatrixTranspose(viewMatrix);
+        var tpProj = GL4.MatrixTranspose(projectionMatrix);
+
         int loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix");
         if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&worldMatrix);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpWorld);
 
         loc = gl.GetUniformLocation(_shaderProgram, "viewMatrix");
         if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&viewMatrix);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpView);
 
         loc = gl.GetUniformLocation(_shaderProgram, "projectionMatrix");
         if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&projectionMatrix);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpProj);
 
         loc = gl.GetUniformLocation(_shaderProgram, "colorTexture");
         if (loc == -1) return false;
