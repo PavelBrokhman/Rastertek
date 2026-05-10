@@ -25,8 +25,8 @@
     <None Update="Shaders\texture.ps" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\Assets\Data\blue.tga" Link="Data\blue.tga" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\Assets\Data\mouse.tga" Link="Data\mouse.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\font01.tga" Link="Data\font\font01.tga" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\font01.txt" Link="Data\font\font01.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\font01.tga" Link="Data\font01.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\font01.txt" Link="Data\font01.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\Assets\Models\sphere.txt" Link="Models\sphere.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
