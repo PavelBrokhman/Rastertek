@@ -22,14 +22,15 @@ public class OrthoWindow
         float bottom = top - windowHeight;
 
         _indexCount = 6;
+        // C++ orthowindowclass.cpp Tut46 UV layout (top=tv=1, bottom=tv=0).
         var vertices = new VertexType[6]
         {
-            new() { x = left,  y = top,    z = 0, tu = 0, tv = 0 },
-            new() { x = right, y = bottom, z = 0, tu = 1, tv = 1 },
-            new() { x = left,  y = bottom, z = 0, tu = 0, tv = 1 },
-            new() { x = left,  y = top,    z = 0, tu = 0, tv = 0 },
-            new() { x = right, y = top,    z = 0, tu = 1, tv = 0 },
-            new() { x = right, y = bottom, z = 0, tu = 1, tv = 1 },
+            new() { x = left,  y = top,    z = 0, tu = 0, tv = 1 }, // Top left.
+            new() { x = right, y = bottom, z = 0, tu = 1, tv = 0 }, // Bottom right.
+            new() { x = left,  y = bottom, z = 0, tu = 0, tv = 0 }, // Bottom left.
+            new() { x = left,  y = top,    z = 0, tu = 0, tv = 1 }, // Top left.
+            new() { x = right, y = top,    z = 0, tu = 1, tv = 1 }, // Top right.
+            new() { x = right, y = bottom, z = 0, tu = 1, tv = 0 }, // Bottom right.
         };
         var indices = new uint[] { 0, 1, 2, 3, 4, 5 };
 

@@ -73,6 +73,8 @@ public class Model
             int o = vi * 8;
             for (int k = 0; k < 8; k++)
                 _modelData[o + k] = float.Parse(parts[k]);
+            // C++ modelclass.cpp: tv = 1.0f - tv (invert V for OpenGL texture coord system).
+            _modelData[o + 4] = 1.0f - _modelData[o + 4];
             vi++;
         }
         return vi == vertexCount;

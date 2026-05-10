@@ -21,21 +21,28 @@ public class GlowShader
 
     public unsafe bool SetShaderParameters(GL4 OpenGL,
         Matrix4X4<float> world, Matrix4X4<float> view, Matrix4X4<float> projection,
-        int colorTextureUnit, int glowTextureUnit, float glowStrength)
+        float glowStrength)
     {
         var gl = OpenGL.Driver;
+
+        // C++ glowshaderclass.cpp: transpose matrices before glUniformMatrix4fv(false).
+        var tpWorld = GL4.MatrixTranspose(world);
+        var tpView = GL4.MatrixTranspose(view);
+        var tpProj = GL4.MatrixTranspose(projection);
+
         gl.UseProgram(_shaderProgram);
+
         int loc;
         loc = gl.GetUniformLocation(_shaderProgram, "worldMatrix"); if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&world);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpWorld);
         loc = gl.GetUniformLocation(_shaderProgram, "viewMatrix"); if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&view);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpView);
         loc = gl.GetUniformLocation(_shaderProgram, "projectionMatrix"); if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&projection);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpProj);
         loc = gl.GetUniformLocation(_shaderProgram, "colorTexture"); if (loc == -1) return false;
-        gl.Uniform1(loc, colorTextureUnit);
+        gl.Uniform1(loc, 0);
         loc = gl.GetUniformLocation(_shaderProgram, "glowTexture"); if (loc == -1) return false;
-        gl.Uniform1(loc, glowTextureUnit);
+        gl.Uniform1(loc, 1);
         loc = gl.GetUniformLocation(_shaderProgram, "glowStrength"); if (loc == -1) return false;
         gl.Uniform1(loc, glowStrength);
         return true;
@@ -59,6 +66,7 @@ public class GlowShader
         gl.AttachShader(_shaderProgram, _fragmentShader);
         gl.BindAttribLocation(_shaderProgram, 0, "inputPosition");
         gl.BindAttribLocation(_shaderProgram, 1, "inputTexCoord");
+        gl.BindAttribLocation(_shaderProgram, 2, "inputNormal");
         gl.LinkProgram(_shaderProgram);
         gl.GetProgram(_shaderProgram, ProgramPropertyARB.LinkStatus, out int ls);
         if (ls != 1) { Console.WriteLine($"Link: {gl.GetProgramInfoLog(_shaderProgram)}"); return false; }

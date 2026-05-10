@@ -93,7 +93,7 @@ public class GraphicsFramework
         var projectionMatrix = _driver.GetProjectionMatrix();
         var worldMatrix = Matrix4X4.CreateRotationY<float>(rotation);
 
-        if (!_textureShader.SetShaderParameters(_driver, worldMatrix, viewMatrix, projectionMatrix, 0)) return false;
+        if (!_textureShader.SetShaderParameters(_driver, worldMatrix, viewMatrix, projectionMatrix)) return false;
         _model.SetTexture1(_driver, 0);
         _model.Render(_driver);
 
@@ -111,7 +111,7 @@ public class GraphicsFramework
         var projectionMatrix = _driver.GetProjectionMatrix();
         var worldMatrix = Matrix4X4.CreateRotationY<float>(rotation);
 
-        if (!_textureShader.SetShaderParameters(_driver, worldMatrix, viewMatrix, projectionMatrix, 0)) return false;
+        if (!_textureShader.SetShaderParameters(_driver, worldMatrix, viewMatrix, projectionMatrix)) return false;
         _model.SetTexture2(_driver, 0);
         _model.Render(_driver);
 
@@ -129,7 +129,7 @@ public class GraphicsFramework
         var orthoMatrix = _driver.GetOrthoMatrix();
 
         _driver.TurnZBufferOff();
-        if (!_glowShader.SetShaderParameters(_driver, worldMatrix, baseViewMatrix, orthoMatrix, 0, 1, GlowStrength)) return false;
+        if (!_glowShader.SetShaderParameters(_driver, worldMatrix, baseViewMatrix, orthoMatrix, GlowStrength)) return false;
         _renderTexture.SetTexture(_driver, 0);
         _glowTexture.SetTexture(_driver, 1);
         _fullScreenWindow.Render(_driver);

@@ -40,7 +40,7 @@ public class SystemFramework
 
     bool InitWin(ref int sw, ref int sh)
     {
-        sw = 800; sh = 600;
+        sw = 1024; sh = 768;
         var o = WindowOptions.Default;
         o.Title = "Tutorial 46 - Glow (OpenGL)";
         o.Size = new Vector2D<int>(sw, sh);

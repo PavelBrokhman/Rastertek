@@ -49,7 +49,7 @@ public class Blur
         _downSampleTexture1.SetRenderTarget(OpenGL);
         _downSampleTexture1.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
         var orthoMatrix = _downSampleTexture1.GetOrthoMatrix();
-        if (!textureShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix, 0)) return false;
+        if (!textureShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix)) return false;
         renderTexture.SetTexture(OpenGL, 0);
         _downSampleWindow.Render(OpenGL);
 
@@ -57,7 +57,7 @@ public class Blur
         _downSampleTexture2.SetRenderTarget(OpenGL);
         _downSampleTexture2.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
         orthoMatrix = _downSampleTexture2.GetOrthoMatrix();
-        if (!blurShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix, 0,
+        if (!blurShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix,
                 _downSampleWidth, _downSampleHeight, 0.0f)) return false;
         _downSampleTexture1.SetTexture(OpenGL, 0);
         _downSampleWindow.Render(OpenGL);
@@ -66,7 +66,7 @@ public class Blur
         _downSampleTexture1.SetRenderTarget(OpenGL);
         _downSampleTexture1.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
         orthoMatrix = _downSampleTexture1.GetOrthoMatrix();
-        if (!blurShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix, 0,
+        if (!blurShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix,
                 _downSampleWidth, _downSampleHeight, 1.0f)) return false;
         _downSampleTexture2.SetTexture(OpenGL, 0);
         _downSampleWindow.Render(OpenGL);
@@ -75,7 +75,7 @@ public class Blur
         renderTexture.SetRenderTarget(OpenGL);
         renderTexture.ClearRenderTarget(OpenGL, 0, 0, 0, 1);
         orthoMatrix = renderTexture.GetOrthoMatrix();
-        if (!textureShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix, 0)) return false;
+        if (!textureShader.SetShaderParameters(OpenGL, worldMatrix, viewMatrix, orthoMatrix)) return false;
         _downSampleTexture1.SetTexture(OpenGL, 0);
         _upSampleWindow.Render(OpenGL);
 

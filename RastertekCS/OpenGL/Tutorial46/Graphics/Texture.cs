@@ -10,27 +10,70 @@ public class Texture
     public unsafe bool Initialize(GL4 OpenGL, string filename, uint textureUnit, bool wrap)
     {
         var gl = OpenGL.Driver;
+
         if (!File.Exists(filename))
         {
             Console.WriteLine($"Texture not found: {filename}");
             return false;
         }
-        if (!LoadTga(filename, out int width, out int height, out byte[] pixels))
+
+        // Open the targa file and read 18-byte header (C++ textureclass.cpp LoadTarga32Bit).
+        using var fs = File.OpenRead(filename);
+        using var reader = new BinaryReader(fs);
+
+        byte[] header = reader.ReadBytes(18);
+        if (header.Length != 18) return false;
+
+        int width = header[12] | (header[13] << 8);
+        int height = header[14] | (header[15] << 8);
+        int bpp = header[16];
+
+        // Check that it is 32 bit and not 24 bit.
+        if (bpp != 32) return false;
+
+        int imageSize = width * height * 4;
+        byte[] targaImage = reader.ReadBytes(imageSize);
+        if (targaImage.Length != imageSize) return false;
+
+        // BGRA -> RGBA linear copy, no V-flip (matches C++ textureclass.cpp).
+        byte[] targaData = new byte[imageSize];
+        int index = 0;
+        for (int j = 0; j < height; j++)
         {
-            Console.WriteLine($"Failed to load texture: {filename}");
-            return false;
+            for (int i = 0; i < width; i++)
+            {
+                targaData[index + 0] = targaImage[index + 2]; // Red.
+                targaData[index + 1] = targaImage[index + 1]; // Green.
+                targaData[index + 2] = targaImage[index + 0]; // Blue.
+                targaData[index + 3] = targaImage[index + 3]; // Alpha.
+                index += 4;
+            }
         }
+
         gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
         _textureId = gl.GenTexture();
         gl.BindTexture(TextureTarget.Texture2D, _textureId);
-        fixed (byte* p = pixels)
-            gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, p);
-        gl.GenerateMipmap(TextureTarget.Texture2D);
-        var wm = wrap ? (int)TextureWrapMode.Repeat : (int)TextureWrapMode.ClampToEdge;
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, wm);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, wm);
-        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+
+        fixed (byte* p = targaData)
+            gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba,
+                (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, p);
+
+        if (wrap)
+        {
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        }
+        else
+        {
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        }
+
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+
+        gl.GenerateMipmap(TextureTarget.Texture2D);
+
         _loaded = true;
         return true;
     }
@@ -47,34 +90,5 @@ public class Texture
     public void Shutdown(GL4 OpenGL)
     {
         if (_loaded) { OpenGL.Driver.DeleteTexture(_textureId); _loaded = false; }
-    }
-
-    private static bool LoadTga(string filename, out int width, out int height, out byte[] rgba)
-    {
-        width = 0; height = 0; rgba = null;
-        byte[] data = File.ReadAllBytes(filename);
-        if (data.Length < 18) return false;
-        int idLength = data[0], imageType = data[2], bpp = data[16];
-        width = data[12] | (data[13] << 8);
-        height = data[14] | (data[15] << 8);
-        if (imageType != 2) return false;
-        if (bpp != 24 && bpp != 32) return false;
-        int offset = 18 + idLength, channels = bpp / 8, pixelCount = width * height;
-        if (data.Length < offset + pixelCount * channels) return false;
-        rgba = new byte[pixelCount * 4];
-        for (int destRow = 0; destRow < height; destRow++)
-        {
-            int srcRow = destRow;
-            int srcOff = offset + srcRow * width * channels;
-            int dstOff = destRow * width * 4;
-            for (int x = 0; x < width; x++)
-            {
-                rgba[dstOff + x * 4 + 0] = data[srcOff + x * channels + 2];
-                rgba[dstOff + x * 4 + 1] = data[srcOff + x * channels + 1];
-                rgba[dstOff + x * 4 + 2] = data[srcOff + x * channels + 0];
-                rgba[dstOff + x * 4 + 3] = channels == 4 ? data[srcOff + x * channels + 3] : (byte)255;
-            }
-        }
-        return true;
     }
 }
