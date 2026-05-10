@@ -1,11 +1,64 @@
 namespace RastertekCS.OpenGL.Tutorial34.Graphics;
+
 public class Position
 {
-    private float m_px, m_py, m_pz, m_ry;
-    private float m_frameTime, m_leftSpeed, m_rightSpeed;
-    public void SetPosition(float x, float y, float z) { m_px = x; m_py = y; m_pz = z; }
-    public (float x, float y, float z) GetPosition() => (m_px, m_py, m_pz);
-    public void SetFrameTime(float t) { m_frameTime = t; }
-    public void MoveLeft(bool keydown) { if (keydown) { m_leftSpeed += m_frameTime * 1f; if (m_leftSpeed > m_frameTime * 50f) m_leftSpeed = m_frameTime * 50f; } else { m_leftSpeed -= m_frameTime * 1f; if (m_leftSpeed < 0f) m_leftSpeed = 0f; } float rad = m_ry * 0.0174532925f; m_px -= MathF.Cos(rad) * m_leftSpeed; m_pz -= MathF.Sin(rad) * m_leftSpeed; }
-    public void MoveRight(bool keydown) { if (keydown) { m_rightSpeed += m_frameTime * 1f; if (m_rightSpeed > m_frameTime * 50f) m_rightSpeed = m_frameTime * 50f; } else { m_rightSpeed -= m_frameTime * 1f; if (m_rightSpeed < 0f) m_rightSpeed = 0f; } float rad = m_ry * 0.0174532925f; m_px += MathF.Cos(rad) * m_rightSpeed; m_pz += MathF.Sin(rad) * m_rightSpeed; }
+    private float _positionX,
+        _positionY,
+        _positionZ;
+    private float _rotationY;
+    private float _frameTime;
+    private float _leftSpeed,
+        _rightSpeed;
+
+    public void SetPosition(float x, float y, float z)
+    {
+        _positionX = x;
+        _positionY = y;
+        _positionZ = z;
+    }
+
+    public (float x, float y, float z) GetPosition() => (_positionX, _positionY, _positionZ);
+
+    public void SetFrameTime(float time)
+    {
+        _frameTime = time;
+    }
+
+    public void MoveLeft(bool keyDown)
+    {
+        if (keyDown)
+        {
+            _leftSpeed += _frameTime * 1.0f;
+            if (_leftSpeed > _frameTime * 50.0f)
+                _leftSpeed = _frameTime * 50.0f;
+        }
+        else
+        {
+            _leftSpeed -= _frameTime * 1.0f;
+            if (_leftSpeed < 0.0f)
+                _leftSpeed = 0.0f;
+        }
+        float radians = _rotationY * 0.0174532925f;
+        _positionX -= MathF.Cos(radians) * _leftSpeed;
+        _positionZ -= MathF.Sin(radians) * _leftSpeed;
+    }
+
+    public void MoveRight(bool keyDown)
+    {
+        if (keyDown)
+        {
+            _rightSpeed += _frameTime * 1.0f;
+            if (_rightSpeed > _frameTime * 50.0f)
+                _rightSpeed = _frameTime * 50.0f;
+        }
+        else
+        {
+            _rightSpeed -= _frameTime * 1.0f;
+            if (_rightSpeed < 0.0f)
+                _rightSpeed = 0.0f;
+        }
+        float radians = _rotationY * 0.0174532925f;
+        _positionX += MathF.Cos(radians) * _rightSpeed;
+        _positionZ += MathF.Sin(radians) * _rightSpeed;
+    }
 }

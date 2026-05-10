@@ -1,11 +1,27 @@
 using System.Diagnostics;
+
 namespace RastertekCS.OpenGL.Tutorial34.Graphics;
+
 public class Timer
 {
-    private Stopwatch m_sw = new();
-    private long m_lastTicks;
-    private float m_frameTime;
-    public void Initialize() { m_sw.Start(); m_lastTicks = m_sw.ElapsedTicks; }
-    public void Frame() { long cur = m_sw.ElapsedTicks; m_frameTime = (float)(cur - m_lastTicks) / Stopwatch.Frequency; m_lastTicks = cur; }
-    public float GetTime() => m_frameTime;
+    private readonly Stopwatch _stopwatch = new();
+    private long _previousTicks;
+    private float _frameTime;
+
+    public void Initialize()
+    {
+        _stopwatch.Start();
+        _previousTicks = _stopwatch.ElapsedTicks;
+        _frameTime = 0;
+    }
+
+    public void Frame()
+    {
+        long current = _stopwatch.ElapsedTicks;
+        long delta = current - _previousTicks;
+        _previousTicks = current;
+        _frameTime = (float)delta / Stopwatch.Frequency * 1000.0f;
+    }
+
+    public float GetTime() => _frameTime / 1000.0f;
 }

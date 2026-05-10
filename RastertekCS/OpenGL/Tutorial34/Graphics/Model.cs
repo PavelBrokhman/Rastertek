@@ -1,3 +1,190 @@
 using Silk.NET.OpenGL;
+
 namespace RastertekCS.OpenGL.Tutorial34.Graphics;
-public class Model { private struct VT { public float x, y, z, tu, tv, nx, ny, nz; } private uint m_vao, m_vbo, m_ibo; private int m_vc, m_ic; private Texture m_tex; private float[] m_md; public unsafe bool Initialize(GL4 gl, string mf, string tf, bool wrap) { if (!LoadModel(mf)) return false; if (!InitBuf(gl)) return false; m_tex = new Texture(); if (!m_tex.Initialize(gl, tf, 0, wrap)) return false; return true; } public void Shutdown(GL4 gl) { m_tex?.Shutdown(gl); m_tex = null; ShutBuf(gl); } public unsafe void Render(GL4 gl) { gl.Gl.BindVertexArray(m_vao); gl.Gl.DrawElements(PrimitiveType.Triangles, (uint)m_ic, DrawElementsType.UnsignedInt, (void*)0); } public void SetTexture(GL4 gl, uint tu) { m_tex?.SetTexture(gl, tu); } bool LoadModel(string fn) { if (!File.Exists(fn)) return false; var lines = File.ReadAllLines(fn); int vc = 0, ds = -1; for (int i = 0; i < lines.Length; i++) { var l = lines[i].Trim(); if (l.StartsWith("Vertex Count:")) vc = int.Parse(l.Substring(13).Trim()); if (l == "Data:") { ds = i + 1; break; } } if (vc == 0 || ds < 0) return false; m_vc = vc; m_ic = vc; m_md = new float[vc * 8]; int vi = 0; for (int i = ds; i < lines.Length && vi < vc; i++) { var l = lines[i].Trim(); if (string.IsNullOrEmpty(l)) continue; var p = l.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries); if (p.Length < 8) continue; int o = vi * 8; m_md[o] = float.Parse(p[0]); m_md[o + 1] = float.Parse(p[1]); m_md[o + 2] = float.Parse(p[2]); m_md[o + 3] = float.Parse(p[3]); m_md[o + 4] = 1f - float.Parse(p[4]); m_md[o + 5] = float.Parse(p[5]); m_md[o + 6] = float.Parse(p[6]); m_md[o + 7] = float.Parse(p[7]); vi++; } return vi == vc; } unsafe bool InitBuf(GL4 gl) { var g = gl.Gl; var v = new VT[m_vc]; var idx = new uint[m_ic]; for (int i = 0; i < m_vc; i++) { int o = i * 8; v[i].x = m_md[o]; v[i].y = m_md[o + 1]; v[i].z = m_md[o + 2]; v[i].tu = m_md[o + 3]; v[i].tv = m_md[o + 4]; v[i].nx = m_md[o + 5]; v[i].ny = m_md[o + 6]; v[i].nz = m_md[o + 7]; idx[i] = (uint)i; } m_vao = g.GenVertexArray(); g.BindVertexArray(m_vao); m_vbo = g.GenBuffer(); g.BindBuffer(BufferTargetARB.ArrayBuffer, m_vbo); fixed (VT* p = v) g.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(VT) * v.Length), p, BufferUsageARB.StaticDraw); g.EnableVertexAttribArray(0); g.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VT), (void*)0); g.EnableVertexAttribArray(1); g.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(VT), (void*)(3 * sizeof(float))); g.EnableVertexAttribArray(2); g.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, (uint)sizeof(VT), (void*)(5 * sizeof(float))); m_ibo = g.GenBuffer(); g.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_ibo); fixed (uint* p = idx) g.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(sizeof(uint) * idx.Length), p, BufferUsageARB.StaticDraw); m_md = null; return true; } void ShutBuf(GL4 gl) { var g = gl.Gl; g.DisableVertexAttribArray(0); g.DisableVertexAttribArray(1); g.DisableVertexAttribArray(2); g.BindBuffer(BufferTargetARB.ArrayBuffer, 0); g.DeleteBuffer(m_vbo); g.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0); g.DeleteBuffer(m_ibo); g.BindVertexArray(0); g.DeleteVertexArray(m_vao); } }
+
+public class Model
+{
+    private struct VertexType
+    {
+        public float x,
+            y,
+            z,
+            tu,
+            tv,
+            nx,
+            ny,
+            nz;
+    }
+
+    private uint _vertexArrayId,
+        _vertexBufferId,
+        _indexBufferId;
+    private int _vertexCount,
+        _indexCount;
+    private Texture _texture;
+    private float[] _modelData;
+
+    public unsafe bool Initialize(GL4 gl, string modelFile, string textureFile, bool wrap)
+    {
+        if (!LoadModel(modelFile))
+            return false;
+        if (!InitializeBuffers(gl))
+            return false;
+        _texture = new Texture();
+        if (!_texture.Initialize(gl, textureFile, 0, wrap))
+            return false;
+        return true;
+    }
+
+    public void Shutdown(GL4 gl)
+    {
+        _texture?.Shutdown(gl);
+        _texture = null;
+        ShutdownBuffers(gl);
+    }
+
+    public unsafe void Render(GL4 gl)
+    {
+        gl.Driver.BindVertexArray(_vertexArrayId);
+        gl.Driver.DrawElements(
+            PrimitiveType.Triangles,
+            (uint)_indexCount,
+            DrawElementsType.UnsignedInt,
+            (void*)0
+        );
+    }
+
+    public void SetTexture(GL4 gl, uint textureUnit)
+    {
+        _texture?.SetTexture(gl, textureUnit);
+    }
+
+    bool LoadModel(string filename)
+    {
+        if (!File.Exists(filename))
+            return false;
+        var lines = File.ReadAllLines(filename);
+        int vertexCount = 0,
+            dataStartIndex = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i].Trim();
+            if (line.StartsWith("Vertex Count:"))
+                vertexCount = int.Parse(line.Substring(13).Trim());
+            if (line == "Data:")
+            {
+                dataStartIndex = i + 1;
+                break;
+            }
+        }
+        if (vertexCount == 0 || dataStartIndex < 0)
+            return false;
+        _vertexCount = vertexCount;
+        _indexCount = vertexCount;
+        _modelData = new float[vertexCount * 8];
+        int vertexIndex = 0;
+        for (int i = dataStartIndex; i < lines.Length && vertexIndex < vertexCount; i++)
+        {
+            var line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line))
+                continue;
+            var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 8)
+                continue;
+            int offset = vertexIndex * 8;
+            _modelData[offset] = float.Parse(parts[0]);
+            _modelData[offset + 1] = float.Parse(parts[1]);
+            _modelData[offset + 2] = float.Parse(parts[2]);
+            _modelData[offset + 3] = float.Parse(parts[3]);
+            _modelData[offset + 4] = float.Parse(parts[4]);
+            _modelData[offset + 5] = float.Parse(parts[5]);
+            _modelData[offset + 6] = float.Parse(parts[6]);
+            _modelData[offset + 7] = float.Parse(parts[7]);
+            vertexIndex++;
+        }
+        return vertexIndex == vertexCount;
+    }
+
+    unsafe bool InitializeBuffers(GL4 gl)
+    {
+        var glApi = gl.Driver;
+        var vertices = new VertexType[_vertexCount];
+        var indices = new uint[_indexCount];
+        for (int i = 0; i < _vertexCount; i++)
+        {
+            int offset = i * 8;
+            vertices[i].x = _modelData[offset];
+            vertices[i].y = _modelData[offset + 1];
+            vertices[i].z = _modelData[offset + 2];
+            vertices[i].tu = _modelData[offset + 3];
+            vertices[i].tv = _modelData[offset + 4];
+            vertices[i].nx = _modelData[offset + 5];
+            vertices[i].ny = _modelData[offset + 6];
+            vertices[i].nz = _modelData[offset + 7];
+            indices[i] = (uint)i;
+        }
+        _vertexArrayId = glApi.GenVertexArray();
+        glApi.BindVertexArray(_vertexArrayId);
+        _vertexBufferId = glApi.GenBuffer();
+        glApi.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
+        fixed (VertexType* p = vertices)
+            glApi.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                (nuint)(sizeof(VertexType) * vertices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
+        glApi.EnableVertexAttribArray(0);
+        glApi.VertexAttribPointer(
+            0,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)0
+        );
+        glApi.EnableVertexAttribArray(1);
+        glApi.VertexAttribPointer(
+            1,
+            2,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(3 * sizeof(float))
+        );
+        glApi.EnableVertexAttribArray(2);
+        glApi.VertexAttribPointer(
+            2,
+            3,
+            VertexAttribPointerType.Float,
+            false,
+            (uint)sizeof(VertexType),
+            (void*)(5 * sizeof(float))
+        );
+        _indexBufferId = glApi.GenBuffer();
+        glApi.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
+        fixed (uint* p = indices)
+            glApi.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                (nuint)(sizeof(uint) * indices.Length),
+                p,
+                BufferUsageARB.StaticDraw
+            );
+        _modelData = null;
+        return true;
+    }
+
+    void ShutdownBuffers(GL4 gl)
+    {
+        var glApi = gl.Driver;
+        glApi.DisableVertexAttribArray(0);
+        glApi.DisableVertexAttribArray(1);
+        glApi.DisableVertexAttribArray(2);
+        glApi.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+        glApi.DeleteBuffer(_vertexBufferId);
+        glApi.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
+        glApi.DeleteBuffer(_indexBufferId);
+        glApi.BindVertexArray(0);
+        glApi.DeleteVertexArray(_vertexArrayId);
+    }
+}
