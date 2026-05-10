@@ -30,11 +30,12 @@ public unsafe class ShadowShader
     private ComPtr<ID3D11InputLayout> _layout;
     private ComPtr<ID3D11Buffer> _matrixBuffer;
     private ComPtr<ID3D11Buffer> _lightBuffer;
-    private ComPtr<ID3D11SamplerState> _sampleState;
+    private ComPtr<ID3D11SamplerState> _sampleStateClamp;
+    private ComPtr<ID3D11SamplerState> _sampleStateWrap;
 
     public bool Initialize(DX11 DirectX) => InitializeShader(DirectX, "Shaders/shadow.vs", "Shaders/shadow.ps");
 
-    public void Shutdown() { _sampleState.Release(); _lightBuffer.Release(); _matrixBuffer.Release(); _layout.Release(); _pixelShader.Release(); _vertexShader.Release(); }
+    public void Shutdown() { _sampleStateWrap.Release(); _sampleStateClamp.Release(); _lightBuffer.Release(); _matrixBuffer.Release(); _layout.Release(); _pixelShader.Release(); _vertexShader.Release(); }
 
     public bool Render(DX11 DirectX, int indexCount,
         Matrix4X4<float> world, Matrix4X4<float> view, Matrix4X4<float> projection,
@@ -98,8 +99,10 @@ public unsafe class ShadowShader
         var lightBufferDesc = new BufferDesc { Usage = Usage.Dynamic, ByteWidth = (uint)sizeof(LightBufferType), BindFlags = (uint)BindFlag.ConstantBuffer, CPUAccessFlags = (uint)CpuAccessFlag.Write };
         SilkMarshal.ThrowHResult(device.CreateBuffer(&lightBufferDesc, null, ref _lightBuffer));
 
-        var samplerDesc = new SamplerDesc { Filter = Filter.MinMagMipLinear, AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, MipLODBias = 0.0f, MaxAnisotropy = 1, ComparisonFunc = ComparisonFunc.Always, MinLOD = 0, MaxLOD = float.MaxValue };
-        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDesc, ref _sampleState));
+        var samplerDescClamp = new SamplerDesc { Filter = Filter.MinMagMipLinear, AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, MipLODBias = 0.0f, MaxAnisotropy = 1, ComparisonFunc = ComparisonFunc.Always, MinLOD = 0, MaxLOD = float.MaxValue };
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDescClamp, ref _sampleStateClamp));
+        var samplerDescWrap = new SamplerDesc { Filter = Filter.MinMagMipLinear, AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, MipLODBias = 0.0f, MaxAnisotropy = 1, ComparisonFunc = ComparisonFunc.Always, MinLOD = 0, MaxLOD = float.MaxValue };
+        SilkMarshal.ThrowHResult(device.CreateSamplerState(&samplerDescWrap, ref _sampleStateWrap));
         return true;
     }
 
@@ -146,8 +149,10 @@ public unsafe class ShadowShader
         context.IASetInputLayout(_layout);
         context.VSSetShader(_vertexShader, null, 0);
         context.PSSetShader(_pixelShader, null, 0);
-        var smp = _sampleState.GetPinnableReference();
-        context.PSSetSamplers(0, 1, &smp);
+        var smpClamp = _sampleStateClamp.GetPinnableReference();
+        context.PSSetSamplers(0, 1, &smpClamp);
+        var smpWrap = _sampleStateWrap.GetPinnableReference();
+        context.PSSetSamplers(1, 1, &smpWrap);
         context.DrawIndexed((uint)indexCount, 0, 0);
     }
 }

@@ -1,6 +1,7 @@
 Texture2D shaderTexture : register(t0);
 Texture2D depthMapTexture : register(t1);
-SamplerState SampleType : register(s0);
+SamplerState SampleTypeClamp : register(s0);
+SamplerState SampleTypeWrap : register(s1);
 
 cbuffer LightBuffer
 {
@@ -30,7 +31,7 @@ float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
     if ((saturate(projectTexCoord.x) == projectTexCoord.x) &&
         (saturate(projectTexCoord.y) == projectTexCoord.y))
     {
-        float depthValue = depthMapTexture.Sample(SampleType, projectTexCoord).r;
+        float depthValue = depthMapTexture.Sample(SampleTypeClamp, projectTexCoord).r;
         float lightDepthValue = input.lightViewPosition.z / input.lightViewPosition.w - bias;
         if (lightDepthValue < depthValue)
         {
@@ -52,6 +53,6 @@ float4 ShadowPixelShader(PixelInputType input) : SV_TARGET
         }
     }
 
-    float4 textureColor = shaderTexture.Sample(SampleType, input.tex);
+    float4 textureColor = shaderTexture.Sample(SampleTypeWrap, input.tex);
     return color * textureColor;
 }
