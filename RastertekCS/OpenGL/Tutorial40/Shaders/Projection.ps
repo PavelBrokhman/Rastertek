@@ -1,0 +1,41 @@
+#version 400
+
+in vec2 texCoord;
+in vec3 normal;
+in vec4 viewPosition;
+in vec3 lightPos;
+
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+uniform sampler2D projectionTexture;
+uniform vec4 ambientColor;
+uniform vec4 diffuseColor;
+uniform float brightness;
+
+void main(void)
+{
+    float lightIntensity = clamp(dot(normal, lightPos), 0.0f, 1.0f);
+
+    if (lightIntensity > 0.0f)
+    {
+        outputColor = (diffuseColor * lightIntensity) * brightness;
+    }
+
+    vec4 textureColor = texture(shaderTexture, texCoord);
+
+    vec2 projectTexCoord;
+    projectTexCoord.x =  viewPosition.x / viewPosition.w / 2.0f + 0.5f;
+    projectTexCoord.y = -viewPosition.y / viewPosition.w / 2.0f + 0.5f;
+
+    if ((clamp(projectTexCoord.x, 0.0, 1.0) == projectTexCoord.x) &&
+        (clamp(projectTexCoord.y, 0.0, 1.0) == projectTexCoord.y))
+    {
+        vec4 projectionColor = texture(projectionTexture, projectTexCoord);
+        outputColor = clamp((outputColor * projectionColor * textureColor) + (ambientColor * textureColor), 0.0f, 1.0f);
+    }
+    else
+    {
+        outputColor = ambientColor * textureColor;
+    }
+}
