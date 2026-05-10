@@ -184,7 +184,7 @@ public unsafe class DX11
             DepthBias = 0,
             DepthBiasClamp = 0.0f,
             DepthClipEnable = true,
-            FillMode = FillMode.Solid,
+            FillMode = FillMode.Wireframe,
             FrontCounterClockwise = false,
             MultisampleEnable = false,
             ScissorEnable = false,
