@@ -18,7 +18,7 @@ public class GraphicsFramework
     private BlurShader _blurShader;
     private GlowShader _glowShader;
     private Blur _blur;
-    private float _rotation = 0.0f;
+    private float _rotation = 360.0f;
     private int _screenWidth, _screenHeight;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
@@ -28,7 +28,7 @@ public class GraphicsFramework
         _screenHeight = screenHeight;
 
         _camera = new Camera();
-        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
         _camera.Render();
         _camera.RenderBaseViewMatrix();
 
@@ -75,8 +75,8 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        _rotation -= 0.0174532925f * 0.25f;
-        if (_rotation < 0.0f) _rotation += 360.0f;
+        _rotation -= 0.0174532925f * 0.5f;
+        if (_rotation <= 0.0f) _rotation += 360.0f;
 
         if (!RenderSceneToTexture(_rotation)) return false;
         if (!RenderGlowToTexture(_rotation)) return false;

@@ -64,7 +64,7 @@ public class Texture
         rgba = new byte[pixelCount * 4];
         for (int destRow = 0; destRow < height; destRow++)
         {
-            int srcRow = height - 1 - destRow;
+            int srcRow = destRow;
             int srcOff = offset + srcRow * width * channels;
             int dstOff = destRow * width * 4;
             for (int x = 0; x < width; x++)
