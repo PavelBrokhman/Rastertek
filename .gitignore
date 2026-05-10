@@ -3,3 +3,6 @@
 ################################################################################
 
 /Tutorial17/obj/x86/Debug
+
+# Per-machine build/run logs from run.sh / run.bat
+build_log.txt
