@@ -4,46 +4,46 @@ namespace RastertekCS.OpenGL.Tutorial50.Graphics;
 
 public class Camera
 {
-    private float _positionx, _positiony, _positionz;
-    private float _rotationx, _rotationy, _rotationz;
-    private Matrix4X4<float> _viewmatrix;
-    private Matrix4X4<float> _baseviewmatrix;
+    private float _positionX, _positionY, _positionZ;
+    private float _rotationX, _rotationY, _rotationZ;
+    private Matrix4X4<float> _viewMatrix;
+    private Matrix4X4<float> _baseViewMatrix;
 
-    public void SetPosition(float x, float y, float z) { _positionx = x; _positiony = y; _positionz = z; }
-    public void SetRotation(float x, float y, float z) { _rotationx = x; _rotationy = y; _rotationz = z; }
+    public void SetPosition(float x, float y, float z) { _positionX = x; _positionY = y; _positionZ = z; }
+    public void SetRotation(float x, float y, float z) { _rotationX = x; _rotationY = y; _rotationZ = z; }
 
     public void Render()
     {
         var up = new Vector3D<float>(0, 1, 0);
-        var position = new Vector3D<float>(_positionx, _positiony, _positionz);
+        var position = new Vector3D<float>(_positionX, _positionY, _positionZ);
         var lookAt = new Vector3D<float>(0, 0, 1);
         var rot = Matrix4X4.CreateFromYawPitchRoll(
-            _rotationy * (MathF.PI / 180.0f),
-            _rotationx * (MathF.PI / 180.0f),
-            _rotationz * (MathF.PI / 180.0f));
+            _rotationY * (MathF.PI / 180.0f),
+            _rotationX * (MathF.PI / 180.0f),
+            _rotationZ * (MathF.PI / 180.0f));
         lookAt = Vector3D.Transform(lookAt, rot);
         up = Vector3D.Transform(up, rot);
         lookAt = position + lookAt;
-        _viewmatrix = LookAtLH(position, lookAt, up);
+        _viewMatrix = LookAtLH(position, lookAt, up);
     }
 
     public void RenderBaseViewMatrix()
     {
         var up = new Vector3D<float>(0, 1, 0);
-        var position = new Vector3D<float>(_positionx, _positiony, _positionz);
+        var position = new Vector3D<float>(_positionX, _positionY, _positionZ);
         var lookAt = new Vector3D<float>(0, 0, 1);
         var rot = Matrix4X4.CreateFromYawPitchRoll(
-            _rotationy * (MathF.PI / 180.0f),
-            _rotationx * (MathF.PI / 180.0f),
-            _rotationz * (MathF.PI / 180.0f));
+            _rotationY * (MathF.PI / 180.0f),
+            _rotationX * (MathF.PI / 180.0f),
+            _rotationZ * (MathF.PI / 180.0f));
         lookAt = Vector3D.Transform(lookAt, rot);
         up = Vector3D.Transform(up, rot);
         lookAt = position + lookAt;
-        _baseviewmatrix = LookAtLH(position, lookAt, up);
+        _baseViewMatrix = LookAtLH(position, lookAt, up);
     }
 
-    public Matrix4X4<float> GetViewMatrix() => _viewmatrix;
-    public Matrix4X4<float> GetBaseViewMatrix() => _baseviewmatrix;
+    public Matrix4X4<float> GetViewMatrix() => _viewMatrix;
+    public Matrix4X4<float> GetBaseViewMatrix() => _baseViewMatrix;
 
     private static Matrix4X4<float> LookAtLH(Vector3D<float> eye, Vector3D<float> target, Vector3D<float> up)
     {

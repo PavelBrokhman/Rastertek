@@ -9,23 +9,23 @@ namespace RastertekCS.OpenGL.Tutorial50.System;
 public class SystemFramework
 {
     private IWindow _window;
-    private IInputContext _inputcontext;
-    private GL4 _opengl;
+    private IInputContext _inputContext;
+    private GL4 _openGL;
     private Input _input;
     private GraphicsFramework _graphics;
-    private bool _done, _graphicsinitialized;
+    private bool _done, _graphicsInitialized;
 
     public bool Initialize()
     {
         int sw = 0, sh = 0;
-        _opengl = new GL4();
+        _openGL = new GL4();
         if (!InitializeWindows(ref sw, ref sh)) return false;
-        if (!_opengl.Initialize(_window, sw, sh, SystemConfiguration.ScreenDepth,
+        if (!_openGL.Initialize(_window, sw, sh, SystemConfiguration.ScreenDepth,
                                   SystemConfiguration.ScreenNear, SystemConfiguration.VerticalSyncEnabled)) return false;
         _input = new Input(); _input.Initialize();
         _graphics = new GraphicsFramework();
-        if (!_graphics.Initialize(_opengl, sw, sh)) return false;
-        _graphicsinitialized = true;
+        if (!_graphics.Initialize(_openGL, sw, sh)) return false;
+        _graphicsInitialized = true;
         return true;
     }
 
@@ -33,7 +33,7 @@ public class SystemFramework
     {
         _graphics?.Shutdown(); _graphics = null;
         _input = null;
-        _opengl?.Shutdown(); _opengl = null;
+        _openGL?.Shutdown(); _openGL = null;
         ShutdownWindows();
     }
 
@@ -61,12 +61,12 @@ public class SystemFramework
         return true;
     }
 
-    private void ShutdownWindows() { _inputcontext?.Dispose(); _inputcontext = null; _window?.Dispose(); _window = null; }
+    private void ShutdownWindows() { _inputContext?.Dispose(); _inputContext = null; _window?.Dispose(); _window = null; }
 
     private void OnLoad()
     {
-        _inputcontext = _window.CreateInput();
-        foreach (var kb in _inputcontext.Keyboards)
+        _inputContext = _window.CreateInput();
+        foreach (var kb in _inputContext.Keyboards)
         {
             kb.KeyDown += (_, key, _) => _input?.KeyDown(key);
             kb.KeyUp += (_, key, _) => _input?.KeyUp(key);
@@ -75,7 +75,7 @@ public class SystemFramework
 
     private void OnRender(double dt)
     {
-        if (!_graphicsinitialized) return;
+        if (!_graphicsInitialized) return;
         if (_done || _input.IsKeyDown(Key.Escape)) { _done = true; _window.Close(); return; }
         if (!_graphics.Frame()) { _done = true; _window.Close(); }
     }
@@ -84,6 +84,6 @@ public class SystemFramework
     {
         _done = true;
         _graphics?.Shutdown(); _graphics = null;
-        _opengl?.Shutdown(); _opengl = null;
+        _openGL?.Shutdown(); _openGL = null;
     }
 }

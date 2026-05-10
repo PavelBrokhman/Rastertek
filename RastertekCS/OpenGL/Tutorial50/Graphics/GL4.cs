@@ -7,11 +7,11 @@ namespace RastertekCS.OpenGL.Tutorial50.Graphics;
 public class GL4
 {
     private GL _gl;
-    private Matrix4X4<float> _worldmatrix;
-    private Matrix4X4<float> _projectionmatrix;
-    private Matrix4X4<float> _orthomatrix;
-    private string _videocarddescription;
-    private int _screenwidth, _screenheight;
+    private Matrix4X4<float> _worldMatrix;
+    private Matrix4X4<float> _projectionMatrix;
+    private Matrix4X4<float> _orthoMatrix;
+    private string _videoCardDescription;
+    private int _screenWidth, _screenHeight;
 
     public GL Gl => _gl;
 
@@ -20,10 +20,10 @@ public class GL4
         _gl = GL.GetApi(window);
         var vendor = _gl.GetStringS(StringName.Vendor) ?? "";
         var renderer = _gl.GetStringS(StringName.Renderer) ?? "";
-        _videocarddescription = vendor + " - " + renderer;
+        _videoCardDescription = vendor + " - " + renderer;
 
-        _screenwidth = sw;
-        _screenheight = sh;
+        _screenWidth = sw;
+        _screenHeight = sh;
 
         _gl.ClearDepth(1.0f);
         _gl.Enable(EnableCap.DepthTest);
@@ -32,9 +32,9 @@ public class GL4
         _gl.CullFace(TriangleFace.Back);
         _gl.Viewport(0, 0, (uint)sw, (uint)sh);
 
-        _worldmatrix = Matrix4X4<float>.Identity;
-        _projectionmatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
-        _orthomatrix = Matrix4X4.CreateOrthographicOffCenter(-sw / 2f, sw / 2f, -sh / 2f, sh / 2f, sn, sd);
+        _worldMatrix = Matrix4X4<float>.Identity;
+        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)sw / sh, sn, sd);
+        _orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-sw / 2f, sw / 2f, -sh / 2f, sh / 2f, sn, sd);
         _ = vsync;
         return true;
     }
@@ -53,12 +53,12 @@ public class GL4
     public void TurnZBufferOff() => _gl.Disable(EnableCap.DepthTest);
 
     public void SetBackBufferRenderTarget() => _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-    public void ResetViewport() => _gl.Viewport(0, 0, (uint)_screenwidth, (uint)_screenheight);
+    public void ResetViewport() => _gl.Viewport(0, 0, (uint)_screenWidth, (uint)_screenHeight);
 
-    public Matrix4X4<float> GetWorldMatrix() => _worldmatrix;
-    public Matrix4X4<float> GetProjectionMatrix() => _projectionmatrix;
-    public Matrix4X4<float> GetOrthoMatrix() => _orthomatrix;
-    public string GetVideoCardInfo() => _videocarddescription;
+    public Matrix4X4<float> GetWorldMatrix() => _worldMatrix;
+    public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;
+    public Matrix4X4<float> GetOrthoMatrix() => _orthoMatrix;
+    public string GetVideoCardInfo() => _videoCardDescription;
 
     private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
     {

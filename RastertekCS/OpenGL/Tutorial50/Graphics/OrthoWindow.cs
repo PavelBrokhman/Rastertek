@@ -10,8 +10,8 @@ public class OrthoWindow
         public float tu, tv;
     }
 
-    private uint _vertexarrayid, _vertexbufferid, _indexbufferid;
-    private int _vertexcount, _indexcount;
+    private uint _vertexArrayId, _vertexBufferId, _indexBufferId;
+    private int _indexCount;
 
     public unsafe bool Initialize(GL4 OpenGL, int windowWidth, int windowHeight)
     {
@@ -22,8 +22,7 @@ public class OrthoWindow
         float top = windowHeight / 2.0f;
         float bottom = top - windowHeight;
 
-        _vertexcount = 6;
-        _indexcount = 6;
+        _indexCount = 6;
 
         var vertices = new VertexType[6];
         var indices = new uint[6];
@@ -39,11 +38,11 @@ public class OrthoWindow
 
         for (int i = 0; i < 6; i++) indices[i] = (uint)i;
 
-        _vertexarrayid = gl.GenVertexArray();
-        gl.BindVertexArray(_vertexarrayid);
+        _vertexArrayId = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexArrayId);
 
-        _vertexbufferid = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexbufferid);
+        _vertexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBufferId);
         fixed (VertexType* p = vertices)
             gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(VertexType) * vertices.Length), p, BufferUsageARB.StaticDraw);
 
@@ -52,8 +51,8 @@ public class OrthoWindow
         gl.EnableVertexAttribArray(1);
         gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(3 * sizeof(float)));
 
-        _indexbufferid = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexbufferid);
+        _indexBufferId = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexBufferId);
         fixed (uint* p = indices)
             gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
 
@@ -66,17 +65,17 @@ public class OrthoWindow
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(_vertexbufferid);
+        gl.DeleteBuffer(_vertexBufferId);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(_indexbufferid);
+        gl.DeleteBuffer(_indexBufferId);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(_vertexarrayid);
+        gl.DeleteVertexArray(_vertexArrayId);
     }
 
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.BindVertexArray(_vertexarrayid);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)_indexcount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.BindVertexArray(_vertexArrayId);
+        gl.DrawElements(PrimitiveType.Triangles, (uint)_indexCount, DrawElementsType.UnsignedInt, (void*)0);
     }
 }

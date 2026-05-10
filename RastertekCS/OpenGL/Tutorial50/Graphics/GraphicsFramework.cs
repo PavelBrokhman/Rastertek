@@ -4,19 +4,19 @@ namespace RastertekCS.OpenGL.Tutorial50.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 _opengl;
+    private GL4 _openGL;
     private Camera _camera;
     private Light _light;
     private Model _model;
-    private OrthoWindow _fullscreenwindow;
-    private DeferredBuffers _deferredbuffers;
-    private DeferredShader _deferredshader;
-    private LightShader _lightshader;
+    private OrthoWindow _fullScreenWindow;
+    private DeferredBuffers _deferredBuffers;
+    private DeferredShader _deferredShader;
+    private LightShader _lightShader;
     private float _rotation = 360.0f;
 
     public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
     {
-        _opengl = OpenGL;
+        _openGL = OpenGL;
 
         _camera = new Camera();
         _camera.SetPosition(0, 0, -10);
@@ -30,31 +30,31 @@ public class GraphicsFramework
         _model = new Model();
         if (!_model.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga", 0)) return false;
 
-        _fullscreenwindow = new OrthoWindow();
-        if (!_fullscreenwindow.Initialize(OpenGL, screenWidth, screenHeight)) return false;
+        _fullScreenWindow = new OrthoWindow();
+        if (!_fullScreenWindow.Initialize(OpenGL, screenWidth, screenHeight)) return false;
 
-        _deferredbuffers = new DeferredBuffers();
-        if (!_deferredbuffers.Initialize(OpenGL, screenWidth, screenHeight, 0.3f, 1000.0f)) return false;
+        _deferredBuffers = new DeferredBuffers();
+        if (!_deferredBuffers.Initialize(OpenGL, screenWidth, screenHeight, 0.3f, 1000.0f)) return false;
 
-        _deferredshader = new DeferredShader();
-        if (!_deferredshader.Initialize(OpenGL)) return false;
+        _deferredShader = new DeferredShader();
+        if (!_deferredShader.Initialize(OpenGL)) return false;
 
-        _lightshader = new LightShader();
-        if (!_lightshader.Initialize(OpenGL)) return false;
+        _lightShader = new LightShader();
+        if (!_lightShader.Initialize(OpenGL)) return false;
 
         return true;
     }
 
     public void Shutdown()
     {
-        _lightshader?.Shutdown(_opengl); _lightshader = null;
-        _deferredshader?.Shutdown(_opengl); _deferredshader = null;
-        _deferredbuffers?.Shutdown(_opengl); _deferredbuffers = null;
-        _fullscreenwindow?.Shutdown(_opengl); _fullscreenwindow = null;
-        _model?.Shutdown(_opengl); _model = null;
+        _lightShader?.Shutdown(_openGL); _lightShader = null;
+        _deferredShader?.Shutdown(_openGL); _deferredShader = null;
+        _deferredBuffers?.Shutdown(_openGL); _deferredBuffers = null;
+        _fullScreenWindow?.Shutdown(_openGL); _fullScreenWindow = null;
+        _model?.Shutdown(_openGL); _model = null;
         _light = null;
         _camera = null;
-        _opengl = null;
+        _openGL = null;
     }
 
     public bool Frame()
@@ -69,47 +69,47 @@ public class GraphicsFramework
 
     private bool RenderSceneToTexture(float rotation)
     {
-        _deferredbuffers.SetRenderTarget(_opengl);
-        _deferredbuffers.ClearRenderTargets(_opengl, 0, 0, 0, 1);
+        _deferredBuffers.SetRenderTarget(_openGL);
+        _deferredBuffers.ClearRenderTargets(_openGL, 0, 0, 0, 1);
 
-        var world = _opengl.GetWorldMatrix();
+        var world = _openGL.GetWorldMatrix();
         var view = _camera.GetViewMatrix();
-        var projection = _opengl.GetProjectionMatrix();
+        var projection = _openGL.GetProjectionMatrix();
 
         world = Matrix4X4.CreateRotationY<float>(rotation);
 
-        if (!_deferredshader.SetShaderParameters(_opengl, world, view, projection, 0)) return false;
-        _model.SetTexture(_opengl, 0);
-        _model.Render(_opengl);
+        if (!_deferredShader.SetShaderParameters(_openGL, world, view, projection, 0)) return false;
+        _model.SetTexture(_openGL, 0);
+        _model.Render(_openGL);
 
-        _opengl.SetBackBufferRenderTarget();
-        _opengl.ResetViewport();
+        _openGL.SetBackBufferRenderTarget();
+        _openGL.ResetViewport();
 
         return true;
     }
 
     private bool Render()
     {
-        _opengl.BeginScene(0, 0, 0, 1);
+        _openGL.BeginScene(0, 0, 0, 1);
 
-        var world = _opengl.GetWorldMatrix();
+        var world = _openGL.GetWorldMatrix();
         var baseView = _camera.GetBaseViewMatrix();
-        var ortho = _opengl.GetOrthoMatrix();
+        var ortho = _openGL.GetOrthoMatrix();
 
         var lightDirection = _light.GetDirection();
 
-        _opengl.TurnZBufferOff();
+        _openGL.TurnZBufferOff();
 
-        if (!_lightshader.SetShaderParameters(_opengl, world, baseView, ortho, lightDirection, 0, 1)) return false;
+        if (!_lightShader.SetShaderParameters(_openGL, world, baseView, ortho, lightDirection, 0, 1)) return false;
 
-        _deferredbuffers.SetTexture(_opengl, 0, 0);
-        _deferredbuffers.SetTexture(_opengl, 1, 1);
+        _deferredBuffers.SetTexture(_openGL, 0, 0);
+        _deferredBuffers.SetTexture(_openGL, 1, 1);
 
-        _fullscreenwindow.Render(_opengl);
+        _fullScreenWindow.Render(_openGL);
 
-        _opengl.TurnZBufferOn();
+        _openGL.TurnZBufferOn();
 
-        _opengl.EndScene();
+        _openGL.EndScene();
         return true;
     }
 }

@@ -4,7 +4,7 @@ namespace RastertekCS.OpenGL.Tutorial50.Graphics;
 
 public class Texture
 {
-    private uint _textureid;
+    private uint _textureId;
     private bool _loaded;
 
     public unsafe bool Initialize(GL4 OpenGL, string filename, uint textureUnit, bool wrap)
@@ -17,8 +17,8 @@ public class Texture
             return false;
         }
         gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
-        _textureid = gl.GenTexture();
-        gl.BindTexture(TextureTarget.Texture2D, _textureid);
+        _textureId = gl.GenTexture();
+        gl.BindTexture(TextureTarget.Texture2D, _textureId);
         fixed (byte* p = pixels)
             gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba,
                 (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, p);
@@ -37,13 +37,13 @@ public class Texture
         if (_loaded)
         {
             OpenGL.Gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
-            OpenGL.Gl.BindTexture(TextureTarget.Texture2D, _textureid);
+            OpenGL.Gl.BindTexture(TextureTarget.Texture2D, _textureId);
         }
     }
 
     public void Shutdown(GL4 OpenGL)
     {
-        if (_loaded) { OpenGL.Gl.DeleteTexture(_textureid); _loaded = false; }
+        if (_loaded) { OpenGL.Gl.DeleteTexture(_textureId); _loaded = false; }
     }
 
     private static bool LoadTga(string filename, out int width, out int height, out byte[] rgba)
