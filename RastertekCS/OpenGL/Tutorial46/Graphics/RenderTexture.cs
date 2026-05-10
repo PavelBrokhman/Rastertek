@@ -88,14 +88,7 @@ public class RenderTexture
             screenNear,
             screenDepth
         );
-        _orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(
-            -textureWidth / 2f,
-            textureWidth / 2f,
-            -textureHeight / 2f,
-            textureHeight / 2f,
-            screenNear,
-            screenDepth
-        );
+        _orthoMatrix = OrthographicLH(textureWidth, textureHeight, screenNear, screenDepth);
         return true;
     }
 
@@ -151,5 +144,15 @@ public class RenderTexture
             0, 0, range, 1,
             0, 0, -range * nearZ, 0
         );
+    }
+
+    private static Matrix4X4<float> OrthographicLH(float width, float height, float nearZ, float farZ)
+    {
+        float range = 1.0f / (farZ - nearZ);
+        return new Matrix4X4<float>(
+            2.0f / width, 0, 0, 0,
+            0, 2.0f / height, 0, 0,
+            0, 0, range, 0,
+            0, 0, -range * nearZ, 1);
     }
 }

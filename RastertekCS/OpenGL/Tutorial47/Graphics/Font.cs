@@ -23,8 +23,8 @@ public class Font
         switch (fontChoice)
         {
             default:
-                fontFilename = "Data/font/font01.txt";
-                fontTextureFilename = "Data/font/font01.tga";
+                fontFilename = "Data/font01.txt";
+                fontTextureFilename = "Data/font01.tga";
                 _fontHeight = 32.0f;
                 _spaceSize = 3;
                 break;

@@ -4,8 +4,6 @@ namespace RastertekCS.OpenGL.Tutorial46.Graphics;
 
 public class GraphicsFramework
 {
-    private const int DownSampleWidth = 100;
-    private const int DownSampleHeight = 100;
     private const float GlowStrength = 2.0f;
     private const float ScreenNear = 0.3f;
     private const float ScreenDepth = 1000.0f;
@@ -56,7 +54,7 @@ public class GraphicsFramework
         if (!_glowShader.Initialize(OpenGL)) return false;
 
         _blur = new Blur();
-        if (!_blur.Initialize(OpenGL, DownSampleWidth, DownSampleHeight, ScreenNear, ScreenDepth, screenWidth, screenHeight)) return false;
+        if (!_blur.Initialize(OpenGL, screenWidth / 2, screenHeight / 2, ScreenNear, ScreenDepth, screenWidth, screenHeight)) return false;
 
         return true;
     }
