@@ -1,0 +1,15 @@
+#version 400
+
+in vec2 texCoord;
+out vec4 outputColor;
+
+uniform sampler2D colorTexture;
+uniform sampler2D glowTexture;
+uniform float glowStrength;
+
+void main(void)
+{
+    vec4 textureColor = texture(colorTexture, texCoord);
+    vec4 glowMap = texture(glowTexture, texCoord);
+    outputColor = clamp(textureColor + glowMap * glowStrength, 0.0, 1.0);
+}

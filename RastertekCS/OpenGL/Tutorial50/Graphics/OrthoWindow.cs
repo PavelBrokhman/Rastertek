@@ -10,8 +10,8 @@ public class OrthoWindow
         public float tu, tv;
     }
 
-    private uint m_vertexArrayId, m_vertexBufferId, m_indexBufferId;
-    private int m_vertexCount, m_indexCount;
+    private uint _vertexarrayid, _vertexbufferid, _indexbufferid;
+    private int _vertexcount, _indexcount;
 
     public unsafe bool Initialize(GL4 OpenGL, int windowWidth, int windowHeight)
     {
@@ -22,8 +22,8 @@ public class OrthoWindow
         float top = windowHeight / 2.0f;
         float bottom = top - windowHeight;
 
-        m_vertexCount = 6;
-        m_indexCount = 6;
+        _vertexcount = 6;
+        _indexcount = 6;
 
         var vertices = new VertexType[6];
         var indices = new uint[6];
@@ -39,11 +39,11 @@ public class OrthoWindow
 
         for (int i = 0; i < 6; i++) indices[i] = (uint)i;
 
-        m_vertexArrayId = gl.GenVertexArray();
-        gl.BindVertexArray(m_vertexArrayId);
+        _vertexarrayid = gl.GenVertexArray();
+        gl.BindVertexArray(_vertexarrayid);
 
-        m_vertexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ArrayBuffer, m_vertexBufferId);
+        _vertexbufferid = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexbufferid);
         fixed (VertexType* p = vertices)
             gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(sizeof(VertexType) * vertices.Length), p, BufferUsageARB.StaticDraw);
 
@@ -52,8 +52,8 @@ public class OrthoWindow
         gl.EnableVertexAttribArray(1);
         gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, (uint)sizeof(VertexType), (void*)(3 * sizeof(float)));
 
-        m_indexBufferId = gl.GenBuffer();
-        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, m_indexBufferId);
+        _indexbufferid = gl.GenBuffer();
+        gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _indexbufferid);
         fixed (uint* p = indices)
             gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)(sizeof(uint) * indices.Length), p, BufferUsageARB.StaticDraw);
 
@@ -66,17 +66,17 @@ public class OrthoWindow
         gl.DisableVertexAttribArray(0);
         gl.DisableVertexAttribArray(1);
         gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-        gl.DeleteBuffer(m_vertexBufferId);
+        gl.DeleteBuffer(_vertexbufferid);
         gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, 0);
-        gl.DeleteBuffer(m_indexBufferId);
+        gl.DeleteBuffer(_indexbufferid);
         gl.BindVertexArray(0);
-        gl.DeleteVertexArray(m_vertexArrayId);
+        gl.DeleteVertexArray(_vertexarrayid);
     }
 
     public unsafe void Render(GL4 OpenGL)
     {
         var gl = OpenGL.Gl;
-        gl.BindVertexArray(m_vertexArrayId);
-        gl.DrawElements(PrimitiveType.Triangles, (uint)m_indexCount, DrawElementsType.UnsignedInt, (void*)0);
+        gl.BindVertexArray(_vertexarrayid);
+        gl.DrawElements(PrimitiveType.Triangles, (uint)_indexcount, DrawElementsType.UnsignedInt, (void*)0);
     }
 }

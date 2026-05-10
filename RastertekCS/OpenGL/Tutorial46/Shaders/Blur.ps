@@ -1,0 +1,59 @@
+#version 400
+
+in vec2 texCoord;
+out vec4 outputColor;
+
+uniform sampler2D shaderTexture;
+uniform float screenWidth;
+uniform float screenHeight;
+uniform float blurType;
+
+void main(void)
+{
+    float texelSize;
+    vec2 t1, t2, t3, t4, t5, t6, t7, t8, t9;
+
+    if (blurType < 0.1)
+    {
+        texelSize = 1.0 / screenWidth;
+        t1 = texCoord + vec2(texelSize * -4.0, 0.0);
+        t2 = texCoord + vec2(texelSize * -3.0, 0.0);
+        t3 = texCoord + vec2(texelSize * -2.0, 0.0);
+        t4 = texCoord + vec2(texelSize * -1.0, 0.0);
+        t5 = texCoord;
+        t6 = texCoord + vec2(texelSize *  1.0, 0.0);
+        t7 = texCoord + vec2(texelSize *  2.0, 0.0);
+        t8 = texCoord + vec2(texelSize *  3.0, 0.0);
+        t9 = texCoord + vec2(texelSize *  4.0, 0.0);
+    }
+    else
+    {
+        texelSize = 1.0 / screenHeight;
+        t1 = texCoord + vec2(0.0, texelSize * -4.0);
+        t2 = texCoord + vec2(0.0, texelSize * -3.0);
+        t3 = texCoord + vec2(0.0, texelSize * -2.0);
+        t4 = texCoord + vec2(0.0, texelSize * -1.0);
+        t5 = texCoord;
+        t6 = texCoord + vec2(0.0, texelSize *  1.0);
+        t7 = texCoord + vec2(0.0, texelSize *  2.0);
+        t8 = texCoord + vec2(0.0, texelSize *  3.0);
+        t9 = texCoord + vec2(0.0, texelSize *  4.0);
+    }
+
+    float w0 = 1.0, w1 = 0.9, w2 = 0.55, w3 = 0.18, w4 = 0.1;
+    float n = w0 + 2.0 * (w1 + w2 + w3 + w4);
+    w0 /= n; w1 /= n; w2 /= n; w3 /= n; w4 /= n;
+
+    vec4 c = vec4(0.0);
+    c += texture(shaderTexture, t1) * w4;
+    c += texture(shaderTexture, t2) * w3;
+    c += texture(shaderTexture, t3) * w2;
+    c += texture(shaderTexture, t4) * w1;
+    c += texture(shaderTexture, t5) * w0;
+    c += texture(shaderTexture, t6) * w1;
+    c += texture(shaderTexture, t7) * w2;
+    c += texture(shaderTexture, t8) * w3;
+    c += texture(shaderTexture, t9) * w4;
+    c.a = 1.0;
+    outputColor = c;
+}

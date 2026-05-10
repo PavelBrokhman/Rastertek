@@ -4,8 +4,8 @@ namespace RastertekCS.OpenGL.Tutorial50.Graphics;
 
 public class Texture
 {
-    private uint m_textureId;
-    private bool m_loaded;
+    private uint _textureid;
+    private bool _loaded;
 
     public unsafe bool Initialize(GL4 OpenGL, string filename, uint textureUnit, bool wrap)
     {
@@ -17,8 +17,8 @@ public class Texture
             return false;
         }
         gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
-        m_textureId = gl.GenTexture();
-        gl.BindTexture(TextureTarget.Texture2D, m_textureId);
+        _textureid = gl.GenTexture();
+        gl.BindTexture(TextureTarget.Texture2D, _textureid);
         fixed (byte* p = pixels)
             gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba,
                 (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, p);
@@ -28,22 +28,22 @@ public class Texture
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, wm);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
         gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        m_loaded = true;
+        _loaded = true;
         return true;
     }
 
     public void SetTexture(GL4 OpenGL, uint textureUnit)
     {
-        if (m_loaded)
+        if (_loaded)
         {
             OpenGL.Gl.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
-            OpenGL.Gl.BindTexture(TextureTarget.Texture2D, m_textureId);
+            OpenGL.Gl.BindTexture(TextureTarget.Texture2D, _textureid);
         }
     }
 
     public void Shutdown(GL4 OpenGL)
     {
-        if (m_loaded) { OpenGL.Gl.DeleteTexture(m_textureId); m_loaded = false; }
+        if (_loaded) { OpenGL.Gl.DeleteTexture(_textureid); _loaded = false; }
     }
 
     private static bool LoadTga(string filename, out int width, out int height, out byte[] rgba)
