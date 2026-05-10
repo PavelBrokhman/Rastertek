@@ -12,7 +12,7 @@ public class GraphicsFramework
         _driver = OpenGL;
 
         _camera = new Camera();
-        _camera.SetPosition(0.0f, 0.0f, -5.0f);
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
         _camera.Render();
 
         _model = new Model();

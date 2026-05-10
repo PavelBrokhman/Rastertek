@@ -29,9 +29,9 @@ public class Model
 
         var vertices = new VertexType[]
         {
-            new() { x = -1.0f, y = -1.0f, z = 0.0f, tu = 0.0f, tv = 1.0f },
-            new() { x =  0.0f, y =  1.0f, z = 0.0f, tu = 0.5f, tv = 0.0f },
-            new() { x =  1.0f, y = -1.0f, z = 0.0f, tu = 1.0f, tv = 1.0f },
+            new() { x = -1.0f, y = -1.0f, z = 0.0f, tu = 0.0f, tv = 0.0f },
+            new() { x =  0.0f, y =  1.0f, z = 0.0f, tu = 0.5f, tv = 1.0f },
+            new() { x =  1.0f, y = -1.0f, z = 0.0f, tu = 1.0f, tv = 0.0f },
         };
         var instances = new InstanceType[]
         {
