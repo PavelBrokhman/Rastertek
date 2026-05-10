@@ -1,27 +1,86 @@
-using Silk.NET.Maths; using Silk.NET.OpenGL;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+
 namespace RastertekCS.OpenGL.Tutorial37.Graphics;
+
 public class RenderTexture
 {
-    private uint m_fbo, m_tex, m_depth; private int m_tw, m_th;
-    private Matrix4X4<float> m_proj, m_ortho;
-    public unsafe bool Initialize(GL4 gl4, int tw, int th, float sn, float sd)
-    { var g=gl4.Gl; m_tw=tw; m_th=th; m_fbo=g.GenFramebuffer(); g.BindFramebuffer(FramebufferTarget.Framebuffer, m_fbo); g.ActiveTexture(TextureUnit.Texture0); m_tex=g.GenTexture(); g.BindTexture(TextureTarget.Texture2D, m_tex); g.TexImage2D(TextureTarget.Texture2D,0,(int)InternalFormat.Rgba,(uint)tw,(uint)th,0,PixelFormat.Rgba,PixelType.UnsignedByte,null); g.TexParameter(TextureTarget.Texture2D,TextureParameterName.TextureMagFilter,(int)TextureMagFilter.Linear); g.TexParameter(TextureTarget.Texture2D,TextureParameterName.TextureMinFilter,(int)TextureMinFilter.Linear); g.FramebufferTexture2D(FramebufferTarget.Framebuffer,FramebufferAttachment.ColorAttachment0,TextureTarget.Texture2D,m_tex,0); m_depth=g.GenRenderbuffer(); g.BindRenderbuffer(RenderbufferTarget.Renderbuffer,m_depth); g.RenderbufferStorage(RenderbufferTarget.Renderbuffer,InternalFormat.DepthComponent,(uint)tw,(uint)th); g.FramebufferRenderbuffer(FramebufferTarget.Framebuffer,FramebufferAttachment.DepthAttachment,RenderbufferTarget.Renderbuffer,m_depth); GLEnum[] db={GLEnum.ColorAttachment0}; fixed(GLEnum*p=db) g.DrawBuffers(1,p); g.BindFramebuffer(FramebufferTarget.Framebuffer,0); m_proj=PerspectiveFovLH(MathF.PI/4f,(float)tw/th,sn,sd); m_ortho=Matrix4X4.CreateOrthographicOffCenter<float>(-tw/2f,tw/2f,-th/2f,th/2f,sn,sd); return true; }
-    public void Shutdown(GL4 gl4) { var g=gl4.Gl; g.DeleteRenderbuffer(m_depth); g.DeleteTexture(m_tex); g.DeleteFramebuffer(m_fbo); }
-    public void SetRenderTarget(GL4 gl4) { gl4.Gl.BindFramebuffer(FramebufferTarget.Framebuffer,m_fbo); gl4.Gl.Viewport(0,0,(uint)m_tw,(uint)m_th); }
-    public void ClearRenderTarget(GL4 gl4, float r, float g, float b, float a) { gl4.Gl.ClearColor(r,g,b,a); gl4.Gl.Clear((uint)(ClearBufferMask.ColorBufferBit|ClearBufferMask.DepthBufferBit)); }
-    public void SetTexture(GL4 gl4, uint tu) { gl4.Gl.ActiveTexture(TextureUnit.Texture0+(int)tu); gl4.Gl.BindTexture(TextureTarget.Texture2D,m_tex); }
-    public Matrix4X4<float> GetProjectionMatrix() => m_proj;
-    public Matrix4X4<float> GetOrthoMatrix() => m_ortho;
+    private uint _frameBufferId,
+        _textureId,
+        _depthBufferId;
+    private int _textureWidth,
+        _textureHeight;
+    private Matrix4X4<float> _projectionMatrix;
+    private Matrix4X4<float> _orthoMatrix;
+
+    public unsafe bool Initialize(
+        GL4 OpenGL,
+        int textureWidth,
+        int textureHeight,
+        float screenNear,
+        float screenDepth
+    )
+    {
+        var gl = OpenGL.Driver;
+        _textureWidth = textureWidth;
+        _textureHeight = textureHeight;
+        _frameBufferId = gl.GenFramebuffer();
+        gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
+        gl.ActiveTexture(TextureUnit.Texture0);
+        _textureId = gl.GenTexture();
+        gl.BindTexture(TextureTarget.Texture2D, _textureId);
+        gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)textureWidth, (uint)textureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _textureId, 0);
+        _depthBufferId = gl.GenRenderbuffer();
+        gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthBufferId);
+        gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.DepthComponent, (uint)textureWidth, (uint)textureHeight);
+        gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthBufferId);
+        GLEnum[] drawBuffers = { GLEnum.ColorAttachment0 };
+        fixed (GLEnum* p = drawBuffers)
+            gl.DrawBuffers(1, p);
+        gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4f, (float)textureWidth / textureHeight, screenNear, screenDepth);
+        _orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-textureWidth / 2f, textureWidth / 2f, -textureHeight / 2f, textureHeight / 2f, screenNear, screenDepth);
+        return true;
+    }
+
+    public void Shutdown(GL4 OpenGL)
+    {
+        var gl = OpenGL.Driver;
+        gl.DeleteRenderbuffer(_depthBufferId);
+        gl.DeleteTexture(_textureId);
+        gl.DeleteFramebuffer(_frameBufferId);
+    }
+
+    public void SetRenderTarget(GL4 OpenGL)
+    {
+        OpenGL.Driver.BindFramebuffer(FramebufferTarget.Framebuffer, _frameBufferId);
+        OpenGL.Driver.Viewport(0, 0, (uint)_textureWidth, (uint)_textureHeight);
+    }
+
+    public void ClearRenderTarget(GL4 OpenGL, float r, float g, float b, float a)
+    {
+        OpenGL.Driver.ClearColor(r, g, b, a);
+        OpenGL.Driver.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+    }
+
+    public void SetTexture(GL4 OpenGL, uint textureUnit)
+    {
+        OpenGL.Driver.ActiveTexture(TextureUnit.Texture0 + (int)textureUnit);
+        OpenGL.Driver.BindTexture(TextureTarget.Texture2D, _textureId);
+    }
+
+    public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;
+
+    public Matrix4X4<float> GetOrthoMatrix() => _orthoMatrix;
 
     private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);
         float w = h / aspect;
         float range = farZ / (farZ - nearZ);
-        return new Matrix4X4<float>(
-            w, 0, 0, 0,
-            0, h, 0, 0,
-            0, 0, range, 1,
-            0, 0, -range * nearZ, 0);
+        return new Matrix4X4<float>(w, 0, 0, 0, 0, h, 0, 0, 0, 0, range, 1, 0, 0, -range * nearZ, 0);
     }
 }

@@ -8,11 +8,11 @@ internal static class Program
     {
         try
         {
-            var system = new SystemFramework();
-            if (system.Initialize())
-                system.Run();
+            var s = new SystemFramework();
+            if (s.Initialize())
+                s.Run();
             else
-                Console.WriteLine("ERROR: Initialize failed");
+                Console.WriteLine("ERROR");
             Environment.Exit(0);
         }
         catch (Exception ex)

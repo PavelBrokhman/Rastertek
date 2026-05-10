@@ -6,42 +6,71 @@ namespace RastertekCS.OpenGL.Tutorial37.Graphics;
 
 public class GL4
 {
-    private GL m_gl;
-    private Matrix4X4<float> m_worldMatrix, m_projectionMatrix, m_orthoMatrix;
-    private int m_screenWidth, m_screenHeight;
-    public GL Gl => m_gl;
+    private GL _driver;
+    private Matrix4X4<float> _worldMatrix,
+        _projectionMatrix,
+        _orthoMatrix;
+    private int _screenWidth,
+        _screenHeight;
+    public GL Driver => _driver;
 
-    public bool Initialize(IWindow window, int sw, int sh, float sd, float sn, bool vsync)
+    public bool Initialize(
+        IWindow window,
+        int screenWidth,
+        int screenHeight,
+        float screenDepth,
+        float screenNear,
+        bool vsync
+    )
     {
-        m_gl = GL.GetApi(window); m_screenWidth = sw; m_screenHeight = sh;
-        m_gl.ClearDepth(1.0f); m_gl.Enable(EnableCap.DepthTest);
-        m_gl.FrontFace(FrontFaceDirection.CW); m_gl.Enable(EnableCap.CullFace); m_gl.CullFace(TriangleFace.Back);
-        m_gl.Viewport(0, 0, (uint)sw, (uint)sh);
-        m_worldMatrix = Matrix4X4<float>.Identity;
-        m_projectionMatrix = PerspectiveFovLH(MathF.PI / 4f, (float)sw / sh, sn, sd);
-        m_orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-sw / 2f, sw / 2f, -sh / 2f, sh / 2f, sn, sd);
+        _driver = GL.GetApi(window);
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
+        _driver.ClearDepth(1.0f);
+        _driver.Enable(EnableCap.DepthTest);
+        _driver.FrontFace(FrontFaceDirection.CW);
+        _driver.Enable(EnableCap.CullFace);
+        _driver.CullFace(TriangleFace.Back);
+        _driver.Viewport(0, 0, (uint)screenWidth, (uint)screenHeight);
+        _worldMatrix = Matrix4X4<float>.Identity;
+        _projectionMatrix = PerspectiveFovLH(MathF.PI / 4.0f, (float)screenWidth / screenHeight, screenNear, screenDepth);
+        _orthoMatrix = Matrix4X4.CreateOrthographicOffCenter(-screenWidth / 2f, screenWidth / 2f, -screenHeight / 2f, screenHeight / 2f, screenNear, screenDepth);
         return true;
     }
-    public void Shutdown() { m_gl?.Dispose(); m_gl = null; }
-    public void BeginScene(float r, float g, float b, float a) { m_gl.ClearColor(r, g, b, a); m_gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit)); }
+
+    public void Shutdown()
+    {
+        _driver?.Dispose();
+        _driver = null;
+    }
+
+    public void BeginScene(float r, float g, float b, float a)
+    {
+        _driver.ClearColor(r, g, b, a);
+        _driver.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+    }
+
     public void EndScene() { }
-    public Matrix4X4<float> GetWorldMatrix() => m_worldMatrix;
-    public Matrix4X4<float> GetProjectionMatrix() => m_projectionMatrix;
-    public Matrix4X4<float> GetOrthoMatrix() => m_orthoMatrix;
-    public void TurnZBufferOn() => m_gl.Enable(EnableCap.DepthTest);
-    public void TurnZBufferOff() => m_gl.Disable(EnableCap.DepthTest);
-    public void SetBackBufferRenderTarget() => m_gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-    public void ResetViewport() => m_gl.Viewport(0, 0, (uint)m_screenWidth, (uint)m_screenHeight);
+
+    public Matrix4X4<float> GetWorldMatrix() => _worldMatrix;
+
+    public Matrix4X4<float> GetProjectionMatrix() => _projectionMatrix;
+
+    public Matrix4X4<float> GetOrthoMatrix() => _orthoMatrix;
+
+    public void TurnZBufferOn() => _driver.Enable(EnableCap.DepthTest);
+
+    public void TurnZBufferOff() => _driver.Disable(EnableCap.DepthTest);
+
+    public void SetBackBufferRenderTarget() => _driver.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+    public void ResetViewport() => _driver.Viewport(0, 0, (uint)_screenWidth, (uint)_screenHeight);
 
     private static Matrix4X4<float> PerspectiveFovLH(float fov, float aspect, float nearZ, float farZ)
     {
         float h = 1.0f / MathF.Tan(fov * 0.5f);
         float w = h / aspect;
         float range = farZ / (farZ - nearZ);
-        return new Matrix4X4<float>(
-            w, 0, 0, 0,
-            0, h, 0, 0,
-            0, 0, range, 1,
-            0, 0, -range * nearZ, 0);
+        return new Matrix4X4<float>(w, 0, 0, 0, 0, h, 0, 0, 0, 0, range, 1, 0, 0, -range * nearZ, 0);
     }
 }

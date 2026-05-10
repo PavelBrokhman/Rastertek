@@ -1,11 +1,14 @@
-using RastertekCS.OpenGL.Tutorial37.System;
 using Silk.NET.Maths;
 
-namespace RastertekCS.OpenGL.Tutorial37.Graphics;
+namespace RastertekCS.Windows.Tutorial37.Graphics;
 
 public class GraphicsFramework
 {
-    private GL4 _driver;
+    private const float SCREEN_DEPTH = 1000.0f;
+    private const float SCREEN_NEAR = 0.3f;
+    private const float FadeInTimeMs = 5000.0f;
+
+    private DX11 _directX;
     private Camera _camera;
     private Model _model;
     private TextureShader _textureShader;
@@ -15,30 +18,29 @@ public class GraphicsFramework
     private Timer _timer;
     private float _rotation;
     private float _accumulatedTime;
-    private const float FadeInTimeMs = 5000.0f;
 
-    public bool Initialize(GL4 OpenGL, int screenWidth, int screenHeight)
+    public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
-        _driver = OpenGL;
+        _directX = DirectX;
         _rotation = 360.0f;
         _camera = new Camera();
-        _camera.SetPosition(0, 0, -10);
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
         _camera.Render();
         _camera.RenderBaseViewMatrix();
         _textureShader = new TextureShader();
-        if (!_textureShader.Initialize(OpenGL))
+        if (!_textureShader.Initialize(DirectX))
             return false;
         _model = new Model();
-        if (!_model.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga"))
+        if (!_model.Initialize(DirectX, "Models/Cube.txt", "Data/stone01.tga", false))
             return false;
         _renderTexture = new RenderTexture();
-        if (!_renderTexture.Initialize(OpenGL, screenWidth, screenHeight, SystemConfiguration.ScreenNear, SystemConfiguration.ScreenDepth))
+        if (!_renderTexture.Initialize(DirectX, screenWidth, screenHeight, SCREEN_DEPTH, SCREEN_NEAR))
             return false;
         _fullScreenWindow = new OrthoWindow();
-        if (!_fullScreenWindow.Initialize(OpenGL, screenWidth, screenHeight))
+        if (!_fullScreenWindow.Initialize(DirectX, screenWidth, screenHeight))
             return false;
         _fadeShader = new FadeShader();
-        if (!_fadeShader.Initialize(OpenGL))
+        if (!_fadeShader.Initialize(DirectX))
             return false;
         _timer = new Timer();
         _timer.Initialize();
@@ -48,18 +50,18 @@ public class GraphicsFramework
 
     public void Shutdown()
     {
-        _fadeShader?.Shutdown(_driver);
-        _fullScreenWindow?.Shutdown(_driver);
-        _renderTexture?.Shutdown(_driver);
-        _model?.Shutdown(_driver);
-        _textureShader?.Shutdown(_driver);
+        _fadeShader?.Shutdown();
+        _fullScreenWindow?.Shutdown();
+        _renderTexture?.Shutdown();
+        _model?.Shutdown();
+        _textureShader?.Shutdown();
         _fadeShader = null;
         _fullScreenWindow = null;
         _renderTexture = null;
         _model = null;
         _textureShader = null;
         _camera = null;
-        _driver = null;
+        _directX = null;
     }
 
     public bool Frame()
@@ -77,33 +79,31 @@ public class GraphicsFramework
 
     private bool RenderSceneToTexture(float rotation)
     {
-        _renderTexture.SetRenderTarget(_driver);
-        _renderTexture.ClearRenderTarget(_driver, 0, 0, 0, 1);
+        _renderTexture.SetRenderTarget(_directX);
+        _renderTexture.ClearRenderTarget(_directX, 0, 0, 0, 1);
         var worldMatrix = Matrix4X4.CreateRotationY<float>(rotation);
         var viewMatrix = _camera.GetViewMatrix();
         var projectionMatrix = _renderTexture.GetProjectionMatrix();
-        if (!_textureShader.SetShaderParameters(_driver, worldMatrix, viewMatrix, projectionMatrix))
+        _model.Render(_directX);
+        if (!_textureShader.Render(_directX, _model.GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, _model.GetTextureView()))
             return false;
-        _model.SetTexture(_driver, 0);
-        _model.Render(_driver);
-        _driver.SetBackBufferRenderTarget();
-        _driver.ResetViewport();
+        _directX.SetBackBufferRenderTarget();
+        _directX.ResetViewport();
         return true;
     }
 
     private bool Render(float fadeAmount)
     {
-        _driver.BeginScene(0, 0, 0, 1);
-        _driver.TurnZBufferOff();
-        var worldMatrix = _driver.GetWorldMatrix();
+        _directX.BeginScene(0, 0, 0, 1);
+        _directX.TurnZBufferOff();
+        var worldMatrix = _directX.GetWorldMatrix();
         var baseViewMatrix = _camera.GetBaseViewMatrix();
-        var orthoMatrix = _driver.GetOrthoMatrix();
-        if (!_fadeShader.SetShaderParameters(_driver, worldMatrix, baseViewMatrix, orthoMatrix, fadeAmount))
+        var orthoMatrix = _directX.GetOrthoMatrix();
+        _fullScreenWindow.Render(_directX);
+        if (!_fadeShader.Render(_directX, _fullScreenWindow.GetIndexCount(), worldMatrix, baseViewMatrix, orthoMatrix, _renderTexture.GetShaderResourceView(), fadeAmount))
             return false;
-        _renderTexture.SetTexture(_driver, 0);
-        _fullScreenWindow.Render(_driver);
-        _driver.TurnZBufferOn();
-        _driver.EndScene();
+        _directX.TurnZBufferOn();
+        _directX.EndScene();
         return true;
     }
 }
