@@ -1,0 +1,1220 @@
+<html><head><title>Tutorial 49: Tessellation</title></head>
+<BODY TEXT="#FFFFFF" BGCOLOR="#000000" style="width:1000px">
+
+<p align="center"><font face="Arial" size="4" color="#FFFFFF"><b>
+Tutorial 49: Tessellation
+</b></font></p>
+
+<p align="center"><img border="0" src="../../images/pic3001.gif" width="1024" height="1"></p>
+
+<table align=center border=0 width=1024><tr>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Hardware tessellation became part of core OpenGL with version 4.0, exposing two additional programmable pipeline stages between the vertex shader and the fragment shader.
+This tutorial will cover how to perform tessellation using OpenGL 4.0 with GLSL and C++ on Linux.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Previously, to tessellate models, terrain, and such, you would need to do the subdivision of the polygon mesh in software.
+Once the subdivision was complete you would send the large number of polygons you generated to the video card.
+This method of tessellation was inefficient and created a rendering performance bottleneck.
+Starting with OpenGL 4.0 (shader model 5 class hardware) you can send your base polygon mesh to the video card and instruct the GPU to perform your specific subdivision algorithm in hardware.
+You are given complete control over the programming of the subdivision through two new programmable shader stages: the tessellation control shader and the tessellation evaluation shader.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+A note on naming.
+In Direct3D 11 these two stages are called the Hull Shader and the Domain Shader.
+Throughout the Rastertek series we keep the same filenames as the original DirectX tutorials, so the tessellation control shader source still lives in a file called <i>color.hs</i> (hull shader) and the tessellation evaluation shader source still lives in <i>color.ds</i> (domain shader).
+The GLSL source inside those files is regular OpenGL 4.0 code.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+For most of the tutorials in this series we have just written a vertex and fragment shader.
+Although there are many stages in the graphics pipeline our concern has only been those two programmable pieces.
+With the addition of the tessellation control and tessellation evaluation shaders we now write four shader programs instead of two to achieve hardware tessellation.
+In simple terms the main change is that the work the vertex shader used to do (transforming each vertex into clip space) gets pushed down to the tessellation evaluation shader, because the tessellator generates a brand-new set of vertices in between.
+The fragment shader remains as it was.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Also, instead of sending triangle lists to the video card we now send patch lists.
+A patch is a primitive made up of control points.
+For example, if we send a single triangle to the video card as a patch it is treated as a single patch with three control points.
+In OpenGL this is done by telling the driver how many vertices form a patch with <i>glPatchParameteri(GL_PATCH_VERTICES, 3)</i> and then issuing a draw call with <i>GL_PATCHES</i> as the primitive type.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The process can be very complicated but I am going to present just the basics of tessellation for this tutorial.
+We will be modifying tutorial 4 and tessellating the single green triangle into a triangle mesh made of many vertices.
+We will start first by looking at how we modify the color vertex shader from tutorial 4 to implement hardware tessellation.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Framework</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We will be using the same framework as tutorial 4.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Color.vs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The vertex shader is now reduced to a pass-through stage.
+It does not transform anything, because the actual transform of the final vertex will happen after tessellation in the tessellation evaluation shader.
+The vertex shader's purpose here is just to forward the per-control-point position and color into the tessellation control shader.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: color.vs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 inputPosition;
+in vec3 inputColor;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec3 hullPosition;
+out vec3 hullColor;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+	// Pass the vertex position into the hull (tessellation control) shader.
+	hullPosition = inputPosition;
+
+	// Pass the vertex color into the hull (tessellation control) shader.
+	hullColor = inputColor;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Color.hs</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the tessellation control shader (the GLSL counterpart of the Direct3D hull shader).
+The TCS is invoked once per output control point and is responsible for two things: outputting the control points that get fed into the fixed-function tessellator, and writing the per-patch tessellation levels that tell the tessellator how finely to subdivide.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The <i>layout(vertices = 3) out;</i> declaration is the GLSL equivalent of the HLSL <i>[outputcontrolpoints(3)]</i> attribute.
+It tells OpenGL that this shader emits three control points per patch, matching the three vertices we send in.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The <i>tessellationAmount</i> uniform supplies the shader with the tessellation factor.
+This value is set from the ColorShaderClass before rendering.
+Note that, unlike Direct3D 11 which requires a dedicated constant buffer bound to the hull stage, OpenGL exposes uniforms as part of the program object so all shader stages of the same program share the same uniform namespace.
+That makes the C++ side noticeably simpler: there is no "HSSetConstantBuffers" call; we just upload the uniform once.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: color.hs
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////
+// GLOBALS //
+/////////////
+layout(vertices = 3) out;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform float tessellationAmount;
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 hullPosition[];
+in vec3 hullColor[];
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec3 domainPosition[];
+out vec3 domainColor[];
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+In Direct3D 11 the hull shader is split into two HLSL functions, an output-control-point function and a patch-constant function.
+GLSL keeps everything in a single <i>main</i>.
+Each invocation writes its own control point through the per-vertex output array indexed by <i>gl_InvocationID</i>, and a single invocation (we pick invocation 0) writes the per-patch tessellation factors using the built-in arrays <i>gl_TessLevelOuter</i> and <i>gl_TessLevelInner</i>.
+The outer levels are the three edge factors (the HLSL <i>SV_TessFactor</i> array) and the inner level is the inside factor (the HLSL <i>SV_InsideTessFactor</i>).
+For this tutorial all four factors are set to the same value so the triangle is subdivided uniformly.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Hull (Tessellation Control) Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+	// Pass the control point's position and color through to the domain shader.
+	domainPosition[gl_InvocationID] = hullPosition[gl_InvocationID];
+	domainColor[gl_InvocationID] = hullColor[gl_InvocationID];
+
+	// Only the first invocation per patch needs to write the tessellation factors.
+	if(gl_InvocationID == 0)
+	{
+		// Set the tessellation factors for the three edges of the triangle.
+		gl_TessLevelOuter[0] = tessellationAmount;
+		gl_TessLevelOuter[1] = tessellationAmount;
+		gl_TessLevelOuter[2] = tessellationAmount;
+
+		// Set the tessellation factor for tessellating inside the triangle.
+		gl_TessLevelInner[0] = tessellationAmount;
+	}
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Color.ds</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+This is the tessellation evaluation shader (the GLSL counterpart of the Direct3D domain shader).
+The TES is invoked once for every new vertex that the fixed-function tessellator generates inside the patch.
+Its job is to compute the final position of that new vertex from the original control points and then transform it into clip space.
+This is where the world/view/projection multiplication that used to live in the vertex shader is now performed.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The <i>layout(triangles, equal_spacing, ccw) in;</i> declaration combines three HLSL attributes into one line:
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+&nbsp;&nbsp;&nbsp;&nbsp;<i>triangles</i> &mdash; the patch domain (equivalent to HLSL <i>[domain("tri")]</i>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>equal_spacing</i> &mdash; the partitioning mode (equivalent to HLSL <i>[partitioning("integer")]</i>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<i>ccw</i> &mdash; the winding of the generated triangles.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+A note on that <i>ccw</i> value.
+The original DX11 hull shader uses <i>[outputtopology("triangle_cw")]</i>.
+OpenGL's tessellator measures the orientation of its generated triangles in its own barycentric domain, which is flipped relative to Direct3D's; what is clockwise in DX comes out counter-clockwise here.
+Combined with our OpenGLClass setting <i>glFrontFace(GL_CW)</i> for the left-handed convention used in the rest of the series, <i>ccw</i> is the value that produces the same set of front-facing triangles as the DX11 tutorial.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The matrix uniforms are declared in the evaluation shader because that is where the new vertex actually gets transformed.
+Just like in the TCS, there is no per-stage constant buffer binding; we set the same uniforms on the same program object and OpenGL routes them to the right stage automatically.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: color.ds
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////
+// GLOBALS //
+/////////////
+layout(triangles, equal_spacing, ccw) in;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 domainPosition[];
+in vec3 domainColor[];
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec3 pixelColor;
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The built-in <i>gl_TessCoord</i> is the GLSL equivalent of HLSL's <i>SV_DomainLocation</i>.
+For triangle patches it contains the three barycentric weights u, v, w for the new vertex.
+Each weight tells us how much each control point contributes; here we use a straight weighted sum of the three control point positions to place the new vertex on the plane of the original triangle.
+Once we have the new position we multiply it through the world, view, and projection matrices exactly as the vertex shader used to do in earlier tutorials, and write the result to the built-in output <i>gl_Position</i>.
+The color is simply forwarded; we pick it from the first control point so the whole tessellated triangle stays green.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Domain (Tessellation Evaluation) Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+	vec3 vertexPosition;
+
+
+	// Determine the position of the new vertex.
+	vertexPosition = gl_TessCoord.x * domainPosition[0] +
+	                 gl_TessCoord.y * domainPosition[1] +
+	                 gl_TessCoord.z * domainPosition[2];
+
+	// Calculate the position of the new vertex against the world, view, and projection matrices.
+	gl_Position = vec4(vertexPosition, 1.0f) * worldMatrix;
+	gl_Position = gl_Position * viewMatrix;
+	gl_Position = gl_Position * projectionMatrix;
+
+	// Send the input color into the pixel shader.
+	pixelColor = domainColor[0];
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Color.ps</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The fragment shader is unchanged from the colored triangle tutorial.
+It simply forwards the interpolated color into the framebuffer.
+</font></p>
+
+<PRE><font face=arial color=#00ffff size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: color.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 pixelColor;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+	outputColor = vec4(pixelColor, 1.0f);
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Colorshaderclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ColorShaderClass has been extended to load and manage four shader objects (vertex, tessellation control, tessellation evaluation, and fragment) all attached to a single shader program.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: colorshaderclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _COLORSHADERCLASS_H_
+#define _COLORSHADERCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;iostream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class name: ColorShaderClass
+////////////////////////////////////////////////////////////////////////////////
+class ColorShaderClass
+{
+public:
+    ColorShaderClass();
+    ColorShaderClass(const ColorShaderClass&);
+    ~ColorShaderClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+SetShaderParameters now takes an additional float for the tessellation amount, which gets uploaded as a uniform that the tessellation control shader will read.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    bool SetShaderParameters(float*, float*, float*, float);</FONT><font face=arial color=#aaffaa size=2>
+
+private:</FONT><font face=arial color=#aaaaff size=2>
+    bool InitializeShader(char*, char*, char*, char*);</FONT><font face=arial color=#aaffaa size=2>
+    void ShutdownShader();
+    char* LoadShaderSourceFile(char*);
+    void OutputShaderErrorMessage(unsigned int, char*);
+    void OutputLinkerErrorMessage(unsigned int);
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    unsigned int m_vertexShader;</FONT><font face=arial color=#aaaaff size=2>
+    unsigned int m_hullShader;
+    unsigned int m_domainShader;</FONT><font face=arial color=#aaffaa size=2>
+    unsigned int m_fragmentShader;
+    unsigned int m_shaderProgram;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Colorshaderclass.cpp</u></font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: colorshaderclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "colorshaderclass.h"
+
+
+ColorShaderClass::ColorShaderClass()
+{
+    m_OpenGLPtr = 0;
+}
+
+
+ColorShaderClass::ColorShaderClass(const ColorShaderClass& other)
+{
+}
+
+
+ColorShaderClass::~ColorShaderClass()
+{
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The Initialize function now sets the filenames for four shader files instead of two, and forwards them to InitializeShader.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ColorShaderClass::Initialize(OpenGLClass* OpenGL)
+{
+    char vsFilename[128];</FONT><font face=arial color=#aaaaff size=2>
+    char hsFilename[128];
+    char dsFilename[128];</FONT><font face=arial color=#aaffaa size=2>
+    char psFilename[128];
+    bool result;
+
+
+    // Store the pointer to the OpenGL object.
+    m_OpenGLPtr = OpenGL;
+
+    // Set the location and names of the shader files.
+    strcpy(vsFilename, "../Engine/color.vs");</FONT><font face=arial color=#aaaaff size=2>
+    strcpy(hsFilename, "../Engine/color.hs");
+    strcpy(dsFilename, "../Engine/color.ds");</FONT><font face=arial color=#aaffaa size=2>
+    strcpy(psFilename, "../Engine/color.ps");
+
+    // Initialize the vertex, hull, domain, and fragment shaders.</FONT><font face=arial color=#aaaaff size=2>
+    result = InitializeShader(vsFilename, hsFilename, dsFilename, psFilename);</FONT><font face=arial color=#aaffaa size=2>
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+void ColorShaderClass::Shutdown()
+{
+    // Shutdown the shader.
+    ShutdownShader();
+
+    // Release the pointer to the OpenGL object.
+    m_OpenGLPtr = 0;
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The InitializeShader function has been expanded to load, compile, and attach four shader stages.
+The two new shader objects are created with the GL_TESS_CONTROL_SHADER and GL_TESS_EVALUATION_SHADER shader types.
+These constants are part of OpenGL 4.0 but they may be missing from older <i>&lt;GL/gl.h&gt;</i> headers, so we define them at the top of <i>openglclass.h</i> if they are not present (see the OpenGLClass section below).
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ColorShaderClass::InitializeShader(char* vsFilename, char* hsFilename, char* dsFilename, char* fsFilename)
+{
+    const char* vertexShaderBuffer;</FONT><font face=arial color=#aaaaff size=2>
+    const char* hullShaderBuffer;
+    const char* domainShaderBuffer;</FONT><font face=arial color=#aaffaa size=2>
+    const char* fragmentShaderBuffer;
+    int status;
+
+
+    // Load the vertex shader source file into a text buffer.
+    vertexShaderBuffer = LoadShaderSourceFile(vsFilename);
+    if(!vertexShaderBuffer)
+    {
+        return false;
+    }
+</FONT><font face=arial color=#aaaaff size=2>
+    // Load the hull (tessellation control) shader source file into a text buffer.
+    hullShaderBuffer = LoadShaderSourceFile(hsFilename);
+    if(!hullShaderBuffer)
+    {
+        return false;
+    }
+
+    // Load the domain (tessellation evaluation) shader source file into a text buffer.
+    domainShaderBuffer = LoadShaderSourceFile(dsFilename);
+    if(!domainShaderBuffer)
+    {
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Load the fragment shader source file into a text buffer.
+    fragmentShaderBuffer = LoadShaderSourceFile(fsFilename);
+    if(!fragmentShaderBuffer)
+    {
+        return false;
+    }
+
+    // Create the vertex, hull, domain, and fragment shader objects.
+    m_vertexShader = m_OpenGLPtr->glCreateShader(GL_VERTEX_SHADER);</FONT><font face=arial color=#aaaaff size=2>
+    m_hullShader = m_OpenGLPtr->glCreateShader(GL_TESS_CONTROL_SHADER);
+    m_domainShader = m_OpenGLPtr->glCreateShader(GL_TESS_EVALUATION_SHADER);</FONT><font face=arial color=#aaffaa size=2>
+    m_fragmentShader = m_OpenGLPtr->glCreateShader(GL_FRAGMENT_SHADER);
+
+    // Copy the shader source code strings into the vertex, hull, domain, and fragment shader objects.
+    m_OpenGLPtr->glShaderSource(m_vertexShader, 1, &vertexShaderBuffer, NULL);</FONT><font face=arial color=#aaaaff size=2>
+    m_OpenGLPtr->glShaderSource(m_hullShader, 1, &hullShaderBuffer, NULL);
+    m_OpenGLPtr->glShaderSource(m_domainShader, 1, &domainShaderBuffer, NULL);</FONT><font face=arial color=#aaffaa size=2>
+    m_OpenGLPtr->glShaderSource(m_fragmentShader, 1, &fragmentShaderBuffer, NULL);
+
+    // Release the shader source buffers.
+    delete [] vertexShaderBuffer;
+    vertexShaderBuffer = 0;
+</FONT><font face=arial color=#aaaaff size=2>
+    delete [] hullShaderBuffer;
+    hullShaderBuffer = 0;
+
+    delete [] domainShaderBuffer;
+    domainShaderBuffer = 0;</FONT><font face=arial color=#aaffaa size=2>
+
+    delete [] fragmentShaderBuffer;
+    fragmentShaderBuffer = 0;
+
+    // Compile the shaders.
+    m_OpenGLPtr->glCompileShader(m_vertexShader);</FONT><font face=arial color=#aaaaff size=2>
+    m_OpenGLPtr->glCompileShader(m_hullShader);
+    m_OpenGLPtr->glCompileShader(m_domainShader);</FONT><font face=arial color=#aaffaa size=2>
+    m_OpenGLPtr->glCompileShader(m_fragmentShader);
+
+    // Check to see if the vertex shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        OutputShaderErrorMessage(m_vertexShader, vsFilename);
+        return false;
+    }
+</FONT><font face=arial color=#aaaaff size=2>
+    // Check to see if the hull shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_hullShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        OutputShaderErrorMessage(m_hullShader, hsFilename);
+        return false;
+    }
+
+    // Check to see if the domain shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_domainShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        OutputShaderErrorMessage(m_domainShader, dsFilename);
+        return false;
+    }</FONT><font face=arial color=#aaffaa size=2>
+
+    // Check to see if the fragment shader compiled successfully.
+    m_OpenGLPtr->glGetShaderiv(m_fragmentShader, GL_COMPILE_STATUS, &status);
+    if(status != 1)
+    {
+        OutputShaderErrorMessage(m_fragmentShader, fsFilename);
+        return false;
+    }
+
+    // Create a shader program object.
+    m_shaderProgram = m_OpenGLPtr->glCreateProgram();
+
+    // Attach the vertex, hull, domain, and fragment shaders to the program object.
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_vertexShader);</FONT><font face=arial color=#aaaaff size=2>
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_hullShader);
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_domainShader);</FONT><font face=arial color=#aaffaa size=2>
+    m_OpenGLPtr->glAttachShader(m_shaderProgram, m_fragmentShader);
+
+    // Bind the shader input variables.
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 0, "inputPosition");
+    m_OpenGLPtr->glBindAttribLocation(m_shaderProgram, 1, "inputColor");
+
+    // Link the shader program.
+    m_OpenGLPtr->glLinkProgram(m_shaderProgram);
+
+    // Check the status of the link.
+    m_OpenGLPtr->glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &status);
+    if(status != 1)
+    {
+        OutputLinkerErrorMessage(m_shaderProgram);
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+ShutdownShader also has to detach and delete the two new tessellation shader objects.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ColorShaderClass::ShutdownShader()
+{
+    // Detach the shaders from the program.
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_vertexShader);</FONT><font face=arial color=#aaaaff size=2>
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_hullShader);
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_domainShader);</FONT><font face=arial color=#aaffaa size=2>
+    m_OpenGLPtr->glDetachShader(m_shaderProgram, m_fragmentShader);
+
+    // Delete the shaders.
+    m_OpenGLPtr->glDeleteShader(m_vertexShader);</FONT><font face=arial color=#aaaaff size=2>
+    m_OpenGLPtr->glDeleteShader(m_hullShader);
+    m_OpenGLPtr->glDeleteShader(m_domainShader);</FONT><font face=arial color=#aaffaa size=2>
+    m_OpenGLPtr->glDeleteShader(m_fragmentShader);
+
+    // Delete the shader program.
+    m_OpenGLPtr->glDeleteProgram(m_shaderProgram);
+
+    return;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The LoadShaderSourceFile, OutputShaderErrorMessage, and OutputLinkerErrorMessage helpers are identical to the texturing tutorial; they are included in the source archive but omitted here for brevity.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+SetShaderParameters has been extended with one extra parameter, <i>tessellationAmount</i>, which is uploaded as a single float uniform.
+In Direct3D 11 the matrices have to be re-bound into the domain stage with <i>DSSetConstantBuffers</i> and the tessellation factor into the hull stage with <i>HSSetConstantBuffers</i>; in OpenGL we simply call <i>glGetUniformLocation</i> and <i>glUniformMatrix4fv</i> / <i>glUniform1f</i> on the program object once, and the driver routes each uniform to whichever shader stage references it.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>bool ColorShaderClass::SetShaderParameters(float* worldMatrix, float* viewMatrix, float* projectionMatrix, float tessellationAmount)</FONT><font face=arial color=#aaffaa size=2>
+{
+    float tpWorldMatrix[16], tpViewMatrix[16], tpProjectionMatrix[16];
+    int location;
+
+
+    // Transpose the matrices to prepare them for the shader.
+    m_OpenGLPtr->MatrixTranspose(tpWorldMatrix, worldMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpViewMatrix, viewMatrix);
+    m_OpenGLPtr->MatrixTranspose(tpProjectionMatrix, projectionMatrix);
+
+    // Install the shader program as part of the current rendering state.
+    m_OpenGLPtr->glUseProgram(m_shaderProgram);
+
+    // Set the world matrix in the domain shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "worldMatrix");
+    if(location == -1)
+    {
+        cout << "World matrix is not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpWorldMatrix);
+
+    // Set the view matrix in the domain shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "viewMatrix");
+    if(location == -1)
+    {
+        cout << "View matrix is not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpViewMatrix);
+
+    // Set the projection matrix in the domain shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "projectionMatrix");
+    if(location == -1)
+    {
+        cout << "Projection matrix is not set." << endl;
+    }
+    m_OpenGLPtr->glUniformMatrix4fv(location, 1, false, tpProjectionMatrix);
+</FONT><font face=arial color=#aaaaff size=2>
+    // Set the tessellation amount in the hull (tessellation control) shader.
+    location = m_OpenGLPtr->glGetUniformLocation(m_shaderProgram, "tessellationAmount");
+    if(location == -1)
+    {
+        cout << "Tessellation amount is not set." << endl;
+    }
+    m_OpenGLPtr->glUniform1f(location, tessellationAmount);</FONT><font face=arial color=#aaffaa size=2>
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Modelclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ModelClass header is unchanged from tutorial 4.
+The triangle is still represented as three vertices with a position and a color, plus an index buffer of three indices.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _MODELCLASS_H_
+#define _MODELCLASS_H_
+
+
+//////////////
+// INCLUDES //
+//////////////
+#include &lt;fstream&gt;
+using namespace std;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "openglclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ModelClass
+////////////////////////////////////////////////////////////////////////////////
+class ModelClass
+{
+private:
+    struct VertexType
+    {
+        float x, y, z;
+        float r, g, b;
+    };
+
+public:
+    ModelClass();
+    ModelClass(const ModelClass&);
+    ~ModelClass();
+
+    bool Initialize(OpenGLClass*);
+    void Shutdown();
+    void Render();
+
+    int GetIndexCount();
+
+private:
+    bool InitializeBuffers();
+    void ShutdownBuffers();
+    void RenderBuffers();
+
+private:
+    OpenGLClass* m_OpenGLPtr;
+    int m_vertexCount, m_indexCount;
+    unsigned int m_vertexArrayId, m_vertexBufferId, m_indexBufferId;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Modelclass.cpp</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Most of ModelClass.cpp is identical to tutorial 4.
+The only changes happen in <i>RenderBuffers</i>: instead of drawing a regular triangle list we have to tell OpenGL that our indexed geometry is actually a patch list, and we have to tell the tessellator how many vertices form a patch.
+The rest of the file (constructor, Initialize, Shutdown, GetIndexCount, the vertex/index buffer setup and tear-down) is unchanged and is included in the source archive.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: modelclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "modelclass.h"
+
+
+bool ModelClass::InitializeBuffers()
+{
+    VertexType* vertices;
+    unsigned int* indices;
+
+
+    // Set the number of vertices in the vertex array.
+    m_vertexCount = 3;
+
+    // Set the number of indices in the index array.
+    m_indexCount = 3;
+
+    // Create the vertex array.
+    vertices = new VertexType[m_vertexCount];
+
+    // Create the index array.
+    indices = new unsigned int[m_indexCount];
+
+    // Load the vertex array with data.
+
+    // Bottom left.
+    vertices[0].x = -1.0f;  // Position.
+    vertices[0].y = -1.0f;
+    vertices[0].z =  0.0f;
+
+    vertices[0].r = 0.0f;  // Color.
+    vertices[0].g = 1.0f;
+    vertices[0].b = 0.0f;
+
+    // Top middle.
+    vertices[1].x = 0.0f;  // Position.
+    vertices[1].y = 1.0f;
+    vertices[1].z = 0.0f;
+
+    vertices[1].r = 0.0f;  // Color.
+    vertices[1].g = 1.0f;
+    vertices[1].b = 0.0f;
+
+    // Bottom right.
+    vertices[2].x =  1.0f;  // Position.
+    vertices[2].y = -1.0f;
+    vertices[2].z =  0.0f;
+
+    vertices[2].r = 0.0f;  // Color.
+    vertices[2].g = 1.0f;
+    vertices[2].b = 0.0f;
+
+    // Load the index array with data.
+    indices[0] = 0;  // Bottom left.
+    indices[1] = 1;  // Top middle.
+    indices[2] = 2;  // Bottom right.
+
+    // Allocate an OpenGL vertex array object.
+    m_OpenGLPtr->glGenVertexArrays(1, &m_vertexArrayId);
+
+    // Bind the vertex array object to store all the buffers and vertex attributes we create here.
+    m_OpenGLPtr->glBindVertexArray(m_vertexArrayId);
+
+    // Generate an ID for the vertex buffer.
+    m_OpenGLPtr->glGenBuffers(1, &m_vertexBufferId);
+
+    // Bind the vertex buffer and load the vertex (position and color) data into the vertex buffer.
+    m_OpenGLPtr->glBindBuffer(GL_ARRAY_BUFFER, m_vertexBufferId);
+    m_OpenGLPtr->glBufferData(GL_ARRAY_BUFFER, m_vertexCount * sizeof(VertexType), vertices, GL_STATIC_DRAW);
+
+    // Enable the two vertex array attributes.
+    m_OpenGLPtr->glEnableVertexAttribArray(0);  // Vertex position.
+    m_OpenGLPtr->glEnableVertexAttribArray(1);  // Vertex color.
+
+    // Specify the location and format of the position portion of the vertex buffer.
+    m_OpenGLPtr->glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(VertexType), 0);
+
+    // Specify the location and format of the color portion of the vertex buffer.
+    m_OpenGLPtr->glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(VertexType), (unsigned char*)NULL + (3 * sizeof(float)));
+
+    // Generate an ID for the index buffer.
+    m_OpenGLPtr->glGenBuffers(1, &m_indexBufferId);
+
+    // Bind the index buffer and load the index data into it.
+    m_OpenGLPtr->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+    m_OpenGLPtr->glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indexCount* sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+    // Now that the buffers have been loaded we can release the array data.
+    delete [] vertices;
+    vertices = 0;
+
+    delete [] indices;
+    indices = 0;
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+RenderBuffers is the one function that has to change for tessellation.
+First we tell OpenGL how many vertices form a single patch by calling <i>glPatchParameteri(GL_PATCH_VERTICES, 3)</i>.
+Then we issue the draw call with the primitive type <i>GL_PATCHES</i> instead of <i>GL_TRIANGLES</i>.
+Together these two calls are the OpenGL equivalent of <i>IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST)</i> in Direct3D 11.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>void ModelClass::RenderBuffers()
+{
+    // Bind the vertex array object that stored all the information about the vertex and index buffers.
+    m_OpenGLPtr->glBindVertexArray(m_vertexArrayId);
+</FONT><font face=arial color=#aaaaff size=2>
+    // Set the number of control points per patch.  Three control points form the triangle patch that will be tessellated.
+    m_OpenGLPtr->glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+    // Render the patch using the index buffer.  Each patch is dispatched to the tessellator and then drawn as triangles.
+    glDrawElements(GL_PATCHES, m_indexCount, GL_UNSIGNED_INT, 0);</FONT><font face=arial color=#aaffaa size=2>
+
+    return;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Openglclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Tessellation requires one new function pointer and four new enum constants.
+The constants <i>GL_PATCH_VERTICES</i>, <i>GL_PATCHES</i>, <i>GL_TESS_CONTROL_SHADER</i>, and <i>GL_TESS_EVALUATION_SHADER</i> are part of OpenGL 4.0, but they may be absent from the system <i>&lt;GL/gl.h&gt;</i> on some Linux distributions, so we guard them with <i>#ifndef</i> and define them at the top of <i>openglclass.h</i>.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>////////////////////////
+// TESSELLATION TOKENS //
+////////////////////////
+#ifndef GL_TESS_CONTROL_SHADER
+#define GL_TESS_CONTROL_SHADER 0x8E88
+#endif
+#ifndef GL_TESS_EVALUATION_SHADER
+#define GL_TESS_EVALUATION_SHADER 0x8E87
+#endif
+#ifndef GL_PATCHES
+#define GL_PATCHES 0x000E
+#endif
+#ifndef GL_PATCH_VERTICES
+#define GL_PATCH_VERTICES 0x8E72
+#endif</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We also need a typedef and a member function pointer for <i>glPatchParameteri</i>, which is the entry point we use to set the patch vertex count.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>typedef void (APIENTRY * PFNGLPATCHPARAMETERIPROC) (GLenum pname, GLint value);</FONT></PRE>
+
+<PRE><font face=arial color=#aaaaff size=2>    PFNGLPATCHPARAMETERIPROC glPatchParameteri;</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Openglclass.cpp</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Two small changes are needed in OpenGLClass.cpp.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+First, since the goal of this tutorial is to <i>see</i> the new triangles created by the tessellator, we switch the rasterizer into wireframe mode for the duration of this tutorial.
+This is done with a single <i>glPolygonMode</i> call inside <i>Initialize</i>, after depth testing and culling have been set up.
+This is the OpenGL equivalent of the DX11 tutorial setting <i>rasterDesc.FillMode = D3D11_FILL_WIREFRAME</i>.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>    // Set the depth buffer to be entirely cleared to 1.0 values.
+    glClearDepth(1.0f);
+
+    // Enable depth testing.
+    glEnable(GL_DEPTH_TEST);
+
+    // Set the polygon winding to clockwise front facing for the left handed system.
+    glFrontFace(GL_CW);
+
+    // Enable back face culling.
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+</FONT><font face=arial color=#aaaaff size=2>
+    // Render in wireframe so the tessellated sub-triangles are visible.
+    // This matches the DX11 Tutorial49 rasterizer state (D3D11_FILL_WIREFRAME).
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Second, in <i>LoadExtensionList</i> (the function that resolves all the modern OpenGL entry points through <i>glXGetProcAddress</i>) we add one more pointer for <i>glPatchParameteri</i>.
+This is the function ModelClass uses in <i>RenderBuffers</i> to tell the tessellator that each patch is made up of three control points.
+</font></p>
+
+<PRE><font face=arial color=#aaaaff size=2>    // Load the tessellation entry point for setting the patch vertex count.
+    glPatchParameteri = (PFNGLPATCHPARAMETERIPROC)glXGetProcAddress((unsigned char*)"glPatchParameteri");
+    if(!glPatchParameteri)
+    {
+        return false;
+    }
+
+    return true;
+}</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.h</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+The ApplicationClass header is unchanged from tutorial 4 except that it points at the new ColorShaderClass.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.h
+////////////////////////////////////////////////////////////////////////////////
+#ifndef _APPLICATIONCLASS_H_
+#define _APPLICATIONCLASS_H_
+
+
+/////////////
+// GLOBALS //
+/////////////
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_NEAR = 0.3f;
+const float SCREEN_DEPTH = 1000.0f;
+
+
+///////////////////////
+// MY CLASS INCLUDES //
+///////////////////////
+#include "inputclass.h"
+#include "openglclass.h"
+#include "colorshaderclass.h"
+#include "modelclass.h"
+#include "cameraclass.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Class Name: ApplicationClass
+////////////////////////////////////////////////////////////////////////////////
+class ApplicationClass
+{
+public:
+    ApplicationClass();
+    ApplicationClass(const ApplicationClass&);
+    ~ApplicationClass();
+
+    bool Initialize(Display*, Window, int, int);
+    void Shutdown();
+    bool Frame(InputClass*);
+
+private:
+    bool Render();
+
+private:
+    OpenGLClass* m_OpenGL;
+    ColorShaderClass* m_ColorShader;
+    ModelClass* m_Model;
+    CameraClass* m_Camera;
+};
+
+#endif
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Applicationclass.cpp</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+ApplicationClass::Initialize creates the OpenGL object, the color shader, the camera, and the triangle model.
+The camera is placed five units back along the negative Z axis so the triangle is visible.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>////////////////////////////////////////////////////////////////////////////////
+// Filename: applicationclass.cpp
+////////////////////////////////////////////////////////////////////////////////
+#include "applicationclass.h"
+
+
+ApplicationClass::ApplicationClass()
+{
+    m_OpenGL = 0;
+    m_ColorShader = 0;
+    m_Model = 0;
+    m_Camera = 0;
+}
+
+
+ApplicationClass::ApplicationClass(const ApplicationClass& other)
+{
+}
+
+
+ApplicationClass::~ApplicationClass()
+{
+}
+
+
+bool ApplicationClass::Initialize(Display* display, Window win, int screenWidth, int screenHeight)
+{
+    bool result;
+
+
+    // Create and initialize the OpenGL object.
+    m_OpenGL = new OpenGLClass;
+
+    result = m_OpenGL->Initialize(display, win, screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH, VSYNC_ENABLED);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the OpenGL object." << endl;
+        return false;
+    }
+
+    // Create and initialize the color shader object.
+    m_ColorShader = new ColorShaderClass;
+
+    result = m_ColorShader->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the color shader object." << endl;
+        return false;
+    }
+
+    // Create and initialize the camera object.
+    m_Camera = new CameraClass;
+
+    m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+    m_Camera->Render();
+
+    // Create and initialize the model object.
+    m_Model = new ModelClass;
+
+    result = m_Model->Initialize(m_OpenGL);
+    if(!result)
+    {
+        cout << "Error: Could not initialize the model object." << endl;
+        return false;
+    }
+
+
+    return true;
+}
+
+
+void ApplicationClass::Shutdown()
+{
+    // Release the model object.
+    if(m_Model)
+    {
+        m_Model->Shutdown();
+        delete m_Model;
+        m_Model = 0;
+    }
+
+    // Release the camera object.
+    if(m_Camera)
+    {
+        delete m_Camera;
+        m_Camera = 0;
+    }
+
+    // Release the color shader object.
+    if(m_ColorShader)
+    {
+        m_ColorShader->Shutdown();
+        delete m_ColorShader;
+        m_ColorShader = 0;
+    }
+
+    // Release the OpenGL object.
+    if(m_OpenGL)
+    {
+        m_OpenGL->Shutdown();
+        delete m_OpenGL;
+        m_OpenGL = 0;
+    }
+
+    return;
+}
+
+
+bool ApplicationClass::Frame(InputClass* Input)
+{
+    bool result;
+
+
+    // Check if the escape key has been pressed, if so quit.
+    if(Input->IsEscapePressed() == true)
+    {
+        return false;
+    }
+
+    // Render the graphics scene.
+    result = Render();
+    if(!result)
+    {
+        return false;
+    }
+
+    return true;
+}
+</FONT></PRE>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+Render is where the new tessellation parameter is used.
+We pick a tessellation amount of 12.0f and pass it into <i>SetShaderParameters</i> along with the world, view, and projection matrices.
+</font></p>
+
+<PRE><font face=arial color=#aaffaa size=2>bool ApplicationClass::Render()
+{
+    float worldMatrix[16], viewMatrix[16], projectionMatrix[16];</FONT><font face=arial color=#aaaaff size=2>
+    float tessellationAmount;</FONT><font face=arial color=#aaffaa size=2>
+    bool result;
+
+</FONT><font face=arial color=#aaaaff size=2>
+    // Set the color shader to subdivide the triangle into 12 sections.
+    tessellationAmount = 12.0f;</FONT><font face=arial color=#aaffaa size=2>
+
+    // Clear the buffers to begin the scene.
+    m_OpenGL->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Get the world, view, and projection matrices from the opengl and camera objects.
+    m_OpenGL->GetWorldMatrix(worldMatrix);
+    m_Camera->GetViewMatrix(viewMatrix);
+    m_OpenGL->GetProjectionMatrix(projectionMatrix);
+
+    // Set the color shader as the current shader program and set the matrices and tessellation amount that it will use for rendering.</FONT><font face=arial color=#aaaaff size=2>
+    result = m_ColorShader->SetShaderParameters(worldMatrix, viewMatrix, projectionMatrix, tessellationAmount);</FONT><font face=arial color=#aaffaa size=2>
+    if(!result)
+    {
+        return false;
+    }
+
+    // Render the model.
+    m_Model->Render();
+
+    // Present the rendered scene to the screen.
+    m_OpenGL->EndScene();
+
+    return true;
+}
+</FONT></PRE>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Summary</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+We can now subdivide our polygon meshes on the GPU using the OpenGL 4.0 tessellation pipeline instead of doing it on the CPU.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>To Do Exercises</u></font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+1. Compile and run the program, you should see a tessellated wire frame green triangle. Press escape to quit when done.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+2. Change the tessellation amount to see its effect on the tessellation of the triangle.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+3. Change the partitioning mode in the tessellation evaluation shader from <i>equal_spacing</i> to <i>fractional_even_spacing</i> or <i>fractional_odd_spacing</i> and observe how the edge factors are interpreted.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+4. Set the three outer tessellation factors to different values to see how the edges can be tessellated independently.
+</font></p>
+
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">
+5. Modify how the <i>gl_TessCoord</i> weights affect the position of the new vertex in the tessellation evaluation shader.
+</font></p>
+
+<br>
+<p align="left"><font face="Arial" size="3" color="#FFFFFF"><u>Source Code</u></font></p>
+<p align="left"><font face="Arial" size="2" color="#FFFFFF">Source Code and Data Files: <a href="../_archives/gl4linuxtut49_src.tar.gz">gl4linuxtut49_src.tar.gz</a></font></p>
+
+</tr></table>
+
+<p align="center"><img border="0" src="../../images/pic3002.gif" width="1024" height="1"></p>
+
+<p align="center"><font face="Arial, Helvetica, sans-serif" size="2" color="#CCCCCC"><a href="tutgl4linux.html">Back to Tutorial Index</a></font></p>
+
+</body></html>
