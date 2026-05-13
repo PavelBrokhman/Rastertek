@@ -1,0 +1,54 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: Color.ds
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////
+// GLOBALS //
+/////////////
+layout(triangles, equal_spacing, ccw) in;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec3 domainPosition[];
+in vec3 domainColor[];
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec3 pixelColor;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Domain (Tessellation Evaluation) Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+	vec3 vertexPosition;
+
+
+	// Determine the position of the new vertex.
+	vertexPosition = gl_TessCoord.x * domainPosition[0] +
+	                 gl_TessCoord.y * domainPosition[1] +
+	                 gl_TessCoord.z * domainPosition[2];
+
+	// Calculate the position of the new vertex against the world, view, and projection matrices.
+	gl_Position = vec4(vertexPosition, 1.0f) * worldMatrix;
+	gl_Position = gl_Position * viewMatrix;
+	gl_Position = gl_Position * projectionMatrix;
+
+	// Send the input color into the pixel shader.
+	pixelColor = domainColor[0];
+}

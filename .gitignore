@@ -10,3 +10,7 @@ build_log.txt
 # C++ build artifacts from RastertekOriginal/.../Engine/ make
 RastertekOriginal/**/Engine/*.o
 RastertekOriginal/**/Engine/client
+
+# C++ build artifacts from RastertekCS/source/.../Engine/ make
+RastertekCS/source/**/Engine/*.o
+RastertekCS/source/**/Engine/client
