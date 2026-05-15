@@ -41,8 +41,8 @@ public class SystemFramework
 
     private bool InitializeWindows(ref int sw, ref int sh)
     {
-        sw = SystemConfiguration.FullScreen ? 1920 : 800;
-        sh = SystemConfiguration.FullScreen ? 1080 : 600;
+        sw = SystemConfiguration.FullScreen ? 1920 : 1024;
+        sh = SystemConfiguration.FullScreen ? 1080 : 768;
         var options = WindowOptions.Default;
         options.Title = "Tutorial52";
         options.Size = new Vector2D<int>(sw, sh);
