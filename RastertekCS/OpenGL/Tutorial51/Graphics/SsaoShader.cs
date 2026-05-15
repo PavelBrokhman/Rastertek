@@ -21,12 +21,15 @@ public class SsaoShader
     {
         var gl = OpenGL.Gl;
         gl.UseProgram(m_shaderProgram);
+        var tpWorld = GL4.MatrixTranspose(world);
+        var tpView = GL4.MatrixTranspose(view);
+        var tpProj = GL4.MatrixTranspose(projection);
         int loc = gl.GetUniformLocation(m_shaderProgram, "worldMatrix"); if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&world);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpWorld);
         loc = gl.GetUniformLocation(m_shaderProgram, "viewMatrix"); if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&view);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpView);
         loc = gl.GetUniformLocation(m_shaderProgram, "projectionMatrix"); if (loc == -1) return false;
-        gl.UniformMatrix4(loc, 1, false, (float*)&projection);
+        gl.UniformMatrix4(loc, 1, false, (float*)&tpProj);
         loc = gl.GetUniformLocation(m_shaderProgram, "positionTexture"); if (loc == -1) return false; gl.Uniform1(loc, 0);
         loc = gl.GetUniformLocation(m_shaderProgram, "normalTexture"); if (loc == -1) return false; gl.Uniform1(loc, 1);
         loc = gl.GetUniformLocation(m_shaderProgram, "randomTexture"); if (loc == -1) return false; gl.Uniform1(loc, 2);

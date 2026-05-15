@@ -1,20 +1,48 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: gbuffer.ps
+////////////////////////////////////////////////////////////////////////////////
 #version 400
 
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
 in vec2 texCoord;
 in vec3 normal;
 in vec4 viewPosition;
 
-layout(location = 0) out vec4 outputPosition;
-layout(location = 1) out vec4 outputNormal;
-layout(location = 2) out vec4 outputColor;
 
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputPosition;
+out vec4 outputNormal;
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
 uniform sampler2D shaderTexture;
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
 void main(void)
 {
     vec3 inputNormal;
+
+
+    // Store the view space position into the RGB of the render to texture.
     outputPosition = vec4(viewPosition.x, viewPosition.y, viewPosition.z, 1.0f);
+
+    // Normalize the interpolated input normals.
     inputNormal = normalize(normal);
+
+    // Set the ouput data to be the normals into the RGB of the render to texture.
     outputNormal = vec4(inputNormal.x, inputNormal.y, inputNormal.z, 1.0f);
+
+    // Sample the color from the texture and store it for output to the deferred render target.
     outputColor = texture(shaderTexture, texCoord);
 }
