@@ -7,6 +7,9 @@
 # Per-machine build/run logs from run.sh / run.bat
 build_log.txt
 
+# C# Dev Kit (VS Code) per-machine language-service cache
+*.csproj.lscache
+
 # C++ build artifacts from RastertekOriginal/.../Engine/ make
 RastertekOriginal/**/Engine/*.o
 RastertekOriginal/**/Engine/client
