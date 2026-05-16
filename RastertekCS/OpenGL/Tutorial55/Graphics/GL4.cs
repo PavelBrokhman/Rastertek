@@ -30,8 +30,15 @@ public class GL4
     public void EndScene() { }
     public void TurnZBufferOn() => m_gl.Enable(EnableCap.DepthTest);
     public void TurnZBufferOff() => m_gl.Disable(EnableCap.DepthTest);
-    public void EnableAlphaBlending() { m_gl.Enable(EnableCap.Blend); m_gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha); }
-    public void EnableParticleAlphaBlending() { m_gl.Enable(EnableCap.Blend); m_gl.BlendFunc(BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha); }
+    public void EnableAlphaBlending() {
+        m_gl.Enable(EnableCap.Blend);
+        m_gl.BlendFuncSeparate(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha, BlendingFactor.One, BlendingFactor.Zero);
+    }
+    public void EnableParticleAlphaBlending() {
+        m_gl.Enable(EnableCap.Blend);
+        // Additive blend: result.RGB = src.RGB + dest.RGB (matches C++ openglclass)
+        m_gl.BlendFuncSeparate(BlendingFactor.One, BlendingFactor.One, BlendingFactor.Zero, BlendingFactor.OneMinusSrcAlpha);
+    }
     public void DisableAlphaBlending() => m_gl.Disable(EnableCap.Blend);
     public void SetBackBufferRenderTarget() => m_gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     public void ResetViewport() => m_gl.Viewport(0, 0, (uint)m_screenWidth, (uint)m_screenHeight);
