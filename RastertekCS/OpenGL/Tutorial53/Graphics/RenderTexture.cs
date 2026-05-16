@@ -1,3 +1,4 @@
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
 namespace RastertekCS.OpenGL.Tutorial53.Graphics;
@@ -6,10 +7,14 @@ public class RenderTexture
 {
     private int m_textureWidth, m_textureHeight;
     private uint m_frameBufferId, m_depthBufferId, m_textureID;
+    private Matrix4X4<float> m_orthoMatrix;
+
+    public Matrix4X4<float> GetOrthoMatrix() => m_orthoMatrix;
 
     public unsafe bool Initialize(GL4 OpenGL, int w, int h, float sn, float sd, int format)
     {
         var gl = OpenGL.Gl; m_textureWidth = w; m_textureHeight = h;
+        m_orthoMatrix = Matrix4X4.CreateOrthographicOffCenter<float>(-w / 2f, w / 2f, -h / 2f, h / 2f, sn, sd);
         m_frameBufferId = gl.GenFramebuffer(); gl.BindFramebuffer(FramebufferTarget.Framebuffer, m_frameBufferId);
         gl.ActiveTexture(TextureUnit.Texture0);
         m_textureID = gl.GenTexture(); gl.BindTexture(TextureTarget.Texture2D, m_textureID);

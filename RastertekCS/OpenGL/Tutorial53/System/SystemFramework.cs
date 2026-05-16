@@ -14,7 +14,7 @@ public class SystemFramework
     private Input m_Input;
     private GraphicsFramework m_Graphics;
     private bool m_done, m_graphicsInitialized;
-    private Timer m_Timer;
+    private Graphics.Timer m_Timer;
 
     public bool Initialize()
     {
@@ -24,7 +24,7 @@ public class SystemFramework
         if (!m_OpenGL.Initialize(m_window, sw, sh, SystemConfiguration.ScreenDepth,
                                   SystemConfiguration.ScreenNear, SystemConfiguration.VerticalSyncEnabled)) return false;
         m_Input = new Input(); m_Input.Initialize();
-        m_Timer = new Timer(); m_Timer.Initialize();
+        m_Timer = new Graphics.Timer(); m_Timer.Initialize();
         m_Graphics = new GraphicsFramework();
         if (!m_Graphics.Initialize(m_OpenGL, sw, sh)) return false;
         m_graphicsInitialized = true;
@@ -43,8 +43,8 @@ public class SystemFramework
 
     private bool InitializeWindows(ref int sw, ref int sh)
     {
-        sw = SystemConfiguration.FullScreen ? 1920 : 800;
-        sh = SystemConfiguration.FullScreen ? 1080 : 600;
+        sw = SystemConfiguration.FullScreen ? 1920 : 1024;
+        sh = SystemConfiguration.FullScreen ? 1080 : 768;
         var options = WindowOptions.Default;
         options.Title = "Tutorial53";
         options.Size = new Vector2D<int>(sw, sh);

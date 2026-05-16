@@ -9,7 +9,7 @@ public class Heat
     private float[] m_distortion1 = { 0.1f, 0.2f };
     private float[] m_distortion2 = { 0.1f, 0.3f };
     private float[] m_distortion3 = { 0.1f, 0.1f };
-    private float m_emissiveMultiplier = 0.35f;
+    private float m_emissiveMultiplier = 1.6f;
 
     public bool Initialize(GL4 OpenGL)
     {
@@ -20,7 +20,7 @@ public class Heat
 
     public void Shutdown(GL4 OpenGL) { m_noiseTexture?.Shutdown(OpenGL); }
 
-    public void Frame(float frameTime) { m_noiseFrameTime += frameTime * 0.3f; if (m_noiseFrameTime > 1000.0f) m_noiseFrameTime = 0.0f; }
+    public void Frame(float frameTime) { m_noiseFrameTime += frameTime * 0.075f; if (m_noiseFrameTime > 1000.0f) m_noiseFrameTime = 0.0f; }
 
     public void SetTexture(GL4 OpenGL, uint unit) => m_noiseTexture?.SetTexture(OpenGL, unit);
 

@@ -39,7 +39,7 @@ public class Texture
         int off = 18 + il, ch = bpp / 8, pc = w * h;
         if (d.Length < off + pc * ch) return false;
         rgba = new byte[pc * 4]; bool tl = (desc & 0x20) != 0;
-        for (int y = 0; y < h; y++) { int sr = tl ? y : (h - 1 - y); int so = off + sr * w * ch, dso = y * w * 4;
+        for (int y = 0; y < h; y++) { int sr = tl ? (h - 1 - y) : y; int so = off + sr * w * ch, dso = y * w * 4;
             for (int x = 0; x < w; x++) { rgba[dso+x*4] = d[so+x*ch+2]; rgba[dso+x*4+1] = d[so+x*ch+1]; rgba[dso+x*4+2] = d[so+x*ch]; rgba[dso+x*4+3] = ch==4?d[so+x*ch+3]:(byte)255; } }
         return true;
     }
