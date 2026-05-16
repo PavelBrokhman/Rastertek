@@ -1,0 +1,58 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: particle.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec4 pixColor;
+in vec3 data1;
+in vec2 texCoords1;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+    float alpha;
+    float intensity;
+
+    
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // Sample the alpha value using the translated texture coordinates instead of the regular coordinates.
+    alpha = texture(shaderTexture, texCoords1).a;
+
+    // Modify the color based on the scrolling alpha values.
+    textureColor.rgb = textureColor.rgb * alpha;
+
+    // Get the intensity value from the life time of the particle.  
+    intensity = data1.r;
+
+    // As the particle gets older use the life time as intensity to fade out the particle.
+    textureColor.rgb = textureColor.rgb * intensity;
+    
+    // Manually set the alpha.
+    textureColor.a = 1.0f;
+    
+    // Return the resulting color.
+    outputColor = textureColor;
+}

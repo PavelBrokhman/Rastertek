@@ -2,4 +2,4 @@ Particle Count: 400
 Particles Per Second: 100.0
 Particle Size: 0.5
 Particle Life Time: 2.0
-Texture 1: ../Engine/data/ice003.tga
+Texture 1: Data/ice003.tga
