@@ -1,0 +1,5 @@
+Count: 4
+Data/layer_10_sky.tga       0.00
+Data/layer_09_forest.tga    0.02
+Data/layer_08_forest.tga    0.04
+Data/layer_07_forest.tga    0.06

@@ -1,0 +1,46 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: scroll.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform float textureTranslation;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec2 texCoords1;
+    vec4 textureColor;
+
+
+    // Make a copy of the input texture coordinates.
+    texCoords1 = texCoord;
+
+    // Translate the position where we sample the pixel from.
+    texCoords1.x -= textureTranslation;
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = textureLod(shaderTexture, texCoords1, 0);
+
+    // Return the resulting color.
+    outputColor = textureColor;
+}
