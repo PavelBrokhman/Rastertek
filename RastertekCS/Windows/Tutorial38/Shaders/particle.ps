@@ -1,6 +1,18 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: particle.ps
+////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////
+// GLOBALS //
+/////////////
 Texture2D shaderTexture : register(t0);
 SamplerState SampleType : register(s0);
 
+
+//////////////
+// TYPEDEFS //
+//////////////
 struct PixelInputType
 {
     float4 position : SV_POSITION;
@@ -8,8 +20,21 @@ struct PixelInputType
     float4 color : COLOR;
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
 float4 ParticlePixelShader(PixelInputType input) : SV_TARGET
 {
-    float4 textureColor = shaderTexture.Sample(SampleType, input.tex);
-    return textureColor * input.color;
+	float4 textureColor;
+    float4 finalColor;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+    // Combine the texture color and the particle color to get the final color result.
+    finalColor = textureColor * input.color;
+
+    return finalColor;
 }

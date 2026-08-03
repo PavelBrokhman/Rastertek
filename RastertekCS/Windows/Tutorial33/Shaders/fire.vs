@@ -2,14 +2,18 @@
 // Filename: fire.vs
 ////////////////////////////////////////////////////////////////////////////////
 
-cbuffer MatrixBuffer : register(b0)
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer MatrixBuffer
 {
-    matrix worldMatrix;
-    matrix viewMatrix;
-    matrix projectionMatrix;
+	matrix worldMatrix;
+	matrix viewMatrix;
+	matrix projectionMatrix;
 };
 
-cbuffer NoiseBuffer : register(b1)
+cbuffer NoiseBuffer
 {
     float frameTime;
     float3 scrollSpeeds;
@@ -17,6 +21,10 @@ cbuffer NoiseBuffer : register(b1)
     float padding;
 };
 
+
+//////////////
+// TYPEDEFS //
+//////////////
 struct VertexInputType
 {
     float4 position : POSITION;
@@ -32,25 +40,37 @@ struct PixelInputType
     float2 texCoords3 : TEXCOORD3;
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
 PixelInputType FireVertexShader(VertexInputType input)
 {
     PixelInputType output;
-
+	
+    
+	// Change the position vector to be 4 units for proper matrix calculations.
     input.position.w = 1.0f;
+
+	// Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
-
+    
+	// Store the texture coordinates for the pixel shader.
     output.tex = input.tex;
+    
+	// Compute texture coordinates for first noise texture using the first scale and upward scrolling speed values.
+    output.texCoords1 = (input.tex * scales.x);
+    output.texCoords1.y = output.texCoords1.y + (frameTime * scrollSpeeds.x);
 
-    output.texCoords1 = input.tex * scales.x;
-    output.texCoords1.y += frameTime * scrollSpeeds.x;
+    // Compute texture coordinates for second noise texture using the second scale and upward scrolling speed values.
+    output.texCoords2 = (input.tex * scales.y);
+    output.texCoords2.y = output.texCoords2.y + (frameTime * scrollSpeeds.y);
 
-    output.texCoords2 = input.tex * scales.y;
-    output.texCoords2.y += frameTime * scrollSpeeds.y;
-
-    output.texCoords3 = input.tex * scales.z;
-    output.texCoords3.y += frameTime * scrollSpeeds.z;
-
+    // Compute texture coordinates for third noise texture using the third scale and upward scrolling speed values.
+    output.texCoords3 = (input.tex * scales.z);
+    output.texCoords3.y = output.texCoords3.y + (frameTime * scrollSpeeds.z);
+	
     return output;
 }

@@ -1,3 +1,22 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: color.vs
+////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////
+// GLOBALS //
+/////////////
+cbuffer MatrixBuffer
+{
+	matrix worldMatrix;
+	matrix viewMatrix;
+	matrix projectionMatrix;
+};
+
+
+//////////////
+// TYPEDEFS //
+//////////////
 struct VertexInputType
 {
     float4 position : POSITION;
@@ -10,10 +29,20 @@ struct HullInputType
     float4 color : COLOR;
 };
 
-HullInputType ColorVertexShader(VertexInputType input)
+
+////////////////////////////////////////////////////////////////////////////////
+// Vertex Shader
+////////////////////////////////////////////////////////////////////////////////
+HullInputType  ColorVertexShader(VertexInputType input)
 {
     HullInputType output;
-    output.position = input.position.xyz;
+    
+
+	// Pass the vertex position into the hull shader.
+    output.position = input.position;
+    
+    // Pass the input color into the hull shader.
     output.color = input.color;
+    
     return output;
 }
