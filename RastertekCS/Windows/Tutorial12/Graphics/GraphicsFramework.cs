@@ -4,7 +4,6 @@ namespace RastertekCS.Windows.Tutorial12.Graphics;
 
 public class GraphicsFramework
 {
-    private const int BITMAP_SIZE = 256;
 
     private DX11 _directX;
     private Camera _camera;
@@ -30,12 +29,11 @@ public class GraphicsFramework
                 screenWidth,
                 screenHeight,
                 "Data/Stone01.tga",
-                BITMAP_SIZE,
-                BITMAP_SIZE
+                50,
+                50
             )
         )
             return false;
-        _bitmap.SetRenderLocation(50, 50);
 
         return true;
     }

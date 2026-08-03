@@ -29,7 +29,7 @@ public class GraphicsFramework
         _light = new Light();
         _light.SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
         _light.SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-        _light.SetDirection(1.0f, 0.0f, 1.0f);
+        _light.SetDirection(1.0f, 0.0f, 0.0f);
 
         return true;
     }

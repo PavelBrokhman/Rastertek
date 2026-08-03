@@ -35,21 +35,24 @@ public unsafe class Bitmap
         int screenWidth,
         int screenHeight,
         string textureFilename,
-        int bitmapWidth,
-        int bitmapHeight
+        int renderX,
+        int renderY
     )
     {
         _screenWidth = screenWidth;
         _screenHeight = screenHeight;
-        _bitmapWidth = bitmapWidth;
-        _bitmapHeight = bitmapHeight;
-        _renderX = 0;
-        _renderY = 0;
+        _renderX = renderX;
+        _renderY = renderY;
 
         if (!InitializeBuffers(DirectX))
             return false;
         if (!LoadTexture(DirectX, textureFilename))
             return false;
+
+        // bitmapclass.cpp takes the quad size from the loaded texture, not from
+        // a caller-supplied constant.
+        _bitmapWidth = _texture.GetWidth();
+        _bitmapHeight = _texture.GetHeight();
 
         return true;
     }
