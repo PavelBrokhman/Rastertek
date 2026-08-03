@@ -33,7 +33,7 @@ public class GraphicsFramework
         _camera.RenderBaseViewMatrix();
 
         _model = new Model();
-        if (!_model.Initialize(OpenGL, "Models/cube.txt", "Data/stone01.tga", "Data/glowmap001.tga")) return false;
+        if (!_model.Initialize(OpenGL, "Models/Cube.txt", "Data/stone01.tga", "Data/glowmap001.tga")) return false;
 
         _renderTexture = new RenderTexture();
         if (!_renderTexture.Initialize(OpenGL, screenWidth, screenHeight, ScreenDepth, ScreenNear)) return false;
