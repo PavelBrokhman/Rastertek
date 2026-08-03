@@ -15,7 +15,7 @@ public class GraphicsFramework
     private DeferredBuffers _deferredBuffers;
     private DeferredShader _deferredShader;
     private LightShader _lightShader;
-    private float _rotation = 360.0f;
+    private float _rotation = 0.0f;
 
     public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
@@ -62,8 +62,8 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        _rotation -= 0.0174532925f * 0.5f;
-        if (_rotation <= 0.0f) _rotation += 360.0f;
+        _rotation -= 0.0174532925f * 0.25f;
+        if (_rotation < 0.0f) _rotation += 360.0f;
 
         if (!RenderSceneToTexture(_rotation)) return false;
         return Render();

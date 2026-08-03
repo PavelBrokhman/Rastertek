@@ -46,9 +46,9 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        _rotation += 0.01f;
-        if (_rotation > MathF.Tau)
-            _rotation -= MathF.Tau;
+        _rotation -= 0.0174532925f * 0.25f;
+        if (_rotation < 0.0f)
+            _rotation += 360.0f;
         return Render();
     }
 

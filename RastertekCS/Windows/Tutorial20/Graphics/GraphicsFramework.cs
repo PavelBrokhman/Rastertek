@@ -9,7 +9,7 @@ public class GraphicsFramework
     private Model _model;
     private NormalMapShader _normalMapShader;
     private Light _light;
-    private float _rotation = MathF.Tau;
+    private float _rotation = 360.0f;
 
     public bool Initialize(DX11 DirectX)
     {
@@ -55,9 +55,9 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        _rotation -= 0.0174532925f * 1.0f;
+        _rotation -= 0.0174532925f * 0.25f;
         if (_rotation <= 0.0f)
-            _rotation += MathF.Tau;
+            _rotation += 360.0f;
         return Render();
     }
 

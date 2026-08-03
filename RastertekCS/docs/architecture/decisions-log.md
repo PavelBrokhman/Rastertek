@@ -2,6 +2,32 @@
 
 Minor wrapper-level changes made to keep the C# port working while still mirroring the Rastertek tutorials.
 
+## The original is the source of truth - shaders and models are copied, not rewritten
+
+The standing rule for this port, restated 2026-08-03:
+
+- **Shaders (`.vs` / `.ps` / `.hlsl`) and model / asset data files must be
+  byte-identical to the original tutorial's.** They are copied across, never
+  retyped, reformatted or "improved". A shader that differs is a bug even if
+  the picture looks fine.
+- **C# code mirrors the original class by class and method by method.** Where
+  Silk.NET forces a different call shape, the surrounding structure still
+  matches so the two can be read side by side.
+- **Numeric constants are original values, not equivalents.** This is where
+  the port has actually been failing: rotation steps, initial angles, camera
+  positions, blend factors. A calibration pass on 2026-08-03 found the
+  animation rate wrong in three of five sampled tutorials (07, 20, 50 - by
+  4x, 4x and 2x, one of them also reversed in direction), each of which
+  compiles and renders a perfectly plausible picture.
+- **The reference to compare against is the original binary**, built with
+  `Tools/build-original.cmd` and captured with `Tools/shot.cmd` - not the
+  screenshot on the tutorial page. See `project-structure/tutorial-status.md`.
+
+Corollary for animated tutorials: a screenshot cannot settle whether they
+match, because two runs are captured at unrelated moments of the same
+animation. Compare the animation constants in code; use the screenshot for
+composition, colour and whether anything is drawn at all.
+
 ## Asset / model corrections
 
 - **Tut08 cube transforms** match Rastertek exactly: rotation+translate (-2,0,0) and scale 0.5 + rotation + translate (+2,0,0), camera at (0,0,-10), light direction (0,0,1).
