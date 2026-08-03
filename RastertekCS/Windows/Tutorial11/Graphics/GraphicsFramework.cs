@@ -16,7 +16,6 @@ public class GraphicsFramework
 
         _camera = new Camera();
         _camera.SetPosition(0.0f, 2.0f, -12.0f);
-        _camera.SetRotation(15.0f, 0.0f, 0.0f);
 
         _model = new Model();
         if (!_model.Initialize(DirectX, "Models/Plane.txt", "Data/Stone01.tga", true))
