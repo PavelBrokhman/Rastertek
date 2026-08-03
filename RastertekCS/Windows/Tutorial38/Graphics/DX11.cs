@@ -208,8 +208,8 @@ public unsafe class DX11
         blendDesc.RenderTarget[0] = new RenderTargetBlendDesc
         {
             BlendEnable = true,
-            SrcBlend = Blend.SrcAlpha,
-            DestBlend = Blend.InvSrcAlpha,
+            SrcBlend = Blend.One,
+            DestBlend = Blend.One,
             BlendOp = BlendOp.Add,
             SrcBlendAlpha = Blend.One,
             DestBlendAlpha = Blend.Zero,
