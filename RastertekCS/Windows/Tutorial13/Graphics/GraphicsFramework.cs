@@ -22,7 +22,7 @@ public class GraphicsFramework
             return false;
 
         _sprite = new Sprite();
-        if (!_sprite.Initialize(DirectX, screenWidth, screenHeight, "Data/Sprite.txt", 50, 50))
+        if (!_sprite.Initialize(DirectX, screenWidth, screenHeight, "Data/sprite_data_01.txt", 50, 50))
             return false;
 
         return true;

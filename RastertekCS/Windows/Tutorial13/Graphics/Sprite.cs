@@ -30,6 +30,7 @@ public unsafe class Sprite
         _screenHeight;
     private int _bitmapWidth,
         _bitmapHeight;
+    private string[] _textureFiles;
     private int _renderX,
         _renderY;
     private int _previousPositionX = -1,
@@ -55,15 +56,16 @@ public unsafe class Sprite
             return false;
 
         _textures = new Texture[_textureCount];
-        var lines = File.ReadAllLines(spriteFilename);
-        int startLine = 3;
         for (int i = 0; i < _textureCount; i++)
         {
-            var texFile = lines[startLine + i].Trim();
             _textures[i] = new Texture();
-            if (!_textures[i].Initialize(DirectX, texFile, false))
+            if (!_textures[i].Initialize(DirectX, _textureFiles[i], false))
                 return false;
         }
+
+        // spriteclass.cpp takes the quad size from the first frame's texture.
+        _bitmapWidth = _textures[0].GetWidth();
+        _bitmapHeight = _textures[0].GetHeight();
 
         if (!InitializeBuffers(DirectX))
             return false;
@@ -273,12 +275,21 @@ public unsafe class Sprite
     {
         if (!File.Exists(filename))
             return false;
-        var lines = File.ReadAllLines(filename);
-        _textureCount = int.Parse(lines[0].Split(':')[1].Trim(), CultureInfo.InvariantCulture);
-        _cycleTime = float.Parse(lines[1].Split(':')[1].Trim(), CultureInfo.InvariantCulture);
-        var size = lines[2].Split(':')[1].Trim().Split(' ');
-        _bitmapWidth = int.Parse(size[0], CultureInfo.InvariantCulture);
-        _bitmapHeight = int.Parse(size[1], CultureInfo.InvariantCulture);
+        // Same layout as the original's sprite_data_01.txt: frame count, one
+        // texture path per frame, then the cycle time in milliseconds. The
+        // quad size is not in the file - it comes from the texture.
+        var lines = File
+            .ReadAllLines(filename)
+            .Select(l => l.Trim())
+            .Where(l => l.Length > 0)
+            .ToArray();
+
+        _textureCount = int.Parse(lines[0], CultureInfo.InvariantCulture);
+        _textureFiles = new string[_textureCount];
+        for (int i = 0; i < _textureCount; i++)
+            _textureFiles[i] = lines[1 + i];
+
+        _cycleTime = float.Parse(lines[1 + _textureCount], CultureInfo.InvariantCulture);
         return true;
     }
 }

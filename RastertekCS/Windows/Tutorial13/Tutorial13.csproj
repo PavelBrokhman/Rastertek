@@ -22,8 +22,8 @@
     <None Update="Shaders\Texture.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\Texture.ps" CopyToOutputDirectory="PreserveNewest" />
     <None
-      Include="..\..\Assets\Data\Sprite.txt"
-      Link="Data\Sprite.txt"
+      Include="..\..\Assets\Data\sprite_data_01.txt"
+      Link="Data\sprite_data_01.txt"
       CopyToOutputDirectory="PreserveNewest"
     />
     <None

@@ -10,6 +10,7 @@ param(
     [string]$Series = 'DirectX',
     [string]$Tutorial = '',
     [switch]$Assets,
+    [string]$Asset = '',
     [switch]$WhatIf
 )
 
@@ -65,6 +66,8 @@ if ($Assets) {
     }
 
     foreach ($f in Get-ChildItem (Join-Path $port 'Assets') -File -Recurse) {
+        # -Asset narrows the sync to one file; without it every asset is checked.
+        if ($Asset -ne '' -and $f.Name -ne $Asset) { continue }
         $key = $f.Name.ToLower()
         if (-not $origAssets.ContainsKey($key)) { $noOriginal++; continue }
 
