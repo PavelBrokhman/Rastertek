@@ -43,18 +43,32 @@ blending question.
 | 02-23 | framework, lighting, 2D, fonts, input, mapping | yes | ported | not checked |
 | 24 | Loading Maya Models | none | stub (`Program.cs` only) | n/a - no source published |
 | 25-50 | RTT through deferred shading | yes | ported | not checked |
-| 51 | Screen Space Ambient Occlusion | yes | - | - |
-| 52 | Physically Based Rendering | yes | - | - |
-| 53 | Heat | yes | - | - |
+| 51 | Screen Space Ambient Occlusion | yes | ported, built | `verified` (2026-08-03) |
+| 52 | Physically Based Rendering | yes | ported, built | `verified` (2026-08-03) |
+| 53 | Heat | yes | ported, built | `verified` (2026-08-03) |
 | 54 | Parallax Scrolling | yes | ported, built | `verified` (2026-08-03) |
 | 55 | Direct Sound | yes | - | - |
 | 56 | 3D Sound | yes | - | - |
 | 57 | XAudio2 | yes | - | - |
 | 58 | X3DAudio | yes | - | - |
-| 59 | Animated Particles | yes | - | - |
+| 59 | Animated Particles | yes | - | **next** - the last visual gap in series 1 |
 | 60 | XInput | yes | - | - |
 
-Ports present: 02-50 (24 is a stub) and 54. Missing: **51, 52, 53, 55-60**.
+Ports present: 02-54 (24 is a stub). Missing: **55-60**.
+
+**Tut59 is the only visual one left in this series**, and it is scoped: its
+class list is identical to Tut38's, so it clones that scaffold. What differs
+is the particle system itself - the vertex carries a `data1` (TEXCOORD1) with
+per-particle scroll values instead of a colour, the pixel shader samples the
+alpha through those scrolled coordinates, and the parameters come from
+`particle_config_01.txt` (400 particles, 100 per second, size 0.5, life 2.0,
+ice003.tga) rather than being hardcoded. Scroll advances at `frameTime * 0.5`
+and wraps at 1. The same tutorial already exists as the OpenGL port Tut55,
+which is a useful structural reference.
+
+Tut55-58 are audio and Tut60 is XInput; both are deferred by
+[[rastertek-scope-decisions]] until every visual tutorial in all three series
+is done.
 
 ## Series 2 - Terrain, legacy (`tutterr`)
 
