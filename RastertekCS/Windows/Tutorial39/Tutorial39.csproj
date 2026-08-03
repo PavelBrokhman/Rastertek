@@ -32,8 +32,8 @@
       CopyToOutputDirectory="PreserveNewest"
     />
     <None
-      Include="..\..\Assets\Data\opengl_logo.tga"
-      Link="Data\opengl_logo.tga"
+      Include="..\..\Assets\Data\directx_logo.tga"
+      Link="Data\directx_logo.tga"
       CopyToOutputDirectory="PreserveNewest"
     />
     <None

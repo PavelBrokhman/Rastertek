@@ -34,7 +34,7 @@ public class GraphicsFramework
             return false;
 
         _projectionTexture = new Texture();
-        if (!_projectionTexture.Initialize(DirectX, "Data/opengl_logo.tga", false))
+        if (!_projectionTexture.Initialize(DirectX, "Data/directx_logo.tga", false))
             return false;
 
         _viewPoint = new ViewPoint();
