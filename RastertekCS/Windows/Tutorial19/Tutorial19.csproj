@@ -32,7 +32,7 @@
       CopyToOutputDirectory="PreserveNewest"
     />
     <None
-      Include="..\..\Assets\Data\alpha01.tga"
+      Include="..\..\Assets\Data\alpha01_tut19.tga"
       Link="Data\alpha01.tga"
       CopyToOutputDirectory="PreserveNewest"
     />

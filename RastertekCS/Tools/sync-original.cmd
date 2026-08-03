@@ -12,5 +12,5 @@ rem caller's shell and the next switch would slide into -Tutorial's value.
 set TUTARG=
 if not "%~2"=="" if /i not "%~2"=="all" set TUTARG=-Tutorial %~2
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0sync-original.ps1" -Series %SERIES% %TUTARG% %3 %4 %5 %6
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0sync-original.ps1" -Series %SERIES% %TUTARG% %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%

@@ -11,6 +11,8 @@ param(
     [string]$Tutorial = '',
     [switch]$Assets,
     [string]$Asset = '',
+    [string]$FromTutorial = '',
+    [string]$As = '',
     [switch]$WhatIf
 )
 
@@ -20,6 +22,25 @@ $orig = Join-Path $root "RastertekOriginal\$Series"
 $port = Join-Path $root 'RastertekCS'
 
 function Get-Hash($path) { (Get-FileHash -Path $path -Algorithm SHA256).Hash }
+
+# Different tutorials ship different files under the same asset name (Tut19 and
+# Tut33 both have an alpha01.tga, and they are not the same image). The port
+# keeps one flat pool, so such a file has to be pulled from a named tutorial and
+# stored under a distinct name, with the csproj linking it back to the original
+# name at build time.
+if ($Asset -ne '' -and $FromTutorial -ne '') {
+    $src = Join-Path $orig "Tutorial$FromTutorial\Engine\data\$Asset"
+    if (-not (Test-Path $src)) { Write-Output "NOT FOUND $src"; exit 1 }
+    $destName = if ($As -ne '') { $As } else { $Asset }
+    $dest = Join-Path $port "Assets\Data\$destName"
+    if ($WhatIf) {
+        Write-Output "  would copy   Tutorial$FromTutorial\$Asset -> Assets\Data\$destName"
+    } else {
+        Copy-Item -Path $src -Destination $dest -Force
+        Write-Output "  copied       Tutorial$FromTutorial\$Asset -> Assets\Data\$destName"
+    }
+    exit 0
+}
 
 $copied = 0; $already = 0; $noOriginal = 0
 

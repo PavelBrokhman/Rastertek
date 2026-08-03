@@ -75,6 +75,22 @@ foreach ($tut in Get-ChildItem $orig -Directory -Filter 'Tutorial*') {
 }
 Write-Output "(original asset pool: $($origAssets.Count) distinct file names)"
 
+# A name that maps to more than one distinct file cannot be checked by name
+# alone: the port's flat pool holds one of them, and matching "some original
+# called that" would pass even when the wrong tutorial's file is in place.
+# This is how Tut19 ended up shipping Tut33's alpha01.tga.
+$collisions = 0
+foreach ($k in $origAssets.Keys) {
+    $distinct = ($origAssets[$k] | Sort-Object -Unique)
+    if ($distinct.Count -gt 1) {
+        Write-Output "  NAME COLLISION  $k - $($distinct.Count) different originals share this name"
+        $collisions++
+    }
+}
+if ($collisions -gt 0) {
+    Write-Output "  ($collisions name(s) cannot be verified by name alone - check per tutorial)"
+}
+
 $assetIdentical = 0; $assetDiffer = 0; $assetMissing = 0
 foreach ($f in Get-ChildItem (Join-Path $port 'Assets') -File -Recurse) {
     $key = $f.Name.ToLower()

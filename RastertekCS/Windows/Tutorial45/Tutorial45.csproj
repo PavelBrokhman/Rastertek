@@ -23,7 +23,7 @@
     <None Update="Shaders\transparentdepth.ps" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\shadow.vs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Shaders\shadow.ps" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\Assets\Data\dirt01.tga" Link="Data\dirt01.tga" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\Assets\Data\dirt01_tut45.tga" Link="Data\dirt01.tga" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\Assets\Data\trunk001.tga" Link="Data\trunk001.tga" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\Assets\Data\leaf001.tga" Link="Data\leaf001.tga" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\Assets\Models\plane01.txt" Link="Models\plane01.txt" CopyToOutputDirectory="PreserveNewest" />
