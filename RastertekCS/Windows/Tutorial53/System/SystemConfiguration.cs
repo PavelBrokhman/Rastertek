@@ -9,7 +9,7 @@ public class SystemConfiguration
 
     static SystemConfiguration()
     {
-        FullScreen = false;
+        FullScreen = true;
         VerticalSyncEnabled = true;
         ScreenDepth = 1000.0f;
         ScreenNear = 0.3f;

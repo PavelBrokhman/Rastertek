@@ -48,10 +48,16 @@ $portDir    = Join-Path $root "RastertekCS\Windows\Tutorial$Nn\bin\Debug\net8.0"
 if (-not (Test-Path $origEngine)) { Write-Output "NO_ORIGINAL Tutorial$Nn"; exit 1 }
 
 if (-not (Test-Path $exe)) {
-    Write-Output "building the original (first time for this tutorial, takes a moment)..."
+    Write-Output 'building the original (first time for this tutorial, takes a moment)...'
     & (Join-Path $PSScriptRoot 'build-original.cmd') $Series $Nn | Out-Null
     if (-not (Test-Path $exe)) { Write-Output "BUILD_FAILED original Tutorial$Nn"; exit 1 }
 }
+
+# Where the original hardcodes FULL_SCREEN = true the port does the same, so the
+# two cannot sit beside each other. Say so rather than pretending otherwise -
+# the original's code is never altered to make comparison convenient.
+$bothFullScreen = (Select-String -Path (Join-Path $origEngine 'applicationclass.h') `
+    -Pattern 'const bool FULL_SCREEN = true' -Quiet)
 # Always rebuild the port: the pair was just killed, so nothing holds the DLL,
 # and this picks up any fix made between one tutorial and the next.
 & dotnet build (Join-Path $root "RastertekCS\Windows\Tutorial$Nn") -v q --nologo -clp:ErrorsOnly | Out-Null
@@ -86,6 +92,11 @@ foreach ($pair in @(@($pCpp, 0), @($pCs, 1))) {
     [void][LiveWin]::SetWindowPos($h, [IntPtr](-1), $x, $y, 0, 0, 0x0041)  # NOSIZE|SHOWWINDOW
 }
 
-Write-Output "Tutorial$Nn is up:  LEFT = C++ original   RIGHT = C# port"
+if ($bothFullScreen) {
+    Write-Output "Tutorial$Nn is up: both run FULL SCREEN, as the original does."
+    Write-Output "  They overlap - alt-tab between them, or use shot-many.cmd $Nn for two captures."
+} else {
+    Write-Output "Tutorial$Nn is up:  LEFT = C++ original   RIGHT = C# port"
+}
 if ($pCpp.HasExited) { Write-Output "  WARNING: the original exited immediately (code $($pCpp.ExitCode))" }
 if ($pCs.HasExited)  { Write-Output "  WARNING: the port exited immediately (code $($pCs.ExitCode))" }
