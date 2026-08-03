@@ -42,7 +42,7 @@ public class GraphicsFramework
     {
         _parallaxForest.Frame(frameTime);
 
-        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(1.0f, 0.0f, 0.0f, 1.0f);
 
         var world = _directX.GetWorldMatrix();
         var baseView = _camera.GetBaseViewMatrix();
@@ -51,11 +51,11 @@ public class GraphicsFramework
         _directX.EnableAlphaBlending();
         _directX.TurnZBufferOff();
 
-        _fullScreenWindow.Render(_directX);
-
         int count = _parallaxForest.GetTextureCount();
         for (int i = 0; i < count; i++)
         {
+            _fullScreenWindow.Render(_directX);
+
             if (!_scrollShader.Render(_directX, _fullScreenWindow.GetIndexCount(), world, baseView, ortho,
                 _parallaxForest.GetTexture(i), _parallaxForest.GetTranslation(i))) return false;
         }
