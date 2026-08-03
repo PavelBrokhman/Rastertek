@@ -1,45 +1,74 @@
 # Walkthrough verdicts and remaining defects
 
 Pavel judged all 50 DirectX tutorials side by side against the original C++
-binaries on **2026-08-03** (`Tools/shot.cmd <NN> live`). This is the queue
-that came out of it.
+binaries on **2026-08-03** (`Tools/shot.cmd <NN> live`, original left, port
+right). This is what came out of it and what is left.
 
-## Accepted
+## Status
 
-02, 04, 05, 06, 08, 10, 14, 15, 16, 17, 18, 20, 21, 22, 26, 28, 29, 32, 33,
-35, 36, 47, 48, 49 - and 03 after its clear colour was fixed mid-walkthrough.
+Every tutorial in the walkthrough is accepted. One residual, in Tut42, is
+open and described at the bottom.
 
-## Closed by the mip-chain fix
+Accepted outright: 02-06, 08, 10, 14-18, 20-22, 26, 28, 29, 32, 33, 35, 36,
+47, 48, 49.
 
-Reported as "matte" - the C++ surface soft, the C# one hard-edged. One cause,
-fixed across all 43 affected `Texture.cs` (see the commit "build the full mip
-chain, as textureclass.cpp does"). **Needs re-judging, not re-diagnosing:**
+Accepted after a fix this session: 03 (clear colour), 07 and 09 (light
+direction), 11 (plane model, then the invented camera tilt), 12 (bitmap
+sizing), 13 (sprite data), 19 (wrong tutorial's alpha map), 31 and 45 (wrong
+tutorial's texture), 37, 38 (blend recipe), 39 (wrong logo), 42 (depth
+range), and the group reported as "matte" - 23, 25, 27, 30, 34, 40, 41, 43,
+44, 46, 50 - which were all the missing mip chain.
 
-23, 25, 27, 30, 31, 34, 40, 41, 43, 44, 46, 50
+No original exists for **Tut24**: Rastertek never published the Maya chapter's
+source, and the port is a stub. Nothing to compare, nothing to do.
 
-Two of these carry a second, separate symptom - see below (11, 37, 45).
+## What the walkthrough actually found
 
-## Still open, one by one
+Almost none of it was one-off. Each visible defect turned out to be an
+instance of a class, and each class was then swept across all 50 tutorials at
+once. In order of how much they affected:
 
-| NN | Symptom | Note |
-|----|---------|------|
-| 07 | the right-hand side goes black almost immediately as it rotates right; Tut08 does the same thing correctly | Tut07 has no ambient term yet, so a dark side is expected - but compare against the original's falloff and the normal transform |
-| 09 | ambient does not work | the tutorial's whole subject |
-| 11 | colours duller, zone boundaries blurred, plane sits higher | partly the mip chain; the plane height is separate |
-| 12 | wrong size | |
-| 13 | sprites differ and behave differently | |
-| 19 | green appears at the top and left; should only be on the right | alpha map orientation |
-| 37 | fade does not work | also reported matte |
-| 38 | harness crashed on a null `MainWindowHandle` - fixed in `live.ps1`; the tutorial itself is unjudged | |
-| 39 | different pictures | |
-| 45 | **reversed**: C++ is the sharper one, C# the matte one | so not the mip chain - a different cause |
+| Class | Instances |
+|---|---|
+| shaders rewritten instead of copied | 76 of 146 |
+| texture created without a mip chain | 43 |
+| rotation constants invented | 13 |
+| blend recipe wrong (three recipes exist, the port used one) | 8 |
+| depth range wrong in the shadow tutorials | 4 |
+| an asset name carrying different files in different tutorials | 4 |
+| camera position | 3 |
+| light direction | 2 |
+| clear colour, camera tilt, cube geometry, plane model, sprite timing | 1 each |
 
-## No original to compare against
+The lesson worth keeping: a symptom Pavel could see in one tutorial was
+usually present, invisibly, in a dozen others. Chasing the report alone would
+have fixed the tutorial and left the class.
 
-| NN | |
-|----|---|
-| 24 | `NO_ORIGINAL` - Rastertek never published a source archive for the Maya chapter; the port is a stub |
-| 42 | `BUILD_FAILED` - `RastertekOriginal/DirectX/Tutorial42` has no `applicationclass.cpp` and no shaders of the port's names. Resolve the source before judging |
+## Open: Tut42's sphere
+
+The scene, both shadows, the geometry and the layout match. The sphere's
+surface does not: the original shows the mottled cloud-like ice texture,
+the port shows a smoother surface with faint arcs.
+
+Verified identical or equal, so **do not re-check these**:
+
+- `ice.tga` (looked at directly via `Tools/tga-to-png.cmd` - it is the
+  cloudy texture), `sphere.txt`, the four shaders, the sampler description,
+  the csproj link, the shadow map bias 0.0022, both light positions and
+  colours, the shader parameter set
+- the mip recipe: Tut42's own `textureclass.cpp` generates mips exactly as
+  the port now does
+- mip *selection*: pinning the sampler to the top level (`MaxLOD = 0`)
+  changed nothing on the sphere
+
+The cube and the ground are textured correctly in the same frame, so the
+input layout, the model loader and the slot bindings are sound. The
+difference is confined to the sphere's shading and is not visible by reading
+the sources.
+
+Next step is a different instrument, not another pass over the code: a
+RenderDoc frame capture of both processes, or dumping the constant buffer
+contents at runtime and diffing the numbers.
 
 ## How to re-run one
 
