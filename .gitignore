@@ -14,6 +14,11 @@ build_log.txt
 RastertekOriginal/**/Engine/*.o
 RastertekOriginal/**/Engine/client
 
+# ...and from Tools/build-original.cmd, which builds the originals on Windows
+# so a port can be captured next to the real thing
+RastertekOriginal/**/Engine/*.obj
+RastertekOriginal/**/Engine/client.exe
+
 # C++ build artifacts from RastertekCS/source/.../Engine/ make
 RastertekCS/source/**/Engine/*.o
 RastertekCS/source/**/Engine/client
