@@ -16,7 +16,7 @@ public class GraphicsFramework
         _directX = DirectX;
 
         _camera = new Camera();
-        _camera.SetPosition(0.0f, 0.0f, -5.0f);
+        _camera.SetPosition(0.0f, 0.0f, -10.0f);
 
         _model = new Model();
         if (!_model.Initialize(DirectX, "Models/Cube.txt", "Data/Stone01.tga", true))
@@ -47,9 +47,9 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        _rotation += 0.01f;
-        if (_rotation > MathF.Tau)
-            _rotation -= MathF.Tau;
+        _rotation -= 0.0174532925f * 0.25f;
+        if (_rotation < 0.0f)
+            _rotation += 360.0f;
         return Render();
     }
 

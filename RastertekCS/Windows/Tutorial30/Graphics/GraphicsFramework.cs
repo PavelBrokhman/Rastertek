@@ -14,7 +14,7 @@ public class GraphicsFramework
     private RenderTexture _renderTexture;
     private TextureShader _textureShader;
     private ReflectionShader _reflectionShader;
-    private float _rotation = MathF.Tau;
+    private float _rotation = 0.0f;
 
     public bool Initialize(DX11 DirectX, int screenWidth, int screenHeight)
     {
@@ -73,9 +73,9 @@ public class GraphicsFramework
 
     public bool Frame()
     {
-        _rotation -= 0.0174532925f * 1.0f;
+        _rotation -= 0.0174532925f * 0.25f;
         if (_rotation < 0.0f)
-            _rotation += MathF.Tau;
+            _rotation += 360.0f;
         if (!RenderReflectionToTexture())
             return false;
         return Render();

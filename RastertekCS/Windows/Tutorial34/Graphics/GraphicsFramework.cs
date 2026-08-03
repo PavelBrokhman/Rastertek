@@ -18,7 +18,7 @@ public class GraphicsFramework
         _directX = DirectX;
 
         _camera = new Camera();
-        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
         _camera.Render();
 
         _textureShader = new TextureShader();

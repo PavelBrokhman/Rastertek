@@ -33,7 +33,7 @@ public class GraphicsClass
 
     private bool Render()
     {
-        _directX.BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+        _directX.BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
 
         _directX.EndScene();
 

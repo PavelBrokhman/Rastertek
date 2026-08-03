@@ -67,8 +67,8 @@ public class GraphicsFramework
     public bool Frame()
     {
         _timer.Frame();
-        _rotation -= 0.0174532925f;
-        if (_rotation <= 0.0f)
+        _rotation -= 0.0174532925f * 0.25f;
+        if (_rotation < 0.0f)
             _rotation += 360.0f;
         _accumulatedTime += _timer.GetTime();
         float fadePercentage = _accumulatedTime < FadeInTimeMs ? _accumulatedTime / FadeInTimeMs : 1.0f;

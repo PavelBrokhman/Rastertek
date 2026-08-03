@@ -5,9 +5,11 @@ rem   series defaults to DirectX; only used by the cpp side
 setlocal
 
 if "%~2"=="" (
-    echo usage: shot.cmd ^<NN^> ^<cpp^|cs^> [series] [delayMs]
-    echo   e.g. shot.cmd 07 cpp
-    echo        shot.cmd 07 cs
+    echo usage: shot.cmd ^<NN^> ^<cpp^|cs^|live^|stop^> [series] [delayMs]
+    echo   e.g. shot.cmd 07 cpp     capture the original
+    echo        shot.cmd 07 cs      capture the port
+    echo        shot.cmd 07 live    run both side by side, leave them up
+    echo        shot.cmd 00 stop    close the running pair
     exit /b 1
 )
 
@@ -17,6 +19,15 @@ set SERIES=%~3
 set DELAY=%~4
 if "%SERIES%"=="" set SERIES=DirectX
 if "%DELAY%"=="" set DELAY=5000
+
+if /i "%SIDE%"=="live" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0live.ps1" -Nn %NN% -Series %SERIES% -Action start
+    exit /b %errorlevel%
+)
+if /i "%SIDE%"=="stop" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0live.ps1" -Nn %NN% -Series %SERIES% -Action stop
+    exit /b %errorlevel%
+)
 
 set ROOT=%~dp0..\..
 set HARNESS=D:\Projects\claude-hub\shared\app-screenshot\capture.ps1

@@ -12,7 +12,7 @@ public class GraphicsFramework
         _directX = DirectX;
 
         _camera = new Camera();
-        _camera.SetPosition(0.0f, 0.0f, -10.0f);
+        _camera.SetPosition(0.0f, 0.0f, -5.0f);
 
         _model = new Model();
         if (!_model.Initialize(DirectX))
