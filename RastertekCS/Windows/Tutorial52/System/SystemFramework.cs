@@ -58,8 +58,9 @@ public class SystemFramework
 
     private bool InitializeWindows(ref int screenWidth, ref int screenHeight)
     {
-        screenWidth = SystemConfiguration.FullScreen ? 1920 : 1024;
-        screenHeight = SystemConfiguration.FullScreen ? 1080 : 768;
+        // systemclass.cpp: 1280x720 when windowed, the desktop resolution otherwise.
+        screenWidth = SystemConfiguration.FullScreen ? 1920 : 1280;
+        screenHeight = SystemConfiguration.FullScreen ? 1080 : 720;
         var options = WindowOptions.Default;
         options.Title = "Tutorial52 - PBR (DirectX 11)";
         options.Size = new Vector2D<int>(screenWidth, screenHeight);

@@ -64,7 +64,7 @@ public unsafe class PbrShader
         fixed (byte* pVsSource = vsSource)
             SilkMarshal.ThrowHResult(compiler.Compile(pVsSource, (nuint)vsSource.Length,
                 (byte*)SilkMarshal.StringToPtr(vsFilename, NativeStringEncoding.Ansi), null, (ID3DInclude*)null,
-                (byte*)SilkMarshal.StringToPtr("PBRVertexShader", NativeStringEncoding.Ansi),
+                (byte*)SilkMarshal.StringToPtr("PbrVertexShader", NativeStringEncoding.Ansi),
                 (byte*)SilkMarshal.StringToPtr("vs_5_0", NativeStringEncoding.Ansi),
                 0, 0, &pVsBlob, &pErrorBlob));
         ComPtr<ID3D10Blob> vsBlob = pVsBlob;
@@ -76,7 +76,7 @@ public unsafe class PbrShader
         fixed (byte* pPsSource = psSource)
             SilkMarshal.ThrowHResult(compiler.Compile(pPsSource, (nuint)psSource.Length,
                 (byte*)SilkMarshal.StringToPtr(psFilename, NativeStringEncoding.Ansi), null, (ID3DInclude*)null,
-                (byte*)SilkMarshal.StringToPtr("PBRPixelShader", NativeStringEncoding.Ansi),
+                (byte*)SilkMarshal.StringToPtr("PbrPixelShader", NativeStringEncoding.Ansi),
                 (byte*)SilkMarshal.StringToPtr("ps_5_0", NativeStringEncoding.Ansi),
                 0, 0, &pPsBlob, &pErrorBlob));
         ComPtr<ID3D10Blob> psBlob = pPsBlob;
