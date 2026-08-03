@@ -68,9 +68,12 @@ Start-Sleep -Milliseconds 4500
 $screen = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
 foreach ($pair in @(@($pCpp, 0), @($pCs, 1))) {
     $proc = $pair[0]; $slot = $pair[1]
+    if ($proc.HasExited) { continue }
     $proc.Refresh()
+    # A process that died, or has not opened its window yet, yields $null here -
+    # passing that to GetWindowRect throws a conversion error.
     $h = $proc.MainWindowHandle
-    if ($h -eq [IntPtr]::Zero) { continue }
+    if ($null -eq $h -or $h -eq [IntPtr]::Zero) { continue }
 
     $r = New-Object LiveWin+RECT
     [void][LiveWin]::GetWindowRect($h, [ref]$r)
