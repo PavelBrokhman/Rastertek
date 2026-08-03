@@ -6,8 +6,8 @@ public class GraphicsFramework
 {
     private const int SHADOWMAP_WIDTH = 1024;
     private const int SHADOWMAP_HEIGHT = 1024;
-    private const float SCREEN_DEPTH = 1000.0f;
-    private const float SCREEN_NEAR = 0.3f;
+    private const float SCREEN_DEPTH = 100.0f;
+    private const float SCREEN_NEAR = 1.0f;
 
     private DX11 _directX;
     private Camera _camera;

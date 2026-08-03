@@ -11,7 +11,7 @@ public class SystemConfiguration
     {
         FullScreen = false;
         VerticalSyncEnabled = true;
-        ScreenDepth = 1000.0f;
-        ScreenNear = 0.3f;
+        ScreenDepth = 100.0f;
+        ScreenNear = 1.0f;
     }
 }
