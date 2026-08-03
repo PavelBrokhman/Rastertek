@@ -28,34 +28,35 @@ public unsafe class Texture
         {
             Width = (uint)width,
             Height = (uint)height,
-            MipLevels = 1,
+            MipLevels = 0,
             ArraySize = 1,
             Format = Format.FormatR8G8B8A8Unorm,
             SampleDesc = new SampleDesc(1, 0),
             Usage = Usage.Default,
-            BindFlags = (uint)BindFlag.ShaderResource,
+            BindFlags = (uint)(BindFlag.ShaderResource | BindFlag.RenderTarget),
             CPUAccessFlags = 0,
-            MiscFlags = 0,
+            MiscFlags = (uint)ResourceMiscFlag.GenerateMips,
         };
+        // Like textureclass.cpp: create empty with a full mip chain, fill mip 0,
+        // then let the GPU build the rest.
+        SilkMarshal.ThrowHResult(device.CreateTexture2D(&textureDesc, null, ref _texture));
+
         fixed (byte* pPixels = pixels)
         {
-            var initData = new SubresourceData
-            {
-                PSysMem = pPixels,
-                SysMemPitch = (uint)(width * 4),
-                SysMemSlicePitch = 0,
-            };
-            SilkMarshal.ThrowHResult(device.CreateTexture2D(&textureDesc, &initData, ref _texture));
+            DirectX.DeviceContext.UpdateSubresource(
+                _texture, 0, null, pPixels, (uint)(width * 4), 0);
         }
         var srvDesc = new ShaderResourceViewDesc
         {
             Format = Format.FormatR8G8B8A8Unorm,
             ViewDimension = D3DSrvDimension.D3DSrvDimensionTexture2D,
-            Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = 1 },
+            Texture2D = new Tex2DSrv { MostDetailedMip = 0, MipLevels = unchecked((uint)-1) },
         };
         SilkMarshal.ThrowHResult(
             device.CreateShaderResourceView(_texture, &srvDesc, ref _textureView)
         );
+
+        DirectX.DeviceContext.GenerateMips(_textureView);
         var samplerDesc = new SamplerDesc
         {
             Filter = Filter.MinMagMipLinear,
