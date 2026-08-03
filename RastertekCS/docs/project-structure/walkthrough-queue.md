@@ -66,8 +66,23 @@ input layout, the model loader and the slot bindings are sound. The
 difference is confined to the sphere's shading and is not visible by reading
 the sources.
 
-Next step is a different instrument, not another pass over the code: a
-RenderDoc frame capture of both processes, or dumping the constant buffer
+Magnified 4x (`Tools/crop.ps1`), the difference is structural rather than a
+loss of sharpness: the original's surface reads as cloud-like ice, while the
+port lays horizontal ring-shaped bands over it, following lines of latitude.
+
+**UV orientation is ruled out.** The sphere is not generated in code - it is
+read from `sphere.txt`, which is byte-identical - and the port's `LoadModel`
+takes the same columns as the original (`tokens[3]` to `tu`, `tokens[4]` to
+`tv`), copying them into the vertex buffer unchanged. No swap, no flip. So
+the usual suspects for a rotated sphere texture (atan2 argument order,
+winding, a V-flip on load) do not apply here.
+
+Latitude-aligned banding points at the shading rather than the texture, so
+the next thing to compare is the normal handling and the diffuse term - not
+the UVs, and not the texture.
+
+Beyond that, the instrument matters more than another pass over the sources:
+a RenderDoc frame capture of both processes, or dumping the constant buffer
 contents at runtime and diffing the numbers.
 
 ## How to re-run one
