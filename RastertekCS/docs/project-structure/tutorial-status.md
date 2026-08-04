@@ -51,20 +51,11 @@ blending question.
 | 56 | 3D Sound | yes | - | - |
 | 57 | XAudio2 | yes | - | - |
 | 58 | X3DAudio | yes | - | - |
-| 59 | Animated Particles | yes | - | **next** - the last visual gap in series 1 |
+| 59 | Animated Particles | yes | ported, built | `verified` (2026-08-03) |
 | 60 | XInput | yes | - | - |
 
-Ports present: 02-54 (24 is a stub). Missing: **55-60**.
-
-**Tut59 is the only visual one left in this series**, and it is scoped: its
-class list is identical to Tut38's, so it clones that scaffold. What differs
-is the particle system itself - the vertex carries a `data1` (TEXCOORD1) with
-per-particle scroll values instead of a colour, the pixel shader samples the
-alpha through those scrolled coordinates, and the parameters come from
-`particle_config_01.txt` (400 particles, 100 per second, size 0.5, life 2.0,
-ice003.tga) rather than being hardcoded. Scroll advances at `frameTime * 0.5`
-and wraps at 1. The same tutorial already exists as the OpenGL port Tut55,
-which is a useful structural reference.
+Ports present: 02-54 and 59 (24 is a stub). **Every visual tutorial in this
+series is done.**
 
 Tut55-58 are audio and Tut60 is XInput; both are deferred by
 [[rastertek-scope-decisions]] until every visual tutorial in all three series
